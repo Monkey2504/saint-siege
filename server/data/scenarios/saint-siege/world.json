@@ -1,0 +1,1655 @@
+{
+  "polityOverrides": {
+    "Saint-Siège": {
+      "name": "Saint-Siège",
+      "aliases": [
+        "Vatican",
+        "Holy See",
+        "Vatican City",
+        "Cité du Vatican"
+      ],
+      "color": "#facc15",
+      "note": "Le pape et le gouvernement central de l'Église catholique. Un État sans territoire dont la puissance est spirituelle, institutionnelle et financière."
+    },
+    "Bloc des cardinaux des dubia": {
+      "name": "Bloc des cardinaux des dubia",
+      "aliases": [],
+      "color": "#7f1d1d",
+      "note": "Les cinq cardinaux qui ont soumis des dubia au pape en octobre 2023 — Walter Brandmüller, Raymond Burke, Joseph Zen, Juan Sandoval Íñiguez, Robert Sarah — et ceux qui les suivent dans le Collège. Ils contestent la synodalité, la bénédiction des couples irréguliers et toute réforme doctrinale ; leurs réponses publiques ont déclaré que celles du pape « n'ont pas résolu les doutes mais les ont approfondis »."
+    },
+    "Chemin synodal allemand": {
+      "name": "Chemin synodal allemand",
+      "aliases": [],
+      "color": "#1d4ed8",
+      "note": "Le Synodaler Weg, porté par le cardinal Reinhard Marx et la Conférence épiscopale allemande — l'Église la plus riche du monde (Kirchensteuer : 6,751 milliards d'euros en 2025). Il pousse vers des structures de gouvernance contraignantes, le diaconat féminin et l'extension du modèle synodal à l'Église universelle ; le Vatican a déclaré qu'il n'a « aucun pouvoir d'obliger les évêques et les fidèles ». La pression progressiste, l'autre mâchoire de l'étau."
+    },
+    "Vieille garde de la Secrétairerie d'État": {
+      "name": "Vieille garde de la Secrétairerie d'État",
+      "aliases": [],
+      "color": "#4b5563",
+      "note": "L'appareil de la Secrétairerie d'État tel qu'il régnait avant Praedicate Evangelium (2022), qui l'a ramenée au rang de simple secrétariat papal à égalité avec les dicastères, et avant le transfert de tous ses fonds et investissements à l'APSA au 1er janvier 2021. L'héritage du réseau Becciu : l'investissement de 350 millions d'euros dans l'immeuble de Sloane Avenue à Londres, 140 millions de perte, le cardinal condamné à cinq ans et demi. L'inertie, les carrières, les réseaux italiens."
+    },
+    "Appareil financier du Vatican": {
+      "name": "Appareil financier du Vatican",
+      "aliases": [],
+      "color": "#b45309",
+      "note": "L'IOR (5,4 milliards d'euros d'actifs, 32,8 millions de profit en 2024 ; des centaines de comptes fermés depuis 2014), l'APSA (trésorerie et fonds souverain : 62,2 millions de profit exceptionnel, 46,1 millions versés pour couvrir le déficit de la Curie en 2024), l'ASIF (superviseur), le Conseil et la Secrétairerie pour l'Économie, le Réviseur général. Et le fonds de pension : environ 664 millions de dollars de déficit pour le seul Saint-Siège (2022), 1,04 milliard avec la Cité et le Vicariat de Rome — une réforme « urgente et inévitable » confiée au cardinal Farrell en novembre 2024. Là où le scandale guette."
+    },
+    "Opus Dei": {
+      "name": "Opus Dei",
+      "aliases": [],
+      "color": "#111827",
+      "note": "Prélature personnelle de 85 000 membres (2025). Rétrogradée par le motu proprio Ad charisma tuendum (22 juillet 2022) : son prélat n'est plus évêque mais protonotaire apostolique surnuméraire, et elle relève désormais du Dicastère pour le Clergé. Un réseau discret, riche, présent dans les universités, les finances et les gouvernements des pays catholiques, qui protège son autonomie."
+    },
+    "Compagnie de Jésus": {
+      "name": "Compagnie de Jésus",
+      "aliases": [],
+      "color": "#065f46",
+      "note": "Les Jésuites : 13 768 membres (2025), l'ordre du pape François, le vivier intellectuel de la réforme — mais avec son propre agenda (Amérique latine, dialogue, justice sociale) et sa propre lecture de ce que « réformer » veut dire. Un allié naturel qui n'est pas un exécutant. Avec les Salésiens (14 614), les Franciscains (15 130), les Capucins (11 092) et les Dominicains (5 369), les ordres pèsent près de la moitié des cardinaux créés récemment."
+    }
+  },
+  "countryTags": {
+    "Saint-Siège": [
+      "theocratic",
+      "neutral",
+      "non-aligned",
+      "city-state",
+      "reformist"
+    ],
+    "Bloc des cardinaux des dubia": [
+      "church-faction",
+      "conservative",
+      "traditionalist",
+      "doctrinal"
+    ],
+    "Chemin synodal allemand": [
+      "church-faction",
+      "progressive",
+      "synodal",
+      "reformist"
+    ],
+    "Vieille garde de la Secrétairerie d'État": [
+      "church-faction",
+      "bureaucratic",
+      "curial",
+      "conservative"
+    ],
+    "Appareil financier du Vatican": [
+      "church-faction",
+      "financial",
+      "technocratic",
+      "opaque"
+    ],
+    "Opus Dei": [
+      "church-faction",
+      "conservative",
+      "network",
+      "autonomous"
+    ],
+    "Compagnie de Jésus": [
+      "church-faction",
+      "reformist",
+      "intellectual",
+      "missionary"
+    ]
+  },
+  "countryStats": {
+    "Saint-Siège": {
+      "capital": "Cité du Vatican",
+      "continent": "Europe",
+      "government": "Monarchie élective absolue (pontificat)",
+      "history": [
+        "2022-06-05: Praedicate Evangelium réforme la Curie romaine : seize dicastères, la Secrétairerie d'État rétrogradée.",
+        "2023-12: Le cardinal Becciu est condamné à cinq ans et demi pour l'affaire de Sloane Avenue (140 millions d'euros de perte).",
+        "2024-11-19: Le fonds de pension est déclaré en grave déséquilibre prospectif (~664 M$ de déficit)."
+      ]
+    },
+    "Bloc des cardinaux des dubia": {
+      "capital": "Rome",
+      "continent": "Europe",
+      "government": "Faction interne de l'Église catholique",
+      "leader": "le cardinal Raymond Leo Burke, avec les cardinaux Brandmüller, Sarah, Zen et Sandoval Íñiguez",
+      "history": [
+        "2023-10: Cinq cardinaux (Brandmüller, Burke, Zen, Sandoval Íñiguez, Sarah) publient des dubia contre le pape à la veille du Synode."
+      ]
+    },
+    "Chemin synodal allemand": {
+      "capital": "Rome",
+      "continent": "Europe",
+      "government": "Faction interne de l'Église catholique",
+      "leader": "Mgr Georg Bätzing (président de la Conférence épiscopale allemande) et le cardinal Reinhard Marx",
+      "history": [
+        "2025: La Kirchensteuer allemande atteint 6,751 milliards d'euros malgré la baisse des effectifs."
+      ]
+    },
+    "Vieille garde de la Secrétairerie d'État": {
+      "capital": "Rome",
+      "continent": "Europe",
+      "government": "Faction interne de l'Église catholique",
+      "leader": "le cardinal Pietro Parolin, secrétaire d'État",
+      "history": [
+        "2021-01-01: Les fonds et investissements de la Secrétairerie d'État sont transférés à l'APSA.",
+        "2022-06-05: Praedicate Evangelium entre en vigueur et rétrograde la Secrétairerie d'État."
+      ]
+    },
+    "Appareil financier du Vatican": {
+      "capital": "Rome",
+      "continent": "Europe",
+      "government": "Faction interne de l'Église catholique",
+      "leader": "Mgr Giordano Piccinotti (président de l'APSA), Maximino Caballero Ledo (préfet de la Secrétairerie pour l'Économie), Jean-Baptiste de Franssu (président de l'IOR)",
+      "history": [
+        "2024-11-19: Le pape déclare le fonds de pension en « grave déséquilibre prospectif » et en confie la réforme au cardinal Farrell."
+      ]
+    },
+    "Opus Dei": {
+      "capital": "Rome",
+      "continent": "Europe",
+      "government": "Faction interne de l'Église catholique",
+      "leader": "Mgr Fernando Ocáriz, prélat",
+      "history": [
+        "2022-07-22: Ad charisma tuendum retire à l'Opus Dei son prélat-évêque."
+      ]
+    },
+    "Compagnie de Jésus": {
+      "capital": "Rome",
+      "continent": "Europe",
+      "government": "Faction interne de l'Église catholique",
+      "leader": "le P. Arturo Sosa, préposé général",
+      "history": [
+        "2025: La Compagnie de Jésus compte 13 768 membres."
+      ]
+    }
+  },
+  "organizations": [
+    {
+      "id": "catholic-church",
+      "name": "Catholic Church",
+      "kind": "religious",
+      "founded": "0033-01-01",
+      "seat": "Rome",
+      "charter": "1,406 milliard de catholiques, 5 430 évêques, 406 996 prêtres (38 % en Europe, 29 % en Amérique, 18 % en Asie, 13,5 % en Afrique), 589 423 religieux, 106 495 séminaristes (Annuario 2025). Le pape gouverne seul en droit ; les pays membres sont ceux à majorité catholique. Les plus peuplés : Brésil 140 M, Mexique 101 M, Philippines 85 M.",
+      "members": [
+        "Saint-Siège",
+        "Brazil",
+        "Mexico",
+        "Philippines",
+        "Italy",
+        "Poland",
+        "Spain",
+        "France",
+        "Democratic Republic of the Congo",
+        "Colombia",
+        "Argentina",
+        "Portugal",
+        "Ireland",
+        "Peru",
+        "Austria",
+        "Croatia",
+        "Belgium",
+        "Chile",
+        "Venezuela",
+        "Ecuador",
+        "Lithuania",
+        "Slovakia",
+        "Slovenia",
+        "Hungary",
+        "Uganda",
+        "Angola",
+        "Paraguay",
+        "Bolivia",
+        "Guatemala",
+        "Honduras",
+        "El Salvador",
+        "Nicaragua",
+        "Costa Rica",
+        "Panama",
+        "Dominican Republic",
+        "Cuba",
+        "Malta",
+        "Luxembourg",
+        "Timor-Leste",
+        "Burundi",
+        "Rwanda",
+        "Equatorial Guinea",
+        "Cabo Verde",
+        "Sao Tome and Principe"
+      ],
+      "leader": "Saint-Siège",
+      "votingRule": "hegemon",
+      "weights": {},
+      "status": "active",
+      "dissolvedAt": "",
+      "universal": false,
+      "resolutions": []
+    },
+    {
+      "id": "coll-ge-des-cardinaux",
+      "name": "Collège des cardinaux",
+      "kind": "political",
+      "founded": "1059-01-01",
+      "seat": "Rome",
+      "charter": "240 cardinaux vivants, 116 électeurs au 2 septembre 2026 (les plus de 80 ans ne votent plus). Trois ordres : évêques, prêtres, diacres. Le pape décide seul en droit ; le Collège n'oppose pas un vote à un pape régnant. Son pouvoir est ailleurs : il élit le suivant, et son consentement décide si une réforme tient après vous. Le consistoire — créer des cardinaux — est le seul levier qui en déplace durablement l'équilibre ; un conclave élit à la majorité des deux tiers.",
+      "members": [
+        "Saint-Siège",
+        "Bloc des cardinaux des dubia",
+        "Chemin synodal allemand",
+        "Vieille garde de la Secrétairerie d'État",
+        "Opus Dei",
+        "Compagnie de Jésus"
+      ],
+      "leader": "Saint-Siège",
+      "votingRule": "hegemon",
+      "weights": {},
+      "status": "active",
+      "dissolvedAt": "",
+      "universal": false,
+      "resolutions": []
+    },
+    {
+      "id": "synode-des-v-ques",
+      "name": "Synode des évêques",
+      "kind": "political",
+      "founded": "1965-09-15",
+      "seat": "Rome",
+      "charter": "Institution permanente convoquée par le pape ; ses membres sont élus par les conférences épiscopales. Le Synode sur la synodalité (2021-2024) a laissé dix groupes d'étude sur les dossiers brûlants — diaconat féminin, rites orientaux, choix des évêques — dont les rapports ont été reportés ; la phase suivante mène à une assemblée en 2028. Son document final (355 votants) réclame conseils pastoraux obligatoires et participation des laïcs.",
+      "members": [
+        "Saint-Siège",
+        "Chemin synodal allemand",
+        "Bloc des cardinaux des dubia",
+        "Compagnie de Jésus"
+      ],
+      "leader": "Saint-Siège",
+      "votingRule": "hegemon",
+      "weights": {},
+      "status": "active",
+      "dissolvedAt": "",
+      "universal": false,
+      "resolutions": []
+    },
+    {
+      "id": "curie-romaine",
+      "name": "Curie romaine",
+      "kind": "political",
+      "founded": "2022-06-05",
+      "seat": "Vatican",
+      "charter": "Selon Praedicate Evangelium (2022) : la Secrétairerie d'État (réduite au rang de secrétariat papal), seize dicastères — Évangélisation ; Doctrine de la Foi ; Service de la Charité ; Églises orientales ; Culte divin ; Causes des saints ; Évêques ; Clergé ; Vie consacrée ; Laïcs, Famille et Vie ; Unité des chrétiens ; Dialogue interreligieux ; Culture et Éducation ; Développement humain intégral ; Textes législatifs ; Communication — trois tribunaux dont la Pénitencerie, et les organes économiques. Environ 4 000 employés. Des laïcs peuvent désormais diriger un dicastère. Le pape commande ; l'appareil obéit à sa vitesse.",
+      "members": [
+        "Saint-Siège",
+        "Vieille garde de la Secrétairerie d'État",
+        "Appareil financier du Vatican"
+      ],
+      "leader": "Saint-Siège",
+      "votingRule": "hegemon",
+      "weights": {},
+      "status": "active",
+      "dissolvedAt": "",
+      "universal": false,
+      "resolutions": []
+    },
+    {
+      "id": "conseil-pour-l-conomie",
+      "name": "Conseil pour l'Économie",
+      "kind": "monetary",
+      "founded": "2014-02-24",
+      "seat": "Vatican",
+      "charter": "Créé par François en 2014 avec la Secrétairerie pour l'Économie (cardinal Pell) et le Réviseur général pour soumettre APSA, IOR et Secrétairerie d'État à un contrôle unique. Les comptes 2024 : revenus 1,23 milliard d'euros (43 % dons, 40 % immobilier et commerce), déficit structurel ramené de 83,5 à 44,5 millions, Denier de Saint-Pierre 57,6 millions de recettes contre 59,8 de dépenses (63 % apportés par les diocèses). Le déficit de pension reste hors bilan.",
+      "members": [
+        "Saint-Siège",
+        "Appareil financier du Vatican",
+        "Vieille garde de la Secrétairerie d'État"
+      ],
+      "leader": "Saint-Siège",
+      "votingRule": "hegemon",
+      "weights": {},
+      "status": "active",
+      "dissolvedAt": "",
+      "universal": false,
+      "resolutions": []
+    },
+    {
+      "id": "ior-institut-pour-les-uvres-de-religion",
+      "name": "IOR — Institut pour les Œuvres de Religion",
+      "kind": "monetary",
+      "founded": "1942-06-27",
+      "seat": "Vatican",
+      "charter": "La « banque vaticane » : 5,4 milliards d'euros d'actifs, 32,8 millions de profit (2024), devenue bras opérationnel de l'APSA. Réformée depuis 2014 (président Jean-Baptiste de Franssu) : des centaines de comptes fermés, évaluations Moneyval, poursuites contre d'anciens dirigeants. Sa transparence est un chantier, pas un acquis.",
+      "members": [
+        "Appareil financier du Vatican",
+        "Saint-Siège"
+      ],
+      "leader": "Appareil financier du Vatican",
+      "votingRule": "weighted",
+      "weights": {},
+      "status": "active",
+      "dissolvedAt": "",
+      "universal": false,
+      "resolutions": []
+    }
+  ],
+  "intents": [
+    {
+      "id": "bloc-des-cardinaux-des-dubia-political-1",
+      "ownerType": "polity",
+      "owner": "Bloc des cardinaux des dubia",
+      "target": "Saint-Siège",
+      "kind": "political",
+      "summary": "Préparer une déclaration publique de cardinaux contestant la légitimité doctrinale des réformes, et rallier assez d'électeurs pour bloquer toute décision doctrinale ou liturgique du Collège.",
+      "stage": 20,
+      "secret": true,
+      "stance": "hostile",
+      "scope": [
+        "doctrin",
+        "liturg",
+        "synod",
+        "dubia",
+        "bénédiction",
+        "blessing",
+        "mariage",
+        "marriage",
+        "communion",
+        "divorc",
+        "femme",
+        "women",
+        "diacon",
+        "célibat",
+        "celibacy",
+        "latin"
+      ],
+      "triggerHint": "une réforme doctrinale ou liturgique annoncée ; un consistoire qui ne les favorise pas",
+      "status": "active",
+      "outcome": "",
+      "createdAt": "2026-09-01",
+      "updatedAt": "2026-09-01",
+      "log": []
+    },
+    {
+      "id": "chemin-synodal-allemand-political-2",
+      "ownerType": "polity",
+      "owner": "Chemin synodal allemand",
+      "target": "Saint-Siège",
+      "kind": "political",
+      "summary": "Obtenir que le modèle synodal allemand — conseils contraignants, diaconat féminin — soit étendu à l'Église universelle, ou avancer sans Rome.",
+      "stage": 30,
+      "secret": false,
+      "stance": "neutral",
+      "scope": [
+        "synod",
+        "allemagne",
+        "germany",
+        "german",
+        "diacon",
+        "laïc",
+        "lay",
+        "conseil",
+        "council",
+        "contraign",
+        "binding"
+      ],
+      "triggerHint": "l'assemblée synodale de 2028 ; le sort des groupes d'étude ; un refus romain",
+      "status": "active",
+      "outcome": "",
+      "createdAt": "2026-09-01",
+      "updatedAt": "2026-09-01",
+      "log": []
+    },
+    {
+      "id": "vieille-garde-de-la-secr-tairerie-d-tat-espionage-3",
+      "ownerType": "polity",
+      "owner": "Vieille garde de la Secrétairerie d'État",
+      "target": "Saint-Siège",
+      "kind": "espionage",
+      "summary": "Ralentir la réforme de la Curie par les nominations et les procédures, et faire fuiter à la presse italienne tout document qui affaiblit le pape.",
+      "stage": 15,
+      "secret": true,
+      "stance": "hostile",
+      "scope": [
+        "curie",
+        "curia",
+        "secrétairerie",
+        "secretariat",
+        "dicast",
+        "nomination",
+        "appoint",
+        "nommer",
+        "restructur",
+        "fusion",
+        "merge",
+        "préfet",
+        "prefect",
+        "laïc",
+        "lay",
+        "procédure"
+      ],
+      "triggerHint": "une restructuration de dicastère ; un audit ; une nomination de laïc à un poste clé",
+      "status": "active",
+      "outcome": "",
+      "createdAt": "2026-09-01",
+      "updatedAt": "2026-09-01",
+      "log": []
+    },
+    {
+      "id": "appareil-financier-du-vatican-economic-4",
+      "ownerType": "polity",
+      "owner": "Appareil financier du Vatican",
+      "target": "Saint-Siège",
+      "kind": "economic",
+      "summary": "Garder hors du périmètre de l'audit les comptes et participations les plus exposés, et présenter le déficit de pension comme soutenable.",
+      "stage": 25,
+      "secret": true,
+      "stance": "hostile",
+      "scope": [
+        "audit",
+        "apsa",
+        "ior",
+        "pension",
+        "compte",
+        "account",
+        "financ",
+        "budget",
+        "patrimoine",
+        "immobilier",
+        "real estate",
+        "réviseur",
+        "auditor",
+        "asif",
+        "transparen",
+        "déficit"
+      ],
+      "triggerHint": "un audit externe ; la publication des comptes du fonds de pension ; une enquête de l'ASIF",
+      "status": "active",
+      "outcome": "",
+      "createdAt": "2026-09-01",
+      "updatedAt": "2026-09-01",
+      "log": []
+    },
+    {
+      "id": "opus-dei-diplomatic-5",
+      "ownerType": "polity",
+      "owner": "Opus Dei",
+      "target": "Saint-Siège",
+      "kind": "diplomatic",
+      "summary": "Recouvrer l'autonomie perdue avec Ad charisma tuendum en obtenant, par ses réseaux dans les gouvernements catholiques, une protection contre toute nouvelle réforme des prélatures.",
+      "stage": 10,
+      "secret": true,
+      "stance": "hostile",
+      "scope": [
+        "prélature",
+        "prelature",
+        "opus",
+        "ad charisma",
+        "statut",
+        "statute",
+        "clergé",
+        "clergy",
+        "mouvement",
+        "movement",
+        "association"
+      ],
+      "triggerHint": "une révision du statut des prélatures ; un changement au Dicastère pour le Clergé",
+      "status": "active",
+      "outcome": "",
+      "createdAt": "2026-09-01",
+      "updatedAt": "2026-09-01",
+      "log": []
+    },
+    {
+      "id": "compagnie-de-j-sus-political-6",
+      "ownerType": "polity",
+      "owner": "Compagnie de Jésus",
+      "target": "Saint-Siège",
+      "kind": "political",
+      "summary": "Porter le programme de réforme — Curie, finances, synodalité — en fournissant au pape ses cadres, ses textes et ses relais dans les conférences épiscopales.",
+      "stage": 35,
+      "secret": false,
+      "stance": "supportive",
+      "scope": [],
+      "triggerHint": "chaque réforme annoncée ; les nominations aux dicastères",
+      "status": "active",
+      "outcome": "",
+      "createdAt": "2026-09-01",
+      "updatedAt": "2026-09-01",
+      "log": []
+    }
+  ],
+  "economies": {
+    "Saint-Siège": {
+      "population": 500,
+      "effectiveLand": 5,
+      "capital": 20000,
+      "treasury": 30844.514461538463,
+      "debt": 0,
+      "baseMoney": 604.0500744231203,
+      "creditMoney": 6946.575855865887,
+      "claimsOutstanding": 0,
+      "reserves": 0,
+      "priceLevel": 100,
+      "exchangeRate": 100,
+      "expectedInflation": 0,
+      "outputGap": 0,
+      "endowment": 1741374.0012307693,
+      "unfundedLiabilities": 411339.4871794872,
+      "technology": 90,
+      "administrativeReach": 100,
+      "monetization": 100,
+      "marketIntegration": 100,
+      "financialDepth": 92,
+      "fiscalCredibility": 55,
+      "legitimacy": 70,
+      "openness": 60,
+      "energyImportShare": 30,
+      "taxRate": 0,
+      "investmentShare": 0,
+      "militaryUpkeep": 0,
+      "civilSpending": 320380.6306461539,
+      "transfers": 246085.5827692308,
+      "endowmentYield": 0.05121293800539083,
+      "inflationTarget": 0.02,
+      "atWar": false,
+      "sanctionsFaced": 0,
+      "financing": "drawdown",
+      "migrationPolicy": "managed",
+      "debtAmortizationShare": 1,
+      "seed": "ai",
+      "usdPerSY": 1614.2384105960264,
+      "monetarySystem": {
+        "label": "Euro (Saint-Siège)",
+        "backing": "none",
+        "issuer": "banks",
+        "rule": "peg",
+        "convertibility": 1,
+        "fixedGrowth": 0.02,
+        "anchorInflation": 0.02,
+        "claimsHorizon": 10,
+        "claimsIssuanceShare": 0
+      },
+      "innovations": []
+    }
+  },
+  "simulationRules": "[Mode de jeu — Pape réformateur]\nLe joueur est le pape, chef du Saint-Siège : un État dont le seul territoire est la Cité du Vatican (0,49 km² dans Rome, tracée sur la carte sous le nom « Cité du Vatican ») et dont la puissance est l'Église catholique — 1,406 milliard de fidèles, 5 430 évêques, 406 996 prêtres, 589 423 religieux, 106 495 séminaristes (Annuario Pontificio 2025). Le jeu est la réforme de l'Église DE L'INTÉRIEUR : la Curie, les finances, la synodalité, les nominations — contre de vrais contre-pouvoirs, avec de vrais leviers, dans de vraies administrations. Ce n'est pas la géopolitique du Vatican ; la diplomatie avec les États compte seulement quand elle sert ou menace la réforme.\n\nLes faits ci-dessous sont réels et ne se contredisent pas.\n\nAdministration (Praedicate Evangelium, 19 mars 2022, en vigueur le 5 juin 2022) : la Secrétairerie d'État est ramenée au rang de secrétariat papal, à égalité avec les seize dicastères (Évangélisation ; Doctrine de la Foi ; Service de la Charité ; Églises orientales ; Culte divin ; Causes des saints ; Évêques ; Clergé ; Vie consacrée ; Laïcs, Famille et Vie ; Unité des chrétiens ; Dialogue interreligieux ; Culture et Éducation ; Développement humain intégral ; Textes législatifs ; Communication), trois tribunaux dont la Pénitencerie apostolique, et les organes économiques : Conseil pour l'Économie, Secrétairerie pour l'Économie, APSA (trésorerie et fonds souverain), Réviseur général, ASIF (superviseur), IOR (bras opérationnel de l'APSA). Des laïcs peuvent diriger un dicastère. Environ 4 000 employés. Le pape gouverne la Curie seul en droit ; en fait, elle obéit à sa propre vitesse.\n\nFinances centrales (bilan consolidé 2024, publié le 26 novembre 2025) : produits d'exploitation 1,23 milliard d'euros contre 1,275 de charges, soit un déficit d'exploitation de 44,4 millions (83,5 en 2023) ; résultat net +1,6 million SEULEMENT grâce à ~46 millions de produits exceptionnels (ventes d'actifs, contribution APSA) — 2023 s'était soldé par −51,2 millions nets. Hôpitaux exclus (ils s'équilibrent seuls, +18,7 millions), le cœur du Saint-Siège encaisse 546,5 millions : dons 237 (43 %, +12 %), revenus propres 217 (40 %, immobilier pour moitié, éditions et services pour l'autre), produits financiers 71,1, Gouvernorat ~21 ; et dépense 527,8 (personnel 33 %, frais généraux 36 %, subventions 127,9). Hors exceptionnel, le cœur perd donc ~28 millions par an. Le Saint-Siège NE LÈVE AUCUN IMPÔT : ni sur les ~500 résidents, ni sur les ~4 000 employés (qui vivent en Italie et sont une charge) ; il n'émet aucune dette souveraine ; ses déficits sont couverts en PUISANT dans le patrimoine — c'est exactement ainsi que le moteur le traite (taux d'imposition 0, revenus = rendement du patrimoine + transferts, financement « drawdown », passif de pension hors dette). APSA : patrimoine net 2 597 millions (4 234 immeubles en Italie, ~1 200 à l'étranger ; −145 millions de réévaluation en 2024), 62,2 millions de profit, 46,1 versés pour le déficit. Denier de Saint-Pierre 2025 : 57,6 millions de recettes, 59,8 de dépenses, 63 % venant des diocèses ; en 2024 le fonds a dû puiser 16,5 millions dans son capital, en 2025 rien. IOR : 5,4 milliards d'actifs de clients, 32,8 millions de profit. Fonds de pension : ~664 millions de dollars non financés pour le seul Saint-Siège (base 2022), 1,04 milliard avec la Cité du Vatican et le Vicariat de Rome — « grave déséquilibre prospectif », réforme confiée au cardinal Farrell (novembre 2024). Le scandale de référence : 350 millions d'euros investis par la Secrétairerie d'État dans l'immeuble de Sloane Avenue à Londres (160 en 2014, 190 en 2018-2019), 140 millions de perte, le cardinal Becciu condamné à cinq ans et demi, retrial partiel ordonné en 2025.\n\nFinances par pays (réelles) — c'est le vrai « chiffre d'affaires » de l'Église, et il n'appartient PAS au Saint-Siège mais aux Églises nationales : Allemagne, Kirchensteuer (8-9 % de l'impôt sur le revenu) 6,751 milliards d'euros en 2025, de loin la plus riche ; États-Unis, dons volontaires : 5,8 milliards de dollars de quêtes dominicales, ~11 milliards de budget paroissial, hôpitaux catholiques ~98,6 milliards de dépenses, Catholic Charities 4,67 milliards (dont 2,9 de l'État) ; Italie, otto per mille (0,8 %) ~1 milliard d'euros par an ; France, Denier de l'Église 212 millions (2024), 622 millions toutes ressources ; Espagne, case IRPF (0,7 %) 429,3 millions (2024) ; Pologne, Fundusz Kościelny du budget de l'État 257 millions de złotys (2024), 275,7 (2025) ; Autriche, Kirchenbeitrag 1,1 % du revenu. Sud global (Brésil, Mexique, Philippines, RDC, Afrique) : quêtes locales et subsides, comptes NON publiés — ne jamais inventer un chiffre national ; les Œuvres pontificales missionnaires redistribuent ~106 millions de dollars par an à 1 150 diocèses, 30 000 séminaristes à 700 dollars. Un pape ne peut PAS taxer ces Églises : il ne peut que persuader, contraindre canoniquement, ou dépendre de leur Denier.\n\nContre-pouvoirs réels (les six factions listées comme polités sont les acteurs vivants ; tous les autres — FSSPX, Ordre de Malte, conférences épiscopales — sont des sources de crise ponctuelles) : le Collège des cardinaux (240 vivants, 116 électeurs au 2 septembre 2026 ; le consistoire est le levier qui en change l'équilibre) ; les cinq cardinaux des dubia d'octobre 2023 (Brandmüller, Burke, Zen, Sandoval Íñiguez, Sarah) ; le Chemin synodal allemand (cardinal Marx) auquel le Vatican a dénié tout pouvoir contraignant ; l'Opus Dei (85 000 membres, prélat privé de l'épiscopat par Ad charisma tuendum, 22 juillet 2022) ; la FSSPX (~600 000 fidèles, ~700 prêtres, 2 évêques ; crise 2026 sur des ordinations épiscopales illicites, appel du pape, suspension et dialogue théologique) ; l'Ordre de Malte (~13 500 membres ; François a forcé la démission du Grand Maître Festing en 2017, dissous le Conseil souverain et promulgué une nouvelle constitution le 3 septembre 2022 — le précédent d'un pape qui reprend en main un corps souverain) ; les ordres : Jésuites 13 768, Salésiens 14 614, Franciscains 15 130, Capucins 11 092, Dominicains 5 369.\n\nLes vrais leviers du pape : le consistoire (créer des cardinaux) ; le motu proprio et la constitution apostolique (réformer une structure par décret) ; l'encyclique et l'exhortation (fixer la doctrine et le cap) ; les nominations (évêques, préfets, laïcs à la tête d'un dicastère) ; l'audit et la publication des comptes ; la restructuration ou la fusion d'un dicastère ; la reprise en main d'un corps (précédent Malte) ; le synode (consulter, puis trancher) ; la sanction canonique (démission forcée, retrait d'un titre, excommunication). Les vrais risques : le schisme (une réforme trop rapide, un Collège divisé), le scandale financier (un compte caché, une perte), la fuite à la presse, la démission forcée, l'isolement dans sa propre Curie, la mort ou l'incapacité du pape. Sa légitimité dans le moteur EST son standing dans l'Église : sous 40, le schisme devient possible ; au-dessus de 80, il peut trancher là où un autre devrait négocier.\n\nRègles de simulation de ce mode : les six factions NE S'OPPOSENT PAS À TOUT — chacune combat ce qui touche SON intérêt (les dubia la doctrine et la liturgie ; la Vieille garde la Curie et les nominations ; l'Appareil financier l'audit et les comptes ; l'Opus Dei le statut des prélatures), reste indifférente ailleurs, et peut être ralliée par une réforme qui lui donne ce qu'elle veut ; la Compagnie de Jésus PORTE la réforme ; le Chemin synodal pousse ses propres réformes et ne s'oppose qu'à ce qui le bride. Un pape qui réforme les finances a les dubia pour lui ou indifférents, pas contre lui. Les réformes se prennent par résolution des corps qui votent réellement (Collège des cardinaux, Synode des évêques, Conseil pour l'Économie) ou par décret dans la Curie (hegemon) ; chaque faction vote selon son caractère et ses intentions déclarées ou secrètes ; un vote perdu n'est pas un échec du récit mais une contrainte réelle. Les six factions poursuivent leurs intentions chaque tour sans attendre le pape. Le Saint-Siège n'a ni armée ni territoire à conquérir : jamais d'unités militaires, jamais de transfert de région vers lui ; la Cité du Vatican ne change de mains que par un événement d'une gravité historique (occupation, fin des accords du Latran de 1929). La monnaie est l'euro sous ancrage fixe — le pape n'a aucune politique monétaire et ne peut ni imprimer ni dévaluer.",
+  "canonFacts": [
+    "2022-03-19: La constitution apostolique Praedicate Evangelium réorganise la Curie romaine en seize dicastères.",
+    "2023-10: Cinq cardinaux publient des dubia contre le pape.",
+    "2024-11-19: Le fonds de pension du Vatican est déclaré en grave déséquilibre prospectif."
+  ],
+  "church": {
+    "faithful": {
+      "africa": 281000000,
+      "americas": 672000000,
+      "asia": 155000000,
+      "europe": 287000000,
+      "oceania": 11000000
+    },
+    "asOf": "2023-12-31",
+    "log": []
+  },
+  "extraRegions": {
+    "type": "FeatureCollection",
+    "features": [
+      {
+        "type": "Feature",
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                12.445788,
+                41.901967
+              ],
+              [
+                12.446501,
+                41.90166
+              ],
+              [
+                12.446547,
+                41.901641
+              ],
+              [
+                12.446723,
+                41.901798
+              ],
+              [
+                12.447342,
+                41.901403
+              ],
+              [
+                12.447335,
+                41.901396
+              ],
+              [
+                12.447387,
+                41.901363
+              ],
+              [
+                12.44744,
+                41.901329
+              ],
+              [
+                12.447449,
+                41.901336
+              ],
+              [
+                12.447973,
+                41.901002
+              ],
+              [
+                12.447941,
+                41.900974
+              ],
+              [
+                12.447935,
+                41.900978
+              ],
+              [
+                12.447792,
+                41.90085
+              ],
+              [
+                12.44795,
+                41.900692
+              ],
+              [
+                12.448127,
+                41.900719
+              ],
+              [
+                12.448775,
+                41.900817
+              ],
+              [
+                12.448775,
+                41.900999
+              ],
+              [
+                12.450868,
+                41.900827
+              ],
+              [
+                12.450865,
+                41.900815
+              ],
+              [
+                12.450879,
+                41.900813
+              ],
+              [
+                12.450839,
+                41.900586
+              ],
+              [
+                12.451034,
+                41.90054
+              ],
+              [
+                12.451133,
+                41.900516
+              ],
+              [
+                12.451153,
+                41.900512
+              ],
+              [
+                12.451181,
+                41.900505
+              ],
+              [
+                12.451211,
+                41.900498
+              ],
+              [
+                12.451281,
+                41.900481
+              ],
+              [
+                12.451423,
+                41.900447
+              ],
+              [
+                12.451557,
+                41.900415
+              ],
+              [
+                12.451806,
+                41.900356
+              ],
+              [
+                12.452087,
+                41.900329
+              ],
+              [
+                12.452098,
+                41.900328
+              ],
+              [
+                12.452222,
+                41.900321
+              ],
+              [
+                12.45256,
+                41.9003
+              ],
+              [
+                12.452791,
+                41.900285
+              ],
+              [
+                12.452806,
+                41.900371
+              ],
+              [
+                12.452835,
+                41.900491
+              ],
+              [
+                12.452884,
+                41.900483
+              ],
+              [
+                12.452951,
+                41.900471
+              ],
+              [
+                12.453149,
+                41.900438
+              ],
+              [
+                12.45338,
+                41.9004
+              ],
+              [
+                12.453769,
+                41.90033
+              ],
+              [
+                12.45388,
+                41.900316
+              ],
+              [
+                12.453885,
+                41.900306
+              ],
+              [
+                12.453991,
+                41.900291
+              ],
+              [
+                12.454237,
+                41.90025
+              ],
+              [
+                12.454515,
+                41.900205
+              ],
+              [
+                12.454581,
+                41.900344
+              ],
+              [
+                12.454579,
+                41.90039
+              ],
+              [
+                12.454574,
+                41.900413
+              ],
+              [
+                12.454496,
+                41.900413
+              ],
+              [
+                12.454486,
+                41.900592
+              ],
+              [
+                12.454385,
+                41.900589
+              ],
+              [
+                12.45438,
+                41.900711
+              ],
+              [
+                12.454346,
+                41.900711
+              ],
+              [
+                12.454339,
+                41.900944
+              ],
+              [
+                12.454325,
+                41.901403
+              ],
+              [
+                12.454389,
+                41.901403
+              ],
+              [
+                12.454418,
+                41.90142
+              ],
+              [
+                12.454418,
+                41.901437
+              ],
+              [
+                12.45481,
+                41.901436
+              ],
+              [
+                12.454812,
+                41.901471
+              ],
+              [
+                12.454811,
+                41.901501
+              ],
+              [
+                12.45524,
+                41.901553
+              ],
+              [
+                12.456152,
+                41.90166
+              ],
+              [
+                12.456198,
+                41.901665
+              ],
+              [
+                12.456263,
+                41.901673
+              ],
+              [
+                12.456281,
+                41.901641
+              ],
+              [
+                12.456302,
+                41.901617
+              ],
+              [
+                12.456327,
+                41.901615
+              ],
+              [
+                12.456343,
+                41.901605
+              ],
+              [
+                12.456369,
+                41.901573
+              ],
+              [
+                12.45638,
+                41.901559
+              ],
+              [
+                12.456401,
+                41.90153
+              ],
+              [
+                12.456437,
+                41.901491
+              ],
+              [
+                12.456474,
+                41.901451
+              ],
+              [
+                12.456518,
+                41.901413
+              ],
+              [
+                12.456573,
+                41.90137
+              ],
+              [
+                12.456649,
+                41.901331
+              ],
+              [
+                12.456662,
+                41.901323
+              ],
+              [
+                12.456693,
+                41.901308
+              ],
+              [
+                12.456715,
+                41.901297
+              ],
+              [
+                12.456749,
+                41.901281
+              ],
+              [
+                12.456799,
+                41.901259
+              ],
+              [
+                12.45686,
+                41.901237
+              ],
+              [
+                12.456905,
+                41.901222
+              ],
+              [
+                12.456977,
+                41.901202
+              ],
+              [
+                12.457044,
+                41.90119
+              ],
+              [
+                12.45711,
+                41.90118
+              ],
+              [
+                12.457165,
+                41.901173
+              ],
+              [
+                12.457233,
+                41.90117
+              ],
+              [
+                12.457359,
+                41.901174
+              ],
+              [
+                12.457502,
+                41.901189
+              ],
+              [
+                12.457554,
+                41.901198
+              ],
+              [
+                12.457618,
+                41.901213
+              ],
+              [
+                12.457679,
+                41.90123
+              ],
+              [
+                12.457735,
+                41.90125
+              ],
+              [
+                12.457788,
+                41.901272
+              ],
+              [
+                12.457842,
+                41.901296
+              ],
+              [
+                12.457898,
+                41.901328
+              ],
+              [
+                12.45795,
+                41.901358
+              ],
+              [
+                12.457994,
+                41.901388
+              ],
+              [
+                12.458042,
+                41.901427
+              ],
+              [
+                12.458048,
+                41.901433
+              ],
+              [
+                12.458086,
+                41.901466
+              ],
+              [
+                12.458133,
+                41.901511
+              ],
+              [
+                12.458169,
+                41.901552
+              ],
+              [
+                12.458206,
+                41.901599
+              ],
+              [
+                12.458255,
+                41.901662
+              ],
+              [
+                12.458277,
+                41.901655
+              ],
+              [
+                12.458298,
+                41.901694
+              ],
+              [
+                12.458319,
+                41.901742
+              ],
+              [
+                12.458298,
+                41.901748
+              ],
+              [
+                12.458305,
+                41.901765
+              ],
+              [
+                12.458267,
+                41.901777
+              ],
+              [
+                12.458292,
+                41.901834
+              ],
+              [
+                12.458294,
+                41.90184
+              ],
+              [
+                12.458296,
+                41.901844
+              ],
+              [
+                12.458308,
+                41.901875
+              ],
+              [
+                12.458324,
+                41.901923
+              ],
+              [
+                12.458344,
+                41.901992
+              ],
+              [
+                12.458357,
+                41.902079
+              ],
+              [
+                12.458363,
+                41.902174
+              ],
+              [
+                12.458365,
+                41.902257
+              ],
+              [
+                12.458359,
+                41.902367
+              ],
+              [
+                12.458349,
+                41.902429
+              ],
+              [
+                12.458334,
+                41.902489
+              ],
+              [
+                12.458322,
+                41.902532
+              ],
+              [
+                12.458309,
+                41.90257
+              ],
+              [
+                12.458295,
+                41.90261
+              ],
+              [
+                12.458278,
+                41.902645
+              ],
+              [
+                12.458255,
+                41.90269
+              ],
+              [
+                12.458235,
+                41.902723
+              ],
+              [
+                12.458221,
+                41.902745
+              ],
+              [
+                12.458214,
+                41.902755
+              ],
+              [
+                12.458211,
+                41.902758
+              ],
+              [
+                12.458231,
+                41.902765
+              ],
+              [
+                12.458221,
+                41.902781
+              ],
+              [
+                12.458243,
+                41.902788
+              ],
+              [
+                12.458194,
+                41.902871
+              ],
+              [
+                12.45817,
+                41.902863
+              ],
+              [
+                12.458149,
+                41.9029
+              ],
+              [
+                12.458115,
+                41.902943
+              ],
+              [
+                12.458083,
+                41.902983
+              ],
+              [
+                12.458033,
+                41.903026
+              ],
+              [
+                12.457988,
+                41.90306
+              ],
+              [
+                12.457938,
+                41.903092
+              ],
+              [
+                12.457884,
+                41.903127
+              ],
+              [
+                12.457835,
+                41.903157
+              ],
+              [
+                12.457779,
+                41.903181
+              ],
+              [
+                12.457714,
+                41.903207
+              ],
+              [
+                12.457616,
+                41.903236
+              ],
+              [
+                12.457554,
+                41.903253
+              ],
+              [
+                12.457529,
+                41.903259
+              ],
+              [
+                12.457474,
+                41.903269
+              ],
+              [
+                12.457412,
+                41.903278
+              ],
+              [
+                12.457339,
+                41.903286
+              ],
+              [
+                12.457235,
+                41.903289
+              ],
+              [
+                12.457125,
+                41.903284
+              ],
+              [
+                12.45705,
+                41.903274
+              ],
+              [
+                12.456996,
+                41.903264
+              ],
+              [
+                12.456936,
+                41.903251
+              ],
+              [
+                12.456878,
+                41.903234
+              ],
+              [
+                12.456814,
+                41.903211
+              ],
+              [
+                12.456746,
+                41.903189
+              ],
+              [
+                12.456694,
+                41.903162
+              ],
+              [
+                12.45664,
+                41.903135
+              ],
+              [
+                12.456593,
+                41.903104
+              ],
+              [
+                12.456544,
+                41.903071
+              ],
+              [
+                12.456495,
+                41.903035
+              ],
+              [
+                12.456455,
+                41.903
+              ],
+              [
+                12.456421,
+                41.902969
+              ],
+              [
+                12.456388,
+                41.902931
+              ],
+              [
+                12.456357,
+                41.902883
+              ],
+              [
+                12.456326,
+                41.90284
+              ],
+              [
+                12.456302,
+                41.902788
+              ],
+              [
+                12.45628,
+                41.902793
+              ],
+              [
+                12.456255,
+                41.90279
+              ],
+              [
+                12.45624,
+                41.902778
+              ],
+              [
+                12.456236,
+                41.902755
+              ],
+              [
+                12.456184,
+                41.902756
+              ],
+              [
+                12.456335,
+                41.903009
+              ],
+              [
+                12.456381,
+                41.902989
+              ],
+              [
+                12.456533,
+                41.903119
+              ],
+              [
+                12.456594,
+                41.903156
+              ],
+              [
+                12.456682,
+                41.903203
+              ],
+              [
+                12.456801,
+                41.90325
+              ],
+              [
+                12.456922,
+                41.903282
+              ],
+              [
+                12.457078,
+                41.903351
+              ],
+              [
+                12.457188,
+                41.903325
+              ],
+              [
+                12.457196,
+                41.903343
+              ],
+              [
+                12.457277,
+                41.903325
+              ],
+              [
+                12.457294,
+                41.903347
+              ],
+              [
+                12.457386,
+                41.903342
+              ],
+              [
+                12.457471,
+                41.903337
+              ],
+              [
+                12.457558,
+                41.903332
+              ],
+              [
+                12.457559,
+                41.90336
+              ],
+              [
+                12.457581,
+                41.903925
+              ],
+              [
+                12.457583,
+                41.903968
+              ],
+              [
+                12.457584,
+                41.903984
+              ],
+              [
+                12.457585,
+                41.904021
+              ],
+              [
+                12.4576,
+                41.90432
+              ],
+              [
+                12.457602,
+                41.904389
+              ],
+              [
+                12.457603,
+                41.904453
+              ],
+              [
+                12.457624,
+                41.905005
+              ],
+              [
+                12.457638,
+                41.905356
+              ],
+              [
+                12.45765,
+                41.90564
+              ],
+              [
+                12.457657,
+                41.905821
+              ],
+              [
+                12.45732,
+                41.905904
+              ],
+              [
+                12.45718,
+                41.905938
+              ],
+              [
+                12.457024,
+                41.905977
+              ],
+              [
+                12.45688,
+                41.906012
+              ],
+              [
+                12.456768,
+                41.906039
+              ],
+              [
+                12.456613,
+                41.906075
+              ],
+              [
+                12.456497,
+                41.906105
+              ],
+              [
+                12.455658,
+                41.906297
+              ],
+              [
+                12.4554,
+                41.907383
+              ],
+              [
+                12.455133,
+                41.907316
+              ],
+              [
+                12.454918,
+                41.907261
+              ],
+              [
+                12.45438,
+                41.907127
+              ],
+              [
+                12.454247,
+                41.907094
+              ],
+              [
+                12.453931,
+                41.907013
+              ],
+              [
+                12.453867,
+                41.906994
+              ],
+              [
+                12.453868,
+                41.90699
+              ],
+              [
+                12.453829,
+                41.906981
+              ],
+              [
+                12.453857,
+                41.906888
+              ],
+              [
+                12.453883,
+                41.906801
+              ],
+              [
+                12.453501,
+                41.906735
+              ],
+              [
+                12.453146,
+                41.906674
+              ],
+              [
+                12.453134,
+                41.906715
+              ],
+              [
+                12.452633,
+                41.90668
+              ],
+              [
+                12.452061,
+                41.906528
+              ],
+              [
+                12.452074,
+                41.906485
+              ],
+              [
+                12.451435,
+                41.906372
+              ],
+              [
+                12.451371,
+                41.906575
+              ],
+              [
+                12.450914,
+                41.906532
+              ],
+              [
+                12.450916,
+                41.906522
+              ],
+              [
+                12.450515,
+                41.906486
+              ],
+              [
+                12.450323,
+                41.905988
+              ],
+              [
+                12.450518,
+                41.905839
+              ],
+              [
+                12.449451,
+                41.90504
+              ],
+              [
+                12.449272,
+                41.90518
+              ],
+              [
+                12.448941,
+                41.905044
+              ],
+              [
+                12.448889,
+                41.904727
+              ],
+              [
+                12.449105,
+                41.904678
+              ],
+              [
+                12.448944,
+                41.904345
+              ],
+              [
+                12.448844,
+                41.904109
+              ],
+              [
+                12.448648,
+                41.90361
+              ],
+              [
+                12.448387,
+                41.903705
+              ],
+              [
+                12.447907,
+                41.903418
+              ],
+              [
+                12.447804,
+                41.903335
+              ],
+              [
+                12.447789,
+                41.903323
+              ],
+              [
+                12.447642,
+                41.903124
+              ],
+              [
+                12.447856,
+                41.902991
+              ],
+              [
+                12.446874,
+                41.902188
+              ],
+              [
+                12.446625,
+                41.902352
+              ],
+              [
+                12.445788,
+                41.901967
+              ]
+            ]
+          ]
+        },
+        "properties": {
+          "id": "reg_vatican_city",
+          "name": "Cité du Vatican",
+          "owner": "Saint-Siège",
+          "gid0": "VAT",
+          "note": "Enclave de 0,49 km² dans Rome — tracé réel (OpenStreetMap, relation 36989)."
+        }
+      }
+    ]
+  },
+  "regionOwnershipOverrides": {
+    "reg_vatican_city": "Saint-Siège"
+  },
+  "markers": [
+    {
+      "id": "marker-vatican-city",
+      "name": "Cité du Vatican",
+      "kind": "capital",
+      "ownerCode": "Saint-Siège",
+      "lng": 12.4534,
+      "lat": 41.9022,
+      "note": "Siège du pape. 0,49 km², ~880 résidents, ~4 000 employés.",
+      "foundedAt": "1929-02-11"
+    }
+  ],
+  "customRegions": true,
+  "author": "Open Historia",
+  "difficulty": "standard",
+  "language": "English",
+  "startingTimelineText": "You have been elected. The Apostolic See governs 1.4 billion of the baptised and has no army, no tax and no territory beyond forty-nine hectares. The 2024 accounts are on the table: 1.23 billion euros of revenue, an operating deficit of 44.5 million, a patrimony of 2.6 billion that pays the difference, and a billion of promised pensions that nothing funds. Six forces await you, each on its declared ground: the dubia on doctrine, the German synodal path on the church tax, the old guard of the Secretariat of State on diplomacy, the finance apparatus on APSA and the IOR, Opus Dei and the Society of Jesus on theirs. In law you decide alone. What resists you is not a vote: it is the speed of the apparatus, the legitimacy of the decision, and the schemes already in motion."
+}

@@ -1,0 +1,258 @@
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  overflow: hidden;
+  overscroll-behavior: none;
+  background: var(--oh-ground);
+  color: var(--oh-text);
+  font-family: var(--oh-font-body);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* The launch screen is the first thing anyone sees, so it states the direction
+   rather than contradicting it. What was here before was a blue science-fiction
+   loader — aurora blobs, orbiting rings, a cyan progress bar with a shimmer
+   sweep — which belonged to no direction at all. It is now a sheet on the desk:
+   the title in the display face, the work listed as numbered steps, and one
+   ruled bar that fills. The orbit and aurora elements still exist in the markup
+   and are simply not drawn, so nothing in the component had to change. */
+
+.startup-shell {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: var(--oh-ground);
+}
+
+/* A faint plan grid, the way a plate is laid out before anything is drawn on it. */
+.startup-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--oh-accent-soft) 1px, transparent 1px),
+    linear-gradient(90deg, var(--oh-accent-soft) 1px, transparent 1px);
+  background-size: 3.5rem 3.5rem;
+  mask-image: radial-gradient(circle at center, rgba(0, 0, 0, 0.8), transparent 85%);
+  opacity: 0.35;
+}
+
+.startup-aurora,
+.startup-scanline,
+.startup-orbit-ring {
+  display: none;
+}
+
+.startup-panel {
+  position: relative;
+  width: min(32rem, calc(100vw - 2rem));
+  padding: 1.75rem;
+  border: 1px solid var(--oh-line);
+  border-radius: var(--oh-r-soft);
+  background: var(--oh-plate);
+  box-shadow: var(--oh-shadow-plate);
+}
+
+.startup-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  color: var(--oh-accent);
+  font-family: var(--oh-font-label);
+  font-size: var(--oh-t-2xs);
+  font-weight: var(--oh-label-weight);
+  letter-spacing: var(--oh-label-track);
+  text-transform: var(--oh-label-case);
+}
+
+.startup-orbit {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 5rem;
+  height: 5rem;
+  margin: 1.4rem auto 1.2rem;
+}
+
+.startup-core {
+  position: relative;
+  width: 4.25rem;
+  height: 4.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--oh-accent);
+  color: var(--oh-on-accent);
+  font-family: var(--oh-font-display);
+  font-size: var(--oh-t-md);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.startup-title {
+  margin: 0;
+  font-family: var(--oh-font-display);
+  font-size: clamp(1.6rem, 2vw, 2rem);
+  color: var(--oh-text-strong);
+  text-align: center;
+  letter-spacing: 0.01em;
+  text-wrap: balance;
+}
+
+.startup-subtitle {
+  margin: 0.8rem auto 0;
+  max-width: 34rem;
+  text-align: center;
+  line-height: 1.55;
+  color: var(--oh-text-dim);
+  font-size: var(--oh-t-sm);
+}
+
+.startup-progress-card {
+  margin-top: 1.4rem;
+  padding: 0.95rem 1rem 1rem;
+  border-radius: var(--oh-r-soft);
+  border: 1px solid var(--oh-line);
+  background: var(--oh-plate-2);
+}
+
+.startup-progress-meta,
+.startup-status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  font-size: var(--oh-t-xs);
+}
+
+.startup-progress-meta {
+  color: var(--oh-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.startup-progress-track {
+  position: relative;
+  width: 100%;
+  height: 0.5rem;
+  margin-top: 0.7rem;
+  overflow: hidden;
+  border: 1px solid var(--oh-line);
+  background: var(--oh-plate);
+}
+
+.startup-progress-fill {
+  position: relative;
+  height: 100%;
+  background: var(--oh-accent);
+  transition: width 280ms ease;
+}
+
+.startup-status-row {
+  margin-top: 0.8rem;
+  color: var(--oh-text-dim);
+}
+
+.startup-steps {
+  display: grid;
+  gap: 0;
+  margin-top: 1.15rem;
+}
+
+/* The steps are a numbered sequence and are drawn as one, not as a stack of
+   rounded cards: a rule between each, and the state carried by the mark in the
+   margin rather than by a different card fill. */
+.startup-step {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0.2rem;
+  border-bottom: 1px solid var(--oh-line);
+  color: var(--oh-text-dim);
+  font-size: var(--oh-t-sm);
+  transition: color 180ms ease;
+}
+
+.startup-steps > .startup-step:last-child {
+  border-bottom: 0;
+}
+
+.startup-step-indicator {
+  width: 0.6rem;
+  height: 0.6rem;
+  border: 1px solid var(--oh-line-strong);
+  background: transparent;
+  flex-shrink: 0;
+}
+
+.startup-step-active {
+  color: var(--oh-text-strong);
+}
+
+.startup-step-active .startup-step-indicator {
+  background: var(--oh-accent);
+  border-color: var(--oh-accent);
+}
+
+.startup-step-done {
+  color: var(--oh-text);
+}
+
+.startup-step-done .startup-step-indicator {
+  background: var(--oh-grant);
+  border-color: var(--oh-grant);
+}
+
+@keyframes startupSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes startupSpinReverse {
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+@keyframes startupPulse {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scaleX(0.88);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+}
+
+@keyframes startupShimmer {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes startupFloat {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  50% {
+    transform: translate3d(1.4rem, -1rem, 0);
+  }
+}

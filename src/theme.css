@@ -1,0 +1,456 @@
+/*! Open Historia — one visual identity for the whole game © 2026 Nicholas Krol, MIT (see src/Editor/LICENSE). */
+
+/* One direction, the Bulletin: newsprint, heavy ink, a ministry blue for what
+   is decided and an alert red for what is refused. Components style through the
+   role tokens below and never name a literal colour, so the direction lives in
+   one place. */
+
+@import "./fonts.css";
+
+:root {
+  --oh-ground: #e9e4d6;
+  --oh-plate: #f4f0e6;
+  --oh-plate-rgb: 244, 240, 230;
+  --oh-plate-2: #e7e2d4;
+  --oh-line: #14161a;
+  --oh-line-strong: #14161a;
+
+  --oh-text: #2a2d33;
+  --oh-text-strong: #14161a;
+  --oh-text-dim: #4f535b;
+  --oh-on-accent: #ffffff;
+
+  --oh-accent: #1f3f86;
+  --oh-accent-soft: rgba(31, 63, 134, 0.14);
+  --oh-grant: #17643f;
+  --oh-grant-soft: rgba(23, 100, 63, 0.14);
+  --oh-caution: #7f4705;
+  --oh-caution-soft: rgba(127, 71, 5, 0.16);
+  --oh-alert: #b8291d;
+  --oh-alert-soft: rgba(184, 41, 29, 0.14);
+
+  --oh-sea: #dad5c6;
+  --oh-sea-deep: #c7c2b3;
+  --oh-border-land: #14161a;
+
+  --oh-font-display: "Bricolage Grotesque", "Archivo", "Segoe UI", system-ui, sans-serif;
+  --oh-font-body: "Archivo", "Segoe UI", system-ui, sans-serif;
+  --oh-font-label: "Archivo", "Segoe UI", system-ui, sans-serif;
+  --oh-font-data: "Archivo", "Segoe UI", system-ui, sans-serif;
+  --oh-label-case: uppercase;
+  --oh-label-track: 0.02em;
+  --oh-label-weight: 700;
+
+  --oh-shadow-plate: none;
+
+  /* ---- one scale, replacing the forty-five ad-hoc sizes ---- */
+  --oh-t-2xs: 0.78rem;
+  --oh-t-xs: 0.875rem;
+  --oh-t-sm: 0.92rem;
+  --oh-t-base: 1rem;
+  --oh-t-md: 1.18rem;
+  --oh-t-lg: 1.42rem;
+  --oh-t-xl: 2rem;
+  /* ---- three radii, by role ---- */
+  --oh-r-flat: 0;
+  --oh-r-soft: 3px;
+  --oh-r-pill: 999px;
+}
+
+
+
+body {
+  font-family: var(--oh-font-body);
+  font-size: 16px;
+  color: var(--oh-text);
+}
+
+button, input, textarea, select {
+  font-family: inherit;
+}
+
+/* ---- the document surface ------------------------------------------------ */
+
+/* Panels float over a dark globe, so a plate carries its own shadow and needs no
+   border to separate it from the map. */
+.oh-plate {
+  background: var(--oh-plate);
+  color: var(--oh-text);
+  border: 1px solid var(--oh-line);
+  border-radius: var(--oh-r-soft);
+  box-shadow: var(--oh-shadow-plate);
+}
+
+.oh-plate-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.75rem;
+  padding: 0.65rem 1.1rem;
+  border-bottom: 1px solid var(--oh-line);
+  color: var(--oh-accent);
+}
+.oh-plate-head > :last-child {
+  font-family: var(--oh-font-data);
+  font-size: var(--oh-t-xs);
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--oh-text-dim);
+}
+
+/* A label says what kind of document this is. It is not decoration: reserve it
+   for the three natures — chronicle, order, ledger — and leave sub-headings in
+   the display face, so an all-caps rail does not sit above every block. */
+.oh-label {
+  font-family: var(--oh-font-label);
+  font-size: var(--oh-t-2xs);
+  font-weight: var(--oh-label-weight);
+  letter-spacing: var(--oh-label-track);
+  text-transform: var(--oh-label-case);
+}
+
+.oh-rule { height: 1px; background: var(--oh-line); border: 0; }
+
+.oh-data { font-family: var(--oh-font-data); font-variant-numeric: tabular-nums; }
+
+/* ---- the chronicle of a turn --------------------------------------------- */
+
+/* Atlas gives each entry the nation's own map colour in the margin; College
+   numbers it as an article of the session. Both put the date in the margin and
+   the account at reading size, because a turn is read, not scanned. */
+.oh-entry {
+  display: grid;
+  grid-template-columns: 3.2rem minmax(0, 1fr);
+  gap: 1.1rem;
+  padding: 1.05rem 1.1rem 1.15rem;
+  border-bottom: 1px solid var(--oh-line);
+}
+/* The timeline wraps each entry in a div to hang a scroll ref on it, so
+   `.oh-entry:last-child` would match every entry and erase all the rules. Both
+   shapes are covered: entry as direct child, and entry inside a wrapper. */
+.oh-plate > .oh-entry:last-child,
+.oh-plate > :last-child > .oh-entry { border-bottom: 0; }
+
+.oh-entry-margin {
+  font-family: var(--oh-font-display);
+  font-size: var(--oh-t-lg);
+  line-height: 1;
+  color: var(--oh-accent);
+  text-align: right;
+  border-right: 1px solid var(--oh-line);
+  padding-right: 0.85rem;
+}
+.oh-entry-margin small {
+  display: block;
+  margin-top: 0.35rem;
+  font-family: var(--oh-font-data);
+  font-size: var(--oh-t-2xs);
+  color: var(--oh-text-dim);
+}
+.oh-entry-swatch {
+  width: 1.1rem;
+  height: 1.1rem;
+  margin-left: auto;
+  border: 1px solid rgba(0, 0, 0, 0.28);
+}
+
+.oh-entry-title {
+  margin: 0 0 0.3rem;
+  font-family: var(--oh-font-display);
+  font-weight: 600;
+  font-size: var(--oh-t-lg);
+  line-height: 1.14;
+  color: var(--oh-text-strong);
+  text-wrap: balance;
+}
+.oh-entry-body {
+  font-family: var(--oh-font-body);
+  font-size: var(--oh-t-base);
+  line-height: 1.55;
+  max-width: 62ch;
+  color: var(--oh-text);
+}
+.oh-entry-body p { margin: 0 0 0.6rem; }
+.oh-entry-body p:last-child { margin-bottom: 0; }
+.oh-entry-who {
+  margin-top: 0.55rem;
+  font-size: var(--oh-t-sm);
+  color: var(--oh-accent);
+}
+
+/* ---- the verdict --------------------------------------------------------- */
+
+/* The reality check already computes one severity per named constraint. Showing
+   that as a single grade throws the reasoning away; showing the constraints by
+   name lets the player argue with the world instead of guessing at it. */
+.oh-tally { border-top: 1px solid var(--oh-line); padding-top: 0.8rem; }
+.oh-vote {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  column-gap: 0.7rem;
+  row-gap: 0.15rem;
+  align-items: baseline;
+  padding: 0.45rem 0;
+  font-size: var(--oh-t-sm);
+  border-bottom: 1px dotted var(--oh-line);
+}
+.oh-vote > :nth-child(1) { grid-column: 1; }
+.oh-vote > :nth-child(2) { grid-column: 2; }
+.oh-vote > :nth-child(3) { grid-column: 1 / -1; line-height: 1.5; }
+.oh-vote:last-child { border-bottom: 0; }
+.oh-vote-name { font-weight: 600; color: var(--oh-text-strong); }
+.oh-vote-verdict {
+  font-family: var(--oh-font-data);
+  font-size: var(--oh-t-2xs);
+  font-weight: 600;
+}
+.oh-vote-grant { color: var(--oh-grant); }
+.oh-vote-caution { color: var(--oh-caution); }
+.oh-vote-alert { color: var(--oh-alert); }
+
+/* The remedy is the quiet half of a constraint line: dimmer than the detail,
+   but on whatever ground the direction puts the tally on. */
+.oh-vote-remedy { color: var(--oh-text-dim); font-style: italic; }
+
+.oh-result {
+  margin-top: 0.8rem;
+  padding: 0.55rem 0.8rem;
+  background: var(--oh-accent);
+  color: var(--oh-on-accent);
+  font-family: var(--oh-font-display);
+  font-size: var(--oh-t-sm);
+  border-radius: var(--oh-r-soft);
+}
+
+/* Atlas states the same thing as a map legend, with a hatch for what is only
+   partly granted — the one place the two directions genuinely diverge. */
+.oh-key {
+  display: inline-block;
+  vertical-align: middle;
+  width: 1rem;
+  height: 0.7rem;
+  border: 1px solid rgba(0, 0, 0, 0.3);
+}
+/* College states the same thing in words alone: an assembly counts voices, it
+   does not print a colour key. */
+.oh-key-grant { background: var(--oh-grant); }
+.oh-key-caution {
+  background: repeating-linear-gradient(45deg, var(--oh-caution) 0 2px, var(--oh-plate-2) 2px 4px);
+}
+.oh-key-alert { background: var(--oh-alert); }
+
+/* ---- the ledger ---------------------------------------------------------- */
+
+.oh-ledger { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.oh-ledger td { padding: 0.45rem 0; vertical-align: baseline; border-bottom: 1px dotted var(--oh-line); }
+.oh-ledger td:last-child { text-align: right; white-space: nowrap; font-family: var(--oh-font-data); }
+.oh-ledger tr:last-child td { border-bottom: 0; }
+.oh-ledger tr.oh-ledger-total td {
+  border-bottom: 0;
+  padding-top: 0.6rem;
+  font-weight: 700;
+  color: var(--oh-accent);
+}
+.oh-ledger tr.oh-ledger-total td:last-child { color: var(--oh-text-strong); }
+.oh-ledger tr.oh-ledger-total.oh-negative td:last-child { color: var(--oh-alert); }
+
+/* ---- correspondence ------------------------------------------------------ */
+
+/* A dispatch reads like a letter, not a chat bubble: a real reading measure and
+   paragraphs that breathe. Doubled class throughout, because chat.jsx injects
+   its own `.chat-markdown p` rules into document.head at runtime and those land
+   after this sheet, winning at equal specificity. */
+/* A dispatch is a plate that carries the sender's own colour on its top edge, so
+   a run of them down the panel reads as letters from different hands. */
+.oh-dispatch { border-radius: var(--oh-r-flat); }
+
+.oh-dispatch-body.chat-markdown {
+  font-family: var(--oh-font-body);
+  font-size: var(--oh-t-base);
+  line-height: 1.58;
+  max-width: 62ch;
+  color: var(--oh-text);
+}
+.oh-dispatch-body.chat-markdown p { margin: 0 0 0.62rem; }
+.oh-dispatch-body.chat-markdown p:last-child { margin-bottom: 0; }
+/* The model often signs off on its own last line; when it does, it should read
+   as a signature rather than another paragraph. */
+.oh-dispatch-body.chat-markdown p:last-child:not(:first-child) em:only-child {
+  display: block;
+  text-align: right;
+  color: var(--oh-text-dim);
+}
+
+.oh-plate a { color: var(--oh-alert); }
+.oh-plate .chat-markdown,
+.oh-plate .chat-markdown p,
+.oh-plate .chat-markdown li,
+.oh-plate .chat-markdown strong,
+.oh-plate .chat-markdown em,
+.oh-plate .chat-markdown h1,
+.oh-plate .chat-markdown h2,
+.oh-plate .chat-markdown h3 { color: var(--oh-text); }
+.oh-plate .chat-markdown h1,
+.oh-plate .chat-markdown h2,
+.oh-plate .chat-markdown h3 { font-family: var(--oh-font-display); color: var(--oh-text-strong); }
+.oh-plate .chat-markdown code { background: var(--oh-plate-2); color: var(--oh-text); }
+.oh-plate .chat-markdown blockquote { border-left-color: var(--oh-accent); color: var(--oh-text-dim); }
+
+/* The spread. One column on a narrow screen; on anything wide enough, the
+   stories on the left and the standing orders and the ledger on the right —
+   which is what makes the page read as a front page rather than as a feed. */
+.oh-bulletin-grid {
+  display: grid;
+  gap: 2.2rem;
+  align-items: start;
+}
+@media (min-width: 62rem) {
+  .oh-bulletin-grid { grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr); }
+}
+
+/* The lead story carries the page: the first headline is set larger than the
+   ones under it, the way a front page ranks what it thinks matters. */
+.oh-entry:first-child .oh-entry-title { font-size: var(--oh-t-xl); }
+
+/* ---- Bulletin: the political poster ------------------------------------- */
+
+/* No textures, no shadows, no rounded corners — heavy rules and flat colour do
+   all the separating. A turn is a front page: each event is a headline under its
+   own dateline, and a verdict is a block of colour that cannot be skimmed past. */
+
+.oh-plate {
+  border: 0;
+  border-top: 4px solid var(--oh-text-strong);
+  border-radius: var(--oh-r-flat);
+  box-shadow: none;
+}
+
+.oh-plate-head {
+  border-bottom: 0;
+  color: var(--oh-text-strong);
+  font-family: var(--oh-font-label);
+  font-weight: 700;
+  font-size: var(--oh-t-xs);
+  letter-spacing: var(--oh-label-track);
+  text-transform: uppercase;
+  padding: 0.5rem 1.1rem;
+}
+
+/* The margin column collapses: the date leads the story as a dateline chip and
+   the article numeral is not printed at all. */
+.oh-entry {
+  display: block;
+  padding: 0.9rem 1.1rem 1.15rem;
+  border-top: 1px solid var(--oh-line);
+  border-bottom: 0;
+}
+.oh-plate > .oh-entry:last-child,
+.oh-plate > :last-child > .oh-entry { border-bottom: 0; }
+.oh-entry-number { display: none; }
+.oh-entry-margin {
+  border-right: 0;
+  padding: 0;
+  text-align: left;
+  margin-bottom: 0.5rem;
+}
+.oh-entry-margin small {
+  display: inline-block;
+  margin-top: 0;
+  padding: 0.18rem 0.45rem;
+  background: var(--oh-alert);
+  color: var(--oh-on-accent);
+  font-family: var(--oh-font-label);
+  font-weight: 700;
+  font-size: var(--oh-t-2xs);
+}
+.oh-entry-title {
+  font-weight: 800;
+  font-size: var(--oh-t-lg);
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+}
+.oh-entry-who {
+  color: var(--oh-accent);
+  font-weight: 500;
+}
+
+/* The verdict is set on the paper like everything else on the sheet: a heavy
+   rule whose colour is the verdict's tone, the headline in display type, then
+   the constraints as ruled rows. Ink on paper throughout — a solid coloured
+   slab put white and pastel text on blue, and the rows could not be read. */
+.oh-tally {
+  border-top: 4px solid var(--oh-text-strong);
+  background: transparent;
+  color: var(--oh-text);
+  margin-top: 0.7rem;
+  padding: 0.55rem 0 0.1rem;
+  display: flex;
+  flex-direction: column-reverse;
+}
+.oh-tally-feasible { border-top-color: var(--oh-accent); }
+.oh-tally-constrained { border-top-color: var(--oh-caution); }
+.oh-tally-blocked { border-top-color: var(--oh-alert); }
+.oh-result {
+  margin: 0 0 0.45rem;
+  padding: 0;
+  background: transparent;
+  color: var(--oh-text-strong);
+  font-family: var(--oh-font-display);
+  font-weight: 800;
+  font-size: var(--oh-t-md);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  border-radius: var(--oh-r-flat);
+}
+.oh-tally-blocked .oh-result { color: var(--oh-alert); }
+.oh-vote {
+  border-bottom: 0;
+  border-top: 1px dotted var(--oh-line);
+}
+.oh-vote-name { color: var(--oh-text-strong); font-weight: 700; }
+.oh-vote-verdict { font-weight: 700; }
+.oh-vote-grant { color: var(--oh-grant); }
+.oh-vote-caution { color: var(--oh-caution); }
+.oh-vote-alert { color: var(--oh-alert); }
+.oh-vote-remedy { color: var(--oh-text-dim); }
+.oh-key { display: none; }
+
+.oh-ledger td { border-bottom: 1px solid var(--oh-line); }
+.oh-ledger tr.oh-ledger-total td {
+  font-family: var(--oh-font-display);
+  font-weight: 800;
+  font-size: var(--oh-t-md);
+  color: var(--oh-text-strong);
+}
+.oh-ledger tr.oh-ledger-total td:last-child { color: var(--oh-alert); }
+
+.oh-dispatch { border-radius: var(--oh-r-flat); }
+.startup-panel {
+  border: 0;
+  border-top: 4px solid var(--oh-text-strong);
+  border-radius: var(--oh-r-flat);
+  box-shadow: none;
+}
+.startup-title {
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+.startup-core { border-radius: var(--oh-r-flat); }
+
+/* ---- the orders desk on the page ------------------------------------------ */
+
+/* Embedded in the bulletin the desk is a column of newsprint, not a floating
+   panel: its body sits on the page's own paper and nothing in it is rounded.
+   The map's floating form of the same panel keeps its chrome. */
+.oh-desk > div:not(:first-child) { background: transparent !important; box-shadow: none !important; }
+.oh-desk button, .oh-desk textarea, .oh-desk input, .oh-desk .oh-plate { border-radius: 0 !important; }
+.oh-desk > div:not(:first-child) { padding-left: 0 !important; padding-right: 0 !important; }
+
+/* The letters page: the conversation mechanism from the map's panel, set on
+   the page — no rounded chrome, the head and the composer flush with the
+   column, the composer sized for a letter rather than a line. */
+.oh-letters button, .oh-letters textarea, .oh-letters input, .oh-letters .oh-plate { border-radius: 0 !important; }
+.oh-letters > div:first-child, .oh-letters > div:last-child { padding-left: 0 !important; padding-right: 0 !important; }
+.oh-letters textarea { font-size: var(--oh-t-base) !important; min-height: 5.5rem; padding: 0.9rem 1rem !important; resize: vertical !important; }
+.oh-letters .oh-picker > div { border-radius: 0 !important; }

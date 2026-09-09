@@ -1,0 +1,1018 @@
+/*! Open Historia — the bulletin: the page the game opens on © 2026 Nicholas Krol, MIT (see src/Editor/LICENSE). */
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import ReactMarkdown from "react-markdown";
+import dayjs from "dayjs";
+import {
+    readEventsState,
+    readGameData,
+    readWorldState,
+} from "../../runtime/gameState.js";
+import { economyIndicators } from "../../runtime/economy.js";
+import { ActionsPanel } from "./actions.jsx";
+import { writeWorldState } from "../../runtime/gameState.js";
+import { inaugurate, isInaugurated } from "../../runtime/inauguration.js";
+import { ensureRegisterBaseline, registerRows } from "../../runtime/register.js";
+import { CONCENTRATION_CEILING, driveMovement, sourceShares } from "../../runtime/drives.js";
+import { normalizeRecord } from "../../runtime/record.js";
+import { normalizeTreasuries } from "../../runtime/treasuries.js";
+import { normalizeGatherings } from "../../runtime/gatherings.js";
+import { outageNotice } from "../../runtime/outageNotice.js";
+import { preferredLanguage } from "../../runtime/i18n.js";
+import { simulateTimelineJump } from "../AI/gameplay.js";
+
+// Written as a page, not as a panel dressed up as one. Nothing here inherits the
+// floating-drawer chrome the rest of the interface was built from: no border, no
+// radius, no shadow, no close button in a corner. It is a sheet of newsprint —
+// a masthead, a dateline, stories in a column, and a rail carrying the orders
+// standing in the player's name and the ledger they are spent against.
+
+const fmtDate = (value, pattern = "D MMMM YYYY") => {
+    if (!value) return "";
+    const parsed = dayjs(value);
+    return parsed.isValid() ? parsed.format(pattern) : String(value);
+};
+
+const fmtSY = (value) => {
+    const n = Number(value);
+    if (!Number.isFinite(n)) return "—";
+    const abs = Math.abs(n);
+    if (abs >= 1e6) return `${(n / 1e6).toFixed(1)}M`;
+    if (abs >= 1e3) return `${Math.round(n / 1e3)}k`;
+    return String(Math.round(n));
+};
+
+// Money is what a front page prints; subsistence-years are the engine's unit and
+// stay on the line beneath, so the two can never quietly disagree.
+const fmtMoney = (value) => {
+    const n = Number(value);
+    if (!Number.isFinite(n) || n === 0) return null;
+    const abs = Math.abs(n);
+    const sign = n < 0 ? "−" : "";
+    if (abs >= 1e9) return `${sign}$${(abs / 1e9).toFixed(1)}B`;
+    if (abs >= 1e6) return `${sign}$${Math.round(abs / 1e6)}M`;
+    if (abs >= 1e3) return `${sign}$${Math.round(abs / 1e3)}k`;
+    return `${sign}$${Math.round(abs)}`;
+};
+
+// A sum in the reader's currency, in SY only when the page has no rate to
+// convert with. Written once because it was written three times: fmtMoney
+// returns null for zero, so each copy fell through to the SY branch and a purse
+// line read "capital 0 SY at 5.1% · $11M in hand" — two units in one sentence,
+// for a body that in fact holds no capital at all.
+const moneyOf = (sy, usdPerSY) => {
+    const n = Number(sy) || 0;
+    if (!(usdPerSY > 0)) return `${fmtSY(n)} SY`;
+    return fmtMoney(n * usdPerSY) ?? "$0";
+};
+
+const SectionHead = ({ children, aside }) => (
+    <div
+    style={{
+        alignItems: "baseline",
+        borderBottom: "4px solid var(--oh-text-strong)",
+        display: "flex",
+        gap: "1rem",
+        justifyContent: "space-between",
+        paddingBottom: "0.4rem",
+    }}
+    >
+    <span className="oh-label" style={{ color: "var(--oh-text-strong)" }}>{children}</span>
+    {aside && <span style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)" }}>{aside}</span>}
+    </div>
+);
+
+const Dateline = ({ children, tone = "alert" }) => (
+    <span
+    style={{
+        background: tone === "alert" ? "var(--oh-alert)" : "var(--oh-accent)",
+        color: "var(--oh-on-accent)",
+        display: "inline-block",
+        fontFamily: "var(--oh-font-label)",
+        fontSize: "var(--oh-t-2xs)",
+        fontWeight: 700,
+        letterSpacing: "var(--oh-label-track)",
+        marginBottom: "0.5rem",
+        padding: "0.18rem 0.45rem",
+    }}
+    >
+    {children}
+    </span>
+);
+
+const Story = ({ event, lead = false, tone }) => (
+    <article style={{ borderTop: "1px solid var(--oh-line)", padding: "0.95rem 0 1.15rem" }}>
+    <Dateline tone={tone}>{fmtDate(event.date, "D MMM YYYY")}</Dateline>
+    <h3
+    style={{
+        color: "var(--oh-text-strong)",
+        fontFamily: "var(--oh-font-display)",
+        fontSize: lead ? "clamp(1.7rem, 2.6vw, 2.35rem)" : "var(--oh-t-lg)",
+        fontWeight: 800,
+        letterSpacing: "-0.02em",
+        lineHeight: 1.02,
+        margin: "0 0 0.45rem",
+        textWrap: "balance",
+    }}
+    >
+    {event.title}
+    </h3>
+    {event.description && (
+        <div
+        className="timeline-markdown"
+        style={{ color: "var(--oh-text)", fontSize: "var(--oh-t-base)", lineHeight: 1.55, maxWidth: "62ch" }}
+        >
+        <ReactMarkdown>{event.description}</ReactMarkdown>
+        </div>
+    )}
+    </article>
+);
+
+// The situation the scenario starts from. It is printed above the inauguration
+// sheet on the first turn, and again on any edition that carries no stories of
+// its own, which is why it is a component rather than a block inside one branch.
+const Situation = ({ briefing, date }) => (
+    <>
+    <SectionHead aside={fmtDate(date)}>The situation</SectionHead>
+    <article style={{ padding: "1rem 0 1.2rem" }}>
+    <div
+    style={{
+        color: "var(--oh-text)",
+        fontFamily: "var(--oh-font-body)",
+        fontSize: "var(--oh-t-md)",
+        lineHeight: 1.55,
+        maxWidth: "62ch",
+    }}
+    >
+    {briefing || "No opening situation has been written for this start."}
+    </div>
+    </article>
+    </>
+);
+
+// A pope's first act is not a jump. He takes a name and tells the Church what he
+// was elected to change, in front of it — and both become state the whole engine
+// reads (runtime/inauguration.js). Until this sheet is signed the first turn
+// cannot be run; the tab at the foot of the page says so.
+const Inauguration = ({ world, player, onDone }) => {
+    const [name, setName] = useState("");
+    const [declaration, setDeclaration] = useState("");
+    const [error, setError] = useState("");
+    const [busy, setBusy] = useState(false);
+
+    const sign = async () => {
+        if (busy) return;
+        setError("");
+        setBusy(true);
+        try {
+            const next = inaugurate(world, { name, declaration });
+            await writeWorldState(next);
+            onDone(next);
+        } catch (failure) {
+            setError(failure?.message || "The declaration could not be recorded.");
+        } finally {
+            setBusy(false);
+        }
+    };
+
+    const fieldStyle = {
+        background: "var(--oh-plate-2)",
+        border: "1px solid var(--oh-line)",
+        color: "var(--oh-text-strong)",
+        fontFamily: "var(--oh-font-body)",
+        fontSize: "var(--oh-t-base)",
+        padding: "0.65rem 0.8rem",
+        width: "100%",
+    };
+
+    return (
+        <div style={{ maxWidth: "62ch" }}>
+        <SectionHead aside={player}>Inauguration</SectionHead>
+        <p style={{ color: "var(--oh-text)", fontSize: "var(--oh-t-md)", lineHeight: 1.55, margin: "1rem 0 1.4rem" }}>
+        You have been elected. Before the first day of the pontificate is played, the Church must know two things: the name you take, and what you were elected to change. What you write here is not a preface. It becomes your standing programme — the factions will measure you against it, and the reality check will read it as your own line.
+        </p>
+        <label className="oh-label" style={{ color: "var(--oh-text-strong)", display: "block", marginBottom: "0.4rem" }}>Papal name</label>
+        <input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Leo XV, John XXIV…" style={fieldStyle} />
+        <label className="oh-label" style={{ color: "var(--oh-text-strong)", display: "block", margin: "1.1rem 0 0.4rem" }}>Your declaration before the Church</label>
+        <textarea
+        value={declaration}
+        onChange={(e) => setDeclaration(e.target.value)}
+        placeholder="What you were elected to change — the whole Church will read it, and hold you to it."
+        rows={5}
+        style={{ ...fieldStyle, lineHeight: 1.5, resize: "vertical" }}
+        />
+        {error && <div style={{ color: "var(--oh-alert)", fontSize: "var(--oh-t-sm)", marginTop: "0.6rem" }}>{error}</div>}
+        <button
+        type="button"
+        onClick={sign}
+        disabled={busy}
+        style={{
+            background: "var(--oh-accent)",
+            border: 0,
+            color: "var(--oh-on-accent)",
+            cursor: busy ? "wait" : "pointer",
+            fontFamily: "var(--oh-font-label)",
+            fontSize: "var(--oh-t-xs)",
+            fontWeight: 700,
+            letterSpacing: "var(--oh-label-track)",
+            marginTop: "1.2rem",
+            padding: "0.75rem 1.2rem",
+            textTransform: "var(--oh-label-case)",
+        }}
+        >
+        Sign and begin the pontificate
+        </button>
+        </div>
+    );
+};
+
+// Beside a figure: which way it has gone since the baseline, and whether that is
+// the right way for this figure. A flat figure prints nothing — silence is the
+// honest mark when nothing moved.
+const Movement = ({ row, format }) => {
+    if (!row || row.direction === "flat" || row.delta == null) return null;
+    const colour = row.good == null ? "var(--oh-text-dim)" : row.good ? "var(--oh-grant)" : "var(--oh-alert)";
+    const glyph = row.direction === "up" ? "▲" : "▼";
+    return (
+        <span style={{ color: colour, fontSize: "var(--oh-t-2xs)", fontWeight: 700, marginLeft: "0.45rem", whiteSpace: "nowrap" }} title={`since ${row.from == null ? "the start" : format(row.from)}`}>
+        {glyph} {format(Math.abs(row.delta))}
+        </span>
+    );
+};
+
+const fmtCount = (value) => {
+    const n = Number(value);
+    if (!Number.isFinite(n)) return "—";
+    const abs = Math.abs(n);
+    if (abs >= 1e9) return `${(n / 1e9).toFixed(2)}B`;
+    if (abs >= 1e6) return `${(n / 1e6).toFixed(1)}M`;
+    if (abs >= 1e3) return `${Math.round(n / 1e3)}k`;
+    return String(Math.round(n));
+};
+
+// ── The press ────────────────────────────────────────────────────────────────
+// The next turn is the next edition: the reader chooses how far the presses
+// run, reads the date the sheet will bear, and sends it to press. The jump is
+// the engine's (AI/gameplay.js simulateTimelineJump); the page redraws itself
+// from the new state when it returns. Nothing here leaves the paper for the map.
+const SPANS = [
+    { label: "1 week", days: 7 },
+    { label: "1 month", days: 30 },
+    { label: "3 months", days: 90 },
+    { label: "6 months", days: 180 },
+    { label: "1 year", days: 365 },
+];
+
+const fmtMillions = (value, currency = "") => {
+    const n = Number(value);
+    if (!Number.isFinite(n)) return "—";
+    const unit = Math.abs(n) >= 1000 ? `${(n / 1000).toFixed(1)} bn` : `${Math.round(n * 10) / 10} M`;
+    return currency ? `${unit} ${currency}` : unit;
+};
+
+const Press = ({ game, world, focus, onPrinted }) => {
+    const [days, setDays] = useState(30);
+    const [running, setRunning] = useState(false);
+    const [error, setError] = useState("");
+    const [stopped, setStopped] = useState(false);
+    const abortRef = useRef(null);
+    const ref = useRef(null);
+
+    // The "Next edition" tab lands the reader here.
+    useEffect(() => {
+        if (focus && ref.current) ref.current.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, [focus]);
+
+    const inaugurated = Boolean(world && isInaugurated(world));
+    const from = game?.gameDate ? dayjs(game.gameDate) : null;
+    const to = from && from.isValid() ? from.add(days, "day") : null;
+
+    const print = async () => {
+        if (running || !inaugurated || !game) return;
+        setRunning(true);
+        setError("");
+        setStopped(false);
+        const controller = new AbortController();
+        abortRef.current = controller;
+        try {
+            await simulateTimelineJump({ days, signal: controller.signal });
+            onPrinted();
+        } catch (err) {
+            // Field report: Stop left the page on the pre-press sheet and said
+            // nothing, while the engine had already convoked the gatherings,
+            // moved the treasuries and written the record rows — all of it
+            // saved. The reader saw the old figures, concluded the order had
+            // never gone out, and issued it again, paying twice for one
+            // convocation. An abort is not a rollback: re-read the state, and
+            // say on the page that what was committed stands.
+            if (controller.signal.aborted || err?.name === "AbortError") {
+                setStopped(true);
+                onPrinted();
+            } else {
+                setError(err?.message || "The edition could not be printed.");
+            }
+        } finally {
+            abortRef.current = null;
+            setRunning(false);
+        }
+    };
+    const stop = () => abortRef.current?.abort(new DOMException("Edition cancelled.", "AbortError"));
+
+    return (
+        <section ref={ref} style={{ borderBottom: "1px solid var(--oh-line)", borderTop: "4px solid var(--oh-text-strong)", padding: "0.6rem 0 1rem" }}>
+        <div style={{ alignItems: "baseline", display: "flex", gap: "1rem", justifyContent: "space-between" }}>
+        <span className="oh-label" style={{ color: "var(--oh-text-strong)" }}>Next edition</span>
+        <span style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)" }}>{from ? `from ${fmtDate(from)}` : ""}</span>
+        </div>
+        <div style={{ color: "var(--oh-text-strong)", fontFamily: "var(--oh-font-display)", fontSize: "clamp(1.6rem, 2.6vw, 2.2rem)", fontWeight: 800, letterSpacing: "-0.03em", lineHeight: 1.05, margin: "0.5rem 0 0.2rem" }}>
+        {to ? fmtDate(to) : "—"}
+        </div>
+        <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)", marginBottom: "0.7rem" }}>
+        the date the next sheet will bear
+        </div>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.35rem", marginBottom: "0.8rem" }}>
+        {SPANS.map((span) => {
+            const active = span.days === days;
+            return (
+                <button
+                key={span.days}
+                type="button"
+                disabled={running}
+                onClick={() => setDays(span.days)}
+                style={{
+                    background: active ? "var(--oh-accent)" : "transparent",
+                    border: `1px solid ${active ? "var(--oh-accent)" : "var(--oh-line)"}`,
+                    color: active ? "var(--oh-on-accent)" : "var(--oh-text)",
+                    cursor: running ? "default" : "pointer",
+                    fontFamily: "var(--oh-font-label)",
+                    fontSize: "var(--oh-t-2xs)",
+                    fontWeight: 700,
+                    letterSpacing: "var(--oh-label-track)",
+                    padding: "0.4rem 0.7rem",
+                    textTransform: "var(--oh-label-case)",
+                }}
+                >
+                {span.label}
+                </button>
+            );
+        })}
+        </div>
+        {!inaugurated ? (
+            <p style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-sm)", fontStyle: "italic", lineHeight: 1.5, margin: 0, maxWidth: "40ch" }}>
+            The presses wait: the pope takes a name and declares his programme before the first edition prints.
+            </p>
+        ) : running ? (
+            <div style={{ alignItems: "center", display: "flex", gap: "0.8rem" }}>
+            <span style={{ color: "var(--oh-text-strong)", fontFamily: "var(--oh-font-display)", fontSize: "var(--oh-t-md)", fontWeight: 700 }}>At the presses…</span>
+            <span style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)" }}>the world answers your orders</span>
+            <button type="button" onClick={stop} style={{ background: "none", border: "1px solid var(--oh-alert)", color: "var(--oh-alert)", cursor: "pointer", fontFamily: "var(--oh-font-label)", fontSize: "var(--oh-t-2xs)", fontWeight: 700, letterSpacing: "var(--oh-label-track)", marginLeft: "auto", padding: "0.4rem 0.7rem", textTransform: "var(--oh-label-case)" }}>Stop</button>
+            </div>
+        ) : (
+            <button
+            type="button"
+            onClick={print}
+            style={{
+                background: "var(--oh-accent)",
+                border: 0,
+                color: "var(--oh-on-accent)",
+                cursor: "pointer",
+                fontFamily: "var(--oh-font-label)",
+                fontSize: "var(--oh-t-sm)",
+                fontWeight: 700,
+                letterSpacing: "var(--oh-label-track)",
+                padding: "0.85rem 1.2rem",
+                textTransform: "var(--oh-label-case)",
+                width: "100%",
+            }}
+            >
+            Go to press
+            </button>
+        )}
+        {error && (
+            <p style={{ color: "var(--oh-alert)", fontSize: "var(--oh-t-xs)", lineHeight: 1.5, margin: "0.6rem 0 0" }}>{error}</p>
+        )}
+        {stopped && (
+            <p style={{ color: "var(--oh-caution)", fontSize: "var(--oh-t-xs)", lineHeight: 1.5, margin: "0.6rem 0 0", maxWidth: "44ch" }}>
+            The edition was stopped. Orders the engine had already carried out stand — gatherings convoked, money moved, promises taken on — and this sheet has been re-read to show them. Read the record before ordering the same thing a second time.
+            </p>
+        )}
+        </section>
+    );
+};
+
+// ── Drives ───────────────────────────────────────────────────────────────────
+// Money being raised, as the engine holds it (runtime/drives.js): the target,
+// what was pledged, what actually came in, and what moved since the last
+// edition. A drive the stories call a success and this shows at zero is the
+// point of the block.
+const Drives = ({ drives, sinceDate, player }) => {
+    // What is worth a reader's eye: the campaigns still running, and the ones
+    // that actually brought something in. A closed drive that never received a
+    // penny is not history, it is clutter — five of them once filled the rail,
+    // each announcing that nothing had moved.
+    const list = useMemo(
+        () => (Array.isArray(drives) ? drives : []).filter((d) => d.status !== "closed" || d.collected > 0),
+        [drives],
+    );
+    // Who is actually paying. An undertaking meant to be worldwide and carried
+    // by one donor reads as such here, in a figure rather than in a story.
+    const shares = useMemo(() => sourceShares(list, { owner: player }), [list, player]);
+    const top = shares[0];
+    if (!list.length) return null;
+    return (
+        <section>
+        <SectionHead aside={`${list.length} ${list.length === 1 ? "campaign" : "campaigns"}`}>Money being raised</SectionHead>
+        {top && top.pledged > 0 && (
+            <div style={{ borderBottom: "1px dotted var(--oh-line)", padding: "0.6rem 0" }}>
+            <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)" }}>
+            who is paying · {shares.length} {shares.length === 1 ? "contributor" : "contributors"}
+            </div>
+            <div style={{ alignItems: "baseline", display: "flex", gap: "0.5rem", marginTop: "0.15rem" }}>
+            <span style={{ color: top.shareOfPledged > CONCENTRATION_CEILING ? "var(--oh-caution)" : "var(--oh-text-strong)", fontFamily: "var(--oh-font-display)", fontSize: "var(--oh-t-lg)", fontWeight: 800, letterSpacing: "-0.02em", lineHeight: 1 }}>
+            {Math.round(top.shareOfPledged * 100)}%
+            </span>
+            <span style={{ color: "var(--oh-text)", fontSize: "var(--oh-t-sm)", minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{top.source}</span>
+            </div>
+            {top.shareOfPledged > CONCENTRATION_CEILING && (
+                <div style={{ color: "var(--oh-caution)", fontSize: "var(--oh-t-xs)", lineHeight: 1.45, marginTop: "0.3rem", maxWidth: "42ch" }}>
+                One contributor is carrying it. That is a dependence on a single purse, not a claim on what you own — it ends when others actually pledge.
+                </div>
+            )}
+            </div>
+        )}
+        {list.map((drive) => {
+            const pledgedShare = drive.target > 0 ? Math.min(1, drive.pledged / drive.target) : 0;
+            const collectedShare = drive.target > 0 ? Math.min(1, drive.collected / drive.target) : 0;
+            const moved = driveMovement(drive, sinceDate);
+            const remaining = Math.max(0, drive.target - drive.pledged);
+            return (
+                <div key={drive.id} style={{ borderBottom: "1px dotted var(--oh-line)", padding: "0.8rem 0" }}>
+                <div style={{ alignItems: "baseline", display: "flex", gap: "0.8rem", justifyContent: "space-between" }}>
+                <span style={{ color: "var(--oh-text-strong)", fontFamily: "var(--oh-font-display)", fontSize: "var(--oh-t-md)", fontWeight: 700, letterSpacing: "-0.01em" }}>{drive.name}</span>
+                <span className="oh-label" style={{ color: drive.status === "closed" ? "var(--oh-text-dim)" : "var(--oh-accent)", fontSize: "var(--oh-t-2xs)" }}>{drive.status === "closed" ? "closed" : "open"}</span>
+                </div>
+                <div style={{ background: "var(--oh-plate-2)", height: "0.55rem", margin: "0.5rem 0 0.4rem", position: "relative" }}>
+                <div style={{ background: "var(--oh-accent-soft)", height: "100%", left: 0, position: "absolute", top: 0, width: `${pledgedShare * 100}%` }} />
+                <div style={{ background: "var(--oh-grant)", height: "100%", left: 0, position: "absolute", top: 0, width: `${collectedShare * 100}%` }} />
+                </div>
+                <div style={{ display: "grid", gap: "0.3rem 1rem", gridTemplateColumns: "repeat(3, minmax(0, 1fr))" }}>
+                <div>
+                <div style={{ color: "var(--oh-text-strong)", fontFamily: "var(--oh-font-display)", fontSize: "var(--oh-t-lg)", fontWeight: 800, letterSpacing: "-0.02em", lineHeight: 1 }}>{fmtMillions(drive.collected)}</div>
+                <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)" }}>collected</div>
+                </div>
+                <div>
+                <div style={{ color: "var(--oh-text-strong)", fontFamily: "var(--oh-font-display)", fontSize: "var(--oh-t-lg)", fontWeight: 800, letterSpacing: "-0.02em", lineHeight: 1 }}>{fmtMillions(drive.pledged)}</div>
+                <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)" }}>pledged</div>
+                </div>
+                <div>
+                <div style={{ color: "var(--oh-text-strong)", fontFamily: "var(--oh-font-display)", fontSize: "var(--oh-t-lg)", fontWeight: 800, letterSpacing: "-0.02em", lineHeight: 1 }}>{fmtMillions(drive.target, drive.currency)}</div>
+                <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)" }}>
+                target{drive.pledged > drive.collected ? ` · ${fmtMillions(drive.pledged - drive.collected)} promised, not in hand` : ""}{remaining > 0 ? ` · ${fmtMillions(remaining)} still to find` : ""}
+                </div>
+                </div>
+                </div>
+                {/* Said only of a campaign still running: a closed drive is
+                    finished, and reproaching it for standing still is noise. */}
+                {drive.status !== "closed" && (
+                    <div style={{ color: moved.pledged > 0 || moved.collected > 0 ? "var(--oh-grant)" : "var(--oh-alert)", fontSize: "var(--oh-t-xs)", fontWeight: 600, marginTop: "0.5rem" }}>
+                    {moved.pledged > 0 || moved.collected > 0
+                        ? `Since the last edition: +${fmtMillions(moved.pledged)} pledged, +${fmtMillions(moved.collected)} collected.`
+                        : "Nothing moved since the last edition, whatever the stories say."}
+                    </div>
+                )}
+                </div>
+            );
+        })}
+        </section>
+    );
+};
+
+// ── The record ───────────────────────────────────────────────────────────────
+// The non-narrative floor under the paper: one dated line per stock the engine
+// actually moved. Stories never write here, so a page that stays empty while
+// the editions announce fortunes is itself the answer.
+const Record = ({ record, treasuries, player, usdPerSY }) => {
+    // Field report: rows were kept only when r.polity was the player, so a
+    // federation that earned on its capital, was paid its running costs and
+    // distributed to its members all turn had every one of those rows thrown
+    // away — and the panel then printed "Nothing has moved" over the busiest
+    // turn in the game. A body's purse is the player's money; it is only held
+    // one level down, so its rows belong on the same paper, named.
+    const bodies = useMemo(
+        () => new Map(normalizeTreasuries(treasuries).map((t) => [t.body.toLowerCase(), t.body])),
+        [treasuries],
+    );
+    const rows = useMemo(
+        () => normalizeRecord(record)
+            .filter((r) => !player || !r.polity || r.polity === player || bodies.has(r.polity.toLowerCase()))
+            .slice(-12).reverse(),
+        [record, player, bodies],
+    );
+    const money = (sy) => moneyOf(sy, usdPerSY);
+    // Field report: every row went through money() whatever it measured, so
+    // "faith renewed" at 223,803 people printed as a multi-billion-dollar
+    // credit and a legitimacy point printed as dollars — on the one page the
+    // player is told to trust over the narration. The row names its own unit
+    // (runtime/record.js); print the amount in that unit and nothing else.
+    const amountOf = (row) => {
+        const size = Math.abs(row.amount);
+        if (row.unit === "SY") return money(size);
+        if (row.unit === "people") return `${fmtCount(size)} people`;
+        return `${Math.round(size).toLocaleString("en-US")} ${row.unit}`;
+    };
+    return (
+        <section>
+        <SectionHead aside={rows.length ? `${rows.length} entries` : "nothing moved"}>The record</SectionHead>
+        <p style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)", fontStyle: "italic", lineHeight: 1.5, margin: "0.6rem 0 0.2rem", maxWidth: "44ch" }}>
+        Written by the engine, never by the stories: a line appears here only when a stock actually moved.
+        </p>
+        {rows.length === 0 ? (
+            <p style={{ color: "var(--oh-alert)", fontSize: "var(--oh-t-sm)", fontWeight: 600, lineHeight: 1.5, margin: "0.5rem 0 0" }}>
+            Nothing has moved. Whatever the editions have said about money arriving, the stocks are where they started.
+            </p>
+        ) : (
+            <table className="oh-ledger">
+            <tbody>
+            {rows.map((row, i) => (
+                <tr key={`${row.date}-${i}`}>
+                <td>
+                <span style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)", display: "block" }}>
+                {fmtDate(row.date, "D MMM YYYY")}
+                {row.polity && row.polity !== player ? ` · ${bodies.get(row.polity.toLowerCase()) || row.polity}` : ""}
+                </span>
+                {row.what}
+                </td>
+                <td style={{ color: row.amount < 0 ? "var(--oh-alert)" : "var(--oh-grant)", fontWeight: 700, whiteSpace: "nowrap" }}>
+                {row.amount < 0 ? "−" : "+"}{amountOf(row)}
+                </td>
+                </tr>
+            ))}
+            </tbody>
+            </table>
+        )}
+        </section>
+    );
+};
+
+// ── Bodies with a purse ──────────────────────────────────────────────────────
+// A federation and the bodies inside it, each with its own money: what it
+// holds, what its operations earn, and what it hands its members. The levels
+// are shown by indentation, because a federation is the point.
+const Purses = ({ treasuries, usdPerSY }) => {
+    const list = useMemo(() => normalizeTreasuries(treasuries).filter((t) => t.status === "active"), [treasuries]);
+    if (!list.length) return null;
+    const money = (sy) => moneyOf(sy, usdPerSY);
+    const roots = list.filter((t) => !t.parent || !list.some((p) => p.body === t.parent));
+    const ordered = roots.flatMap((r) => [{ t: r, depth: 0 }, ...list.filter((c) => c.parent === r.body).map((c) => ({ t: c, depth: 1 }))]);
+    // The rate a body actually earns: its own once it has shown one, and its
+    // federation's until then. The same rule the engine's step uses, so the
+    // page and the purse can never disagree about what a body is earning.
+    const rateOf = (t) => (t.margin > 0 ? t.margin : (list.find((p) => p.body === t.parent)?.margin ?? 0));
+    return (
+        <section>
+        <SectionHead aside={`${list.length} ${list.length === 1 ? "body" : "bodies"}`}>Bodies with a purse</SectionHead>
+        {ordered.map(({ t, depth }) => (
+            <div key={t.body} style={{ borderBottom: "1px dotted var(--oh-line)", padding: "0.7rem 0 0.7rem", paddingLeft: depth ? "1.2rem" : 0 }}>
+            <div style={{ alignItems: "baseline", display: "flex", gap: "0.6rem", justifyContent: "space-between" }}>
+            <span style={{ color: "var(--oh-text-strong)", fontFamily: "var(--oh-font-display)", fontSize: depth ? "var(--oh-t-sm)" : "var(--oh-t-md)", fontWeight: 700, letterSpacing: "-0.01em", minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            {depth ? "└ " : ""}{t.body}
+            </span>
+            <span className="oh-label" style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)", flexShrink: 0 }}>{t.key}</span>
+            </div>
+            {/* The income in money, not only as a percentage: a rate applied to
+                a figure the reader has to go and find is not a figure. */}
+            <div style={{ color: "var(--oh-text)", fontSize: "var(--oh-t-xs)", lineHeight: 1.5, marginTop: "0.25rem" }}>
+            {/* No rate on an empty purse: "capital $0 at 5.1%" states a return
+                on nothing, and reads as a figure rather than as the absence of
+                one. A body with no capital simply has no capital. */}
+            {t.capital > 0
+                ? <>capital {money(t.capital)} at {Math.round(rateOf(t) * 1000) / 10}%{rateOf(t) > 0 ? `, worth ${money(t.capital * rateOf(t))} a year` : ""}</>
+                : <>no capital</>} · {money(t.treasury)} in hand · keeps {Math.round(t.retain * 100)}%
+            </div>
+            {t.earnedMargin > 0 && t.capital > 0 && (
+                <div style={{ color: "var(--oh-text)", fontSize: "var(--oh-t-xs)", lineHeight: 1.5, marginTop: "0.15rem" }}>
+                Its crowds brought a further {money(t.capital * t.earnedMargin)} a year, already banked on the day of each gathering.
+                </div>
+            )}
+            {/* Where the rest goes. Saying only what a body keeps left the
+                reader to guess at the other four fifths — and the beneficiary
+                is the whole reason the body exists. */}
+            {t.beneficiary && t.beneficiaryShare > 0 && (
+                <div style={{ color: "var(--oh-text-strong)", fontSize: "var(--oh-t-xs)", lineHeight: 1.5, marginTop: "0.15rem" }}>
+                {Math.round(t.beneficiaryShare * 100)}% of the rest to {t.beneficiary}, which it exists to finance; the remainder shared by {t.key === "need" ? "need" : t.key}.
+                </div>
+            )}
+            {/* The standing budget: the most consequential thing about a
+                chapter, and it was nowhere on this page. */}
+            {t.operatingBudget > 0 && (
+                <div style={{ color: "var(--oh-text-strong)", fontSize: "var(--oh-t-xs)", lineHeight: 1.5, marginTop: "0.15rem" }}>
+                Operating budget {money(t.operatingBudget)} a year{t.fundedUntil ? `, paid through ${fmtDate(t.fundedUntil, "D MMM YYYY")}` : ", not yet paid"}. Its national gatherings are funded from it.
+                </div>
+            )}
+            {t.capital === 0 && t.treasury > 0 && (
+                <div style={{ color: "var(--oh-caution)", fontSize: "var(--oh-t-xs)", lineHeight: 1.45, marginTop: "0.2rem" }}>
+                This money is cash, not capital: it earns nothing until it is placed or spent.
+                </div>
+            )}
+            {rateOf(t) === 0 && t.capital > 0 && (
+                <div style={{ color: "var(--oh-caution)", fontSize: "var(--oh-t-xs)", marginTop: "0.2rem" }}>
+                This capital is placed nowhere and earns nothing.
+                </div>
+            )}
+            </div>
+        ))}
+        </section>
+    );
+};
+
+// ── Gatherings ───────────────────────────────────────────────────────────────
+// The crowds themselves: what each one cost, how many came, what it left. The
+// attendance is the engine's, not the story's, which is why it can be read as
+// a result rather than as a claim.
+const Gatherings = ({ gatherings, usdPerSY }) => {
+    const list = useMemo(() => normalizeGatherings(gatherings).filter((g) => g.status !== "cancelled").slice(-6).reverse(), [gatherings]);
+    if (!list.length) return null;
+    const money = (sy) => moneyOf(sy, usdPerSY);
+    return (
+        <section>
+        <SectionHead aside={`${list.length} ${list.length === 1 ? "gathering" : "gatherings"}`}>Crowds</SectionHead>
+        {list.map((g) => (
+            <div key={g.id} style={{ borderBottom: "1px dotted var(--oh-line)", padding: "0.7rem 0" }}>
+            <div style={{ alignItems: "baseline", display: "flex", gap: "0.6rem", justifyContent: "space-between" }}>
+            <span style={{ color: "var(--oh-text-strong)", fontFamily: "var(--oh-font-display)", fontSize: "var(--oh-t-md)", fontWeight: 700, letterSpacing: "-0.01em", minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{g.name}</span>
+            <span className="oh-label" style={{ color: g.status === "held" ? "var(--oh-grant)" : "var(--oh-text-dim)", flexShrink: 0, fontSize: "var(--oh-t-2xs)" }}>{g.status === "held" ? "held" : "planned"}</span>
+            </div>
+            <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)", marginTop: "0.1rem" }}>
+            {[g.place, fmtDate(g.heldAt || g.date, "D MMM YYYY")].filter(Boolean).join(" · ")}
+            </div>
+            {g.status === "held" ? (
+                <div style={{ display: "grid", gap: "0.3rem 1rem", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", marginTop: "0.45rem" }}>
+                <div>
+                <div style={{ color: "var(--oh-text-strong)", fontFamily: "var(--oh-font-display)", fontSize: "var(--oh-t-lg)", fontWeight: 800, letterSpacing: "-0.02em", lineHeight: 1 }}>{fmtCount(g.attendance)}</div>
+                <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)" }}>came</div>
+                </div>
+                <div>
+                <div style={{ color: "var(--oh-text-strong)", fontFamily: "var(--oh-font-display)", fontSize: "var(--oh-t-lg)", fontWeight: 800, letterSpacing: "-0.02em", lineHeight: 1 }}>{money(g.revenue)}</div>
+                <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)" }}>taken · {money(g.cost)} cost</div>
+                </div>
+                <div>
+                <div style={{ color: g.surplus < 0 ? "var(--oh-alert)" : "var(--oh-grant)", fontFamily: "var(--oh-font-display)", fontSize: "var(--oh-t-lg)", fontWeight: 800, letterSpacing: "-0.02em", lineHeight: 1 }}>
+                {g.surplus < 0 ? "−" : "+"}{money(Math.abs(g.surplus)).replace(/^[−+]/, "")}
+                </div>
+                <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)" }}>{g.surplus < 0 ? "lost" : "left"} to {g.host}</div>
+                </div>
+                </div>
+            ) : (
+                <div style={{ color: "var(--oh-text)", fontSize: "var(--oh-t-xs)", lineHeight: 1.45, marginTop: "0.3rem" }}>
+                budgeted {money(g.cost)}{g.expected > 0 ? `, hoping for ${fmtCount(g.expected)}` : ", and the engine will say how many come"}. It earns nothing until the day arrives.
+                </div>
+            )}
+            </div>
+        ))}
+        </section>
+    );
+};
+
+const Bulletin = ({ onOpenAdvisor, pressFocus = 0 }) => {
+    const [game, setGame] = useState(null);
+    const [world, setWorld] = useState(null);
+    const [events, setEvents] = useState([]);
+    // Bumped when the presses have run: the sheet re-reads the new state.
+    const [printed, setPrinted] = useState(0);
+    const reload = useCallback(() => setPrinted((tick) => tick + 1), []);
+
+    useEffect(() => {
+        let active = true;
+        const load = async () => {
+            const [nextGame, nextWorld, nextEvents] = await Promise.all([
+                readGameData().catch(() => null),
+                readWorldState({ force: true }).catch(() => null),
+                readEventsState().catch(() => []),
+            ]);
+            if (!active) return;
+            setGame(nextGame);
+            // A game from before the register gets its baseline now, once.
+            const based = nextWorld ? ensureRegisterBaseline(nextWorld, nextGame?.country || "", { date: nextGame?.gameDate || "" }) : nextWorld;
+            if (based && based !== nextWorld) writeWorldState(based).catch(() => {});
+            setWorld(based);
+            setEvents(Array.isArray(nextEvents) ? nextEvents : []);
+        };
+        load();
+        // The page is the app's front door: it re-reads whenever it is mounted,
+        // which is every time the reader comes back to this section, and again
+        // after every edition printed from it.
+        return () => { active = false; };
+    }, [printed]);
+
+    const player = game?.country || "";
+
+    // The edition: what THIS turn printed, and the archive beneath it.
+    //
+    // Field report: the page sorted every event the game had ever produced and
+    // took the newest eight, so a story from four turns ago reappeared under
+    // "This turn's edition" as breaking news, and the "N events" count beside
+    // the heading described the archive rather than the round. The engine
+    // already knows what the round produced: simulationHistory[0] carries the
+    // ids of the events it wrote, and the dates it ran between when it does
+    // not (AI/gameplay.js). Anything older is history and prints as history.
+    const { edition, earlier } = useMemo(() => {
+        const dated = events.filter((event) => event && event.title);
+        dated.sort((a, b) => String(b.date).localeCompare(String(a.date)));
+        const round = Array.isArray(world?.simulationHistory) ? world.simulationHistory[0] : null;
+        const ids = new Set((round?.eventIds ?? []).filter(Boolean));
+        const from = String(round?.fromDate || "").slice(0, 10);
+        const to = String(round?.toDate || round?.date || "").slice(0, 10);
+        // The boundary date belongs to the turn that ended on it, so a story
+        // dated on the previous sheet is not reprinted as news here.
+        const thisTurn = (event) => {
+            if (ids.size) return Boolean(event.id) && ids.has(event.id);
+            if (!to) return false;
+            const on = String(event.date || "").slice(0, 10);
+            return Boolean(on) && on <= to && (!from || on > from);
+        };
+        // Before the first jump nothing has been printed at all: the whole list
+        // is archive, and the left column prints the opening situation instead.
+        return {
+            edition: round ? dated.filter(thisTurn) : [],
+            earlier: (round ? dated.filter((event) => !thisTurn(event)) : dated).slice(0, 8),
+        };
+    }, [events, world]);
+
+    const indicators = useMemo(() => {
+        const economy = player ? world?.economies?.[player] : null;
+        return economy ? economyIndicators(economy) : null;
+    }, [player, world]);
+    const usdPerSY = Number(player ? world?.economies?.[player]?.usdPerSY : 0) || 0;
+    // One unit for every sum the ledger prints: money while the page has a rate
+    // to convert with, SY only when it has none at all (moneyOf, top of file).
+    const money = (sy) => moneyOf(sy, usdPerSY);
+    const rows = useMemo(() => Object.fromEntries(registerRows(world, player).map((r) => [r.key, r])), [world, player]);
+
+
+
+    const briefing = world?.startingTimelineText || "";
+    const awaitingInauguration = Boolean(world) && !isInaugurated(world);
+
+    // A turn that could not reach the model is written by a deterministic stub
+    // that carries NO levers: no money moves, no order is judged, no scheme
+    // advances. The engine has always recorded why, and the page has never said
+    // so, so six turns in a row read as ordinary editions while a quota error
+    // was throwing every one of them away. The reader has to be told on the
+    // front page, where they are, and told how many in a row.
+    const outage = useMemo(() => {
+        const history = Array.isArray(world?.simulationHistory) ? world.simulationHistory : [];
+        if (history[0]?.source !== "fallback") return null;
+        let run = 0;
+        while (history[run]?.source === "fallback") run += 1;
+        const reason = String(history[0].fallbackReason || "").trim();
+        const since = String(history[run - 1]?.date || history[run - 1]?.toDate || "").slice(0, 10);
+        // Hand-written per language rather than sent through the translator:
+        // the translator calls the model, and this notice exists precisely for
+        // when the model cannot be reached (runtime/outageNotice.js).
+        const words = outageNotice(preferredLanguage(), { run, since: since ? fmtDate(since, "D MMM YYYY") : "" });
+        return {
+            ...words,
+            // The provider's own words, trimmed of the documentation URL that
+            // makes the line unreadable in a column.
+            reason: (reason.split(/\s*(?:For more information|Pour plus d)/)[0] || reason).trim(),
+        };
+    }, [world]);
+
+    return (
+        <div
+        style={{
+            background: "var(--oh-plate)",
+            bottom: "2.6rem",
+            color: "var(--oh-text)",
+            left: 0,
+            overflowY: "auto",
+            position: "fixed",
+            right: 0,
+            top: 0,
+            zIndex: 10002,
+        }}
+        >
+        <div style={{ margin: "0 auto", maxWidth: "74rem", padding: "1.6rem 1.5rem 3rem" }}>
+
+        {/* The masthead. The name of the sheet, then the dateline rule. */}
+        <header style={{ borderBottom: "4px solid var(--oh-text-strong)", paddingBottom: "0.5rem" }}>
+        <h1
+        style={{
+            color: "var(--oh-text-strong)",
+            fontFamily: "var(--oh-font-display)",
+            fontSize: "clamp(2.2rem, 5vw, 3.6rem)",
+            fontWeight: 800,
+            letterSpacing: "-0.035em",
+            lineHeight: 0.95,
+            margin: 0,
+        }}
+        >
+        {player || "Bulletin"}
+        </h1>
+        </header>
+
+        {/* Printed above everything, because nothing below it is real. */}
+        {outage && (
+            <div
+            role="alert"
+            style={{
+                background: "var(--oh-plate)",
+                border: "2px solid var(--oh-alert)",
+                color: "var(--oh-text-strong)",
+                fontSize: "var(--oh-t-sm)",
+                lineHeight: 1.55,
+                marginTop: "1rem",
+                padding: "0.8rem 1rem",
+            }}
+            >
+            <span className="oh-label" data-no-translate style={{ color: "var(--oh-alert)", display: "block", fontSize: "var(--oh-t-2xs)", marginBottom: "0.3rem" }}>
+            {outage.label}
+            </span>
+            <span data-no-translate>{outage.body}</span>
+            {outage.reason && (
+                <div data-no-translate style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)", marginTop: "0.4rem" }}>
+                {outage.reasonLabel}: {outage.reason}
+                </div>
+            )}
+            </div>
+        )}
+        <div
+        style={{
+            alignItems: "baseline",
+            borderBottom: "1px solid var(--oh-line)",
+            display: "flex",
+            gap: "1rem",
+            justifyContent: "space-between",
+            marginBottom: "1.6rem",
+            padding: "0.4rem 0 0.7rem",
+        }}
+        >
+        <span className="oh-label" style={{ color: "var(--oh-text-strong)" }}>
+        {edition.length ? "This turn's edition" : "Opening edition"}
+        </span>
+        <span style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)" }}>
+        {fmtDate(game?.gameDate)}
+        </span>
+        </div>
+
+        <div className="oh-bulletin-grid">
+
+        {/* Left: what the world did — and, on the first turn, the situation the
+            new pope has to read before he can sign anything. */}
+        <div>
+        {awaitingInauguration ? (
+            // Field report: the inauguration sheet was rendered INSTEAD of the
+            // briefing, so the player took a name and wrote the standing
+            // programme the whole engine reads afterwards — factions, reality
+            // check — without having been told one thing about the state of the
+            // Church. The first irreversible decision in the game was made
+            // blind. The situation prints above the form, never in place of it.
+            <>
+            <Situation briefing={briefing} date={game?.startDate || game?.gameDate} />
+            <Inauguration world={world} player={player} onDone={setWorld} />
+            </>
+        ) : edition.length === 0 ? (
+            // An episode opens before anything has happened. Rather than an empty
+            // page with a dashed box on it, the first edition prints the situation
+            // the scenario starts from — which is the thing a new player needs.
+            <Situation briefing={briefing} date={game?.startDate || game?.gameDate} />
+        ) : (
+            <>
+            <SectionHead aside={`${edition.length} ${edition.length === 1 ? "event" : "events"}`}>
+            What happened
+            </SectionHead>
+            {edition.map((event, index) => (
+                <Story
+                key={event.id || `${event.date}-${index}`}
+                event={event}
+                lead={index === 0}
+                tone={index % 2 === 0 ? "alert" : "accent"}
+                />
+            ))}
+            </>
+        )}
+        {/* The archive, under its own rule and never as a lead: a story the
+            reader has already been sold is not news a second time. It is kept
+            off the inauguration sheet, where the only thing to do is decide. */}
+        {!awaitingInauguration && earlier.length > 0 && (
+            <div style={{ marginTop: "1.8rem" }}>
+            <SectionHead aside={`${earlier.length} ${earlier.length === 1 ? "story" : "stories"}`}>
+            Earlier
+            </SectionHead>
+            {earlier.map((event, index) => (
+                <Story
+                key={event.id || `earlier-${event.date}-${index}`}
+                event={event}
+                tone={index % 2 === 0 ? "accent" : "alert"}
+                />
+            ))}
+            </div>
+        )}
+        </div>
+
+        {/* Right: what stands ordered, and what it costs. */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "1.6rem" }}>
+        {/* The orders desk itself: compose, take a suggestion, read each
+            verdict. One component, the same the map's floating panel shows.
+            Field report: it used to sit BELOW the presses, so the largest
+            control on the page — the one that ends the turn and cannot be
+            undone — was the first thing under the reader's hand, and a turn was
+            regularly spent before a single order had been written. Orders are
+            written first; the presses are what you reach when you are done. */}
+        <section>
+        <ActionsPanel embedded isOpen onClose={() => {}} onOpenAdvisor={onOpenAdvisor} />
+        </section>
+
+        {/* The presses: how far the next edition runs, and the order to print. */}
+        <Press game={game} world={world} focus={pressFocus} onPrinted={reload} />
+
+        <Drives drives={world?.drives} sinceDate={world?.simulationHistory?.[0]?.fromDate || ""} player={player} />
+
+        <Gatherings gatherings={world?.gatherings} usdPerSY={usdPerSY} />
+
+        <Purses treasuries={world?.treasuries} usdPerSY={usdPerSY} />
+
+        <Record record={world?.record} treasuries={world?.treasuries} player={player} usdPerSY={usdPerSY} />
+
+        {indicators && (
+            <section>
+            <SectionHead aside="this year">Ledger — {player}</SectionHead>
+            <div style={{ display: "grid", gap: "1rem", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", padding: "0.9rem 0 1rem" }}>
+            <div>
+            <div
+            style={{
+                color: indicators.balance < 0 ? "var(--oh-alert)" : "var(--oh-grant)",
+                fontFamily: "var(--oh-font-display)",
+                fontSize: "clamp(2rem, 3.4vw, 2.9rem)",
+                fontWeight: 800,
+                letterSpacing: "-0.035em",
+                lineHeight: 1,
+            }}
+            >
+            {(usdPerSY > 0 && fmtMoney(indicators.balance * usdPerSY))
+                || `${indicators.balance < 0 ? "−" : "+"}${fmtSY(Math.abs(indicators.balance))}`}
+            </div>
+            <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)", marginTop: "0.35rem" }}>
+            balance of the year{usdPerSY > 0 ? ` · ${fmtSY(indicators.balance)} SY` : ""}
+            <Movement row={rows.balance} format={(v) => (usdPerSY > 0 ? fmtMoney(v * usdPerSY) : `${fmtSY(v)} SY`)} />
+            </div>
+            </div>
+            <div>
+            <div
+            style={{
+                color: "var(--oh-text-strong)",
+                fontFamily: "var(--oh-font-display)",
+                fontSize: "clamp(2rem, 3.4vw, 2.9rem)",
+                fontWeight: 800,
+                letterSpacing: "-0.035em",
+                lineHeight: 1,
+            }}
+            >
+            {indicators.yearsOfPatrimonyLeft == null ? "—" : `${indicators.yearsOfPatrimonyLeft} yrs`}
+            </div>
+            <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)", marginTop: "0.35rem" }}>
+            of patrimony left
+            <Movement row={rows.yearsOfPatrimonyLeft} format={(v) => `${Math.round(v)} yrs`} />
+            </div>
+            </div>
+            </div>
+            <table className="oh-ledger">
+            <tbody>
+            {/* In hand, first line: the answer to "do I have the money".
+                Field report: this line printed dollars while every line under
+                it printed subsistence-years — "$11M in hand" directly above
+                "Patrimony placed 9.4k SY" — in the one table that exists so the
+                purse and the patrimony can be compared. The reader could not
+                tell which was the larger. Every sum here goes through moneyOf,
+                which falls back to SY only when the page has no rate at all. */}
+            <tr><td>In hand</td><td>{money(indicators.treasury)}<Movement row={rows.treasury} format={money} /></td></tr>
+            {rows.faithful?.value != null && (
+                <tr><td>Faithful</td><td>{fmtCount(rows.faithful.value)}<Movement row={rows.faithful} format={fmtCount} /></td></tr>
+            )}
+            <tr><td>Patrimony placed</td><td>{money(indicators.endowment)}<Movement row={rows.endowment} format={money} /></td></tr>
+            {/* The rate AND what it actually throws off: a percentage of a stock
+                the reader has to go and find is not an income. */}
+            <tr><td>Yield on patrimony</td><td>{(indicators.endowmentYield * 100).toFixed(2)} % · {money(indicators.endowmentIncome)} a year<Movement row={rows.endowmentYield} format={(v) => `${(v * 100).toFixed(2)} pt`} /></td></tr>
+            <tr><td>Transfers received</td><td>{money(indicators.transfers)}<Movement row={rows.transfers} format={money} /></td></tr>
+            {/* The federation's remittance, on its own line. It used to land in
+                the treasury and nowhere else, so the balance never felt it. */}
+            {rows.bodyTransfers?.value > 0 && (
+                <tr><td>Paid by its own bodies</td><td>{money(rows.bodyTransfers.value)} a year<Movement row={rows.bodyTransfers} format={money} /></td></tr>
+            )}
+            <tr><td>Tax revenue</td><td>{indicators.taxRevenue > 0 ? money(indicators.taxRevenue) : "none"}<Movement row={rows.taxRevenue} format={money} /></td></tr>
+            <tr><td>Unfunded promises</td><td>{money(indicators.unfundedLiabilities)}<Movement row={rows.unfundedLiabilities} format={money} /></td></tr>
+            {rows.legitimacy?.value != null && (
+                <tr><td>Legitimacy</td><td>{Math.round(rows.legitimacy.value)}/100<Movement row={rows.legitimacy} format={(v) => `${Math.round(v)} pt`} /></td></tr>
+            )}
+            </tbody>
+            </table>
+            </section>
+        )}
+        </div>
+        </div>
+        </div>
+        </div>
+    );
+};
+
+export { Bulletin };
+export default Bulletin;
