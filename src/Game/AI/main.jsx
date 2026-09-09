@@ -6,6 +6,7 @@ import { LEDGER_HONESTY_RULE, checkLedgerClaims, describeLedgerCorrections } fro
 import { economyIndicators } from "../../runtime/economy.js";
 import { toGeminiSchema } from "./geminiSchema.js";
 import { retryDelayFromRateLimit } from "./rateLimit.js";
+import { VOICE_RULES, describeVoice, voiceFor } from "../../runtime/voices.js";
 import { yearOf } from "../../runtime/economyBridge.js";
 const LF = String.fromCharCode(10);
 const NL2 = LF + LF;
@@ -1404,6 +1405,20 @@ export async function buildDiplomaticSystemPrompt(countries, playerCountry, { ch
 
     const bodies = organizationVoice(worldData, gameData, speakingAs, player);
 
+    // Who this correspondent IS as a correspondent (runtime/voices.js). Without
+    // it the prompt carried the speaker's name, the world and the thread — and
+    // nothing about their manner — so the model improvised one on every call and
+    // improvisation regresses to the same courteous diplomatic average. Writing
+    // to France, to Germany and to Turkey read like writing to one person three
+    // times, and a polity that was brusque in March was emollient in April
+    // because nothing carried its manner forward.
+    const voice = describeVoice(voiceFor(speakingAs, {
+        intents: normalizeIntents(worldData?.intents),
+        economies: worldData?.economies ?? {},
+        tags: worldData?.countryTags?.[speakingAs] ?? [],
+        player,
+    }));
+
     // Leaders negotiate as softly or ruthlessly as the chosen difficulty.
     // Reinforced at call time (not only in defaultPrompts.json) because a game
     // may carry its own frozen copy of the "leader" template from before this
@@ -1453,7 +1468,11 @@ export async function buildDiplomaticSystemPrompt(countries, playerCountry, { ch
     const standing = describeStanding(worldData, speakingAs, { player: target });
     const standingOverride = standing ? `\n\n${standing}` : "";
 
-    return `${renderTemplate(promptPack.leader, { ...variables, ...helperValues })}${bodies}\n\n${difficultyDirective(gameData?.difficulty)}${lengthOverride}${economyOverride}${historyOverride}${standingOverride}${warOverride}${leaderOverride}${deceptionOverride}`;
+    // The voice goes LAST of the identity blocks and carries its own rule, so it
+    // is the closest thing to the reply the model is about to write. Put earlier,
+    // the generic courtesy of the base leader template drowned it.
+    const voiceBlock = voice ? `\n\n${voice}\n\n${VOICE_RULES}` : "";
+    return `${renderTemplate(promptPack.leader, { ...variables, ...helperValues })}${bodies}${voiceBlock}\n\n${difficultyDirective(gameData?.difficulty)}${lengthOverride}${economyOverride}${historyOverride}${standingOverride}${warOverride}${leaderOverride}${deceptionOverride}`;
 }
 
 let advisorHistory = [];
