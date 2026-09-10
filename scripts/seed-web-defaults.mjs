@@ -26,12 +26,16 @@ const readJson = (rel, fallback) => {
 };
 
 const meta = readJson("scenario.json", {});
+// The cover. Upstream's default scenario ships a painting of tanks and
+// explosions, and it was what a visitor saw on the card of a game about one
+// pope. The basilica instead — the same photograph the front door uses.
 const cover = (() => {
-  const file = path.join(SRC, "cover-image.bin");
+  const vatican = path.join(ROOT, "public", "basilica.jpg");
+  const file = existsSync(vatican) ? vatican : path.join(SRC, "cover-image.bin");
   if (!existsSync(file)) return null;
-  const contentType = typeof meta.coverImageContentType === "string" && meta.coverImageContentType
-    ? meta.coverImageContentType
-    : "image/jpeg";
+  const contentType = file === vatican
+    ? "image/jpeg"
+    : (typeof meta.coverImageContentType === "string" && meta.coverImageContentType) || "image/jpeg";
   return { contentType, base64: readFileSync(file).toString("base64") };
 })();
 

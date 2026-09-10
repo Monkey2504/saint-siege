@@ -1180,6 +1180,28 @@ export const ensureSeeded = async () => {
     if (!manifest.order.includes(DEFAULT_SCENARIO_ID)) manifest.order.unshift(DEFAULT_SCENARIO_ID);
     await saveScenarioManifest({ order: manifest.order, selectedScenarioId: manifest.selectedScenarioId || DEFAULT_SCENARIO_ID });
   }
+
+  // A game, not just a scenario — and made active.
+  //
+  // Field report: a visitor opened the published game and was asked to pick a
+  // scenario, then to CHOOSE A COUNTRY from a map of the world, in a game where
+  // you are the pope; the list opened on Afghanistan. The player's instruction:
+  // "il y a encore beaucoup trop de choses avant de jouer. Si le gars met sa
+  // clé il faut que tout de suite on lui demande son nouveau nom de pape […] et
+  // qu'il soit dans le jeu. Immersion dès le début."
+  //
+  // So a first run seeds a playable pontificate and opens on it. It is not
+  // inaugurated, so the first thing the visitor meets is the screen that should
+  // have been first all along: the name he takes and the cabinet he seats.
+  if (!(await listGameIds()).length) {
+    try {
+      await createGame({ id: "pontificat", name: "Votre pontificat", scenarioId: DEFAULT_SCENARIO_ID, setActive: true });
+    } catch (error) {
+      // A first run that cannot seed a game still reaches a library it can start
+      // from. This must never be the reason the app fails to boot.
+      console.warn("Web-mode game seeding skipped:", error?.message);
+    }
+  }
   await kvPut("seeded", true);
 };
 

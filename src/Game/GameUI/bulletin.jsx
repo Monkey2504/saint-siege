@@ -14,6 +14,7 @@ import { writeWorldState } from "../../runtime/gameState.js";
 import { inaugurate, isInaugurated } from "../../runtime/inauguration.js";
 import { ensureRegisterBaseline, registerRows } from "../../runtime/register.js";
 import { frontRows } from "../../runtime/fronts.js";
+import { CANDIDATES, SEATS, seatCabinet } from "../../runtime/advisors.js";
 import { CONCENTRATION_CEILING, driveMovement, sourceShares } from "../../runtime/drives.js";
 import { normalizeRecord } from "../../runtime/record.js";
 import { normalizeTreasuries } from "../../runtime/treasuries.js";
@@ -160,19 +161,35 @@ const Situation = ({ briefing, date }) => (
 const Inauguration = ({ world, player, onDone }) => {
     const [name, setName] = useState("");
     const [declaration, setDeclaration] = useState("");
+    const [seated, setSeated] = useState([]);
     const [error, setError] = useState("");
     const [busy, setBusy] = useState(false);
+
+    // Three of twenty, each with a gift and a flaw the engine actually reads
+    // (runtime/advisors.js). Asked here rather than in a settings panel because
+    // this is the moment a pontificate is decided, and because the player's own
+    // instruction was that a new player should meet the game itself first:
+    // "qu'il choisisse 3 conseillers parmi une vingtaine qui ont des qualités et
+    // défauts différents, et qu'il soit dans le jeu. Immersion dès le début."
+    const toggle = (id) => setSeated((current) => {
+        if (current.includes(id)) return current.filter((x) => x !== id);
+        return current.length >= SEATS ? current : [...current, id];
+    });
 
     const sign = async () => {
         if (busy) return;
         setError("");
+        if (seated.length !== SEATS) {
+            setError(`Choisissez ${SEATS} conseillers : ils décident de ce que vous pourrez faire.`);
+            return;
+        }
         setBusy(true);
         try {
-            const next = inaugurate(world, { name, declaration });
+            const next = seatCabinet(inaugurate(world, { name, declaration }), seated, { date: world?.asOf || "" });
             await writeWorldState(next);
             onDone(next);
         } catch (failure) {
-            setError(failure?.message || "The declaration could not be recorded.");
+            setError(failure?.message || "La déclaration n'a pas pu être enregistrée.");
         } finally {
             setBusy(false);
         }
@@ -189,18 +206,66 @@ const Inauguration = ({ world, player, onDone }) => {
     };
 
     return (
+        <div>
         <div style={{ maxWidth: "62ch" }}>
-        <SectionHead aside={player}>Inauguration</SectionHead>
+        <SectionHead aside={player}>Habemus papam</SectionHead>
         <p style={{ color: "var(--oh-text)", fontSize: "var(--oh-t-md)", lineHeight: 1.55, margin: "1rem 0 1.4rem" }}>
-        You have been elected. Before the first day of the pontificate is played, the Church must know two things: the name you take, and what you were elected to change. What you write here is not a preface. It becomes your standing programme — the factions will measure you against it, and the reality check will read it as your own line.
+        Vous avez été élu. Avant que le premier jour du pontificat se joue, l'Église doit savoir trois choses : le nom que vous prenez, ceux dont vous vous entourez, et ce que vous avez été élu pour changer. Ce que vous écrivez ici n'est pas une préface — cela devient votre programme, et les courants vous mesureront à lui.
         </p>
-        <label className="oh-label" style={{ color: "var(--oh-text-strong)", display: "block", marginBottom: "0.4rem" }}>Papal name</label>
-        <input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Leo XV, John XXIV…" style={fieldStyle} />
-        <label className="oh-label" style={{ color: "var(--oh-text-strong)", display: "block", margin: "1.1rem 0 0.4rem" }}>Your declaration before the Church</label>
+        <label className="oh-label" style={{ color: "var(--oh-text-strong)", display: "block", marginBottom: "0.4rem" }}>Le nom que vous prenez</label>
+        <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Léon XV, Jean XXIV, Pie XIII…" style={fieldStyle} autoFocus />
+        </div>
+
+        {/* The cabinet. Twenty candidates, three seats, and every gift paired
+            with what it costs — the choice is the first real decision of the
+            pontificate, so it is made before anything else. */}
+        <div style={{ margin: "1.8rem 0 0" }}>
+        <div style={{ alignItems: "baseline", borderBottom: "1px solid var(--oh-line)", display: "flex", gap: "1rem", justifyContent: "space-between", paddingBottom: "0.4rem" }}>
+        <span className="oh-label" style={{ color: "var(--oh-text-strong)" }}>Votre cabinet</span>
+        <span style={{ color: seated.length === SEATS ? "var(--oh-grant)" : "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)", fontWeight: 700 }}>
+        {seated.length} / {SEATS} choisis
+        </span>
+        </div>
+        <p style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)", lineHeight: 1.5, margin: "0.5rem 0 0.9rem", maxWidth: "62ch" }}>
+        Trois sièges pour vingt candidats. Chacun apporte quelque chose et coûte quelque chose : ce que vous ne prenez pas, vous ne l'aurez pas.
+        </p>
+        <div style={{ display: "grid", gap: "0.5rem", gridTemplateColumns: "repeat(auto-fill, minmax(19rem, 1fr))" }}>
+        {CANDIDATES.map((who) => {
+            const on = seated.includes(who.id);
+            const full = seated.length >= SEATS && !on;
+            return (
+                <button
+                key={who.id}
+                type="button"
+                onClick={() => toggle(who.id)}
+                style={{
+                    background: on ? "var(--oh-accent-soft)" : "transparent",
+                    border: `1px solid ${on ? "var(--oh-accent)" : "var(--oh-line)"}`,
+                    color: "var(--oh-text)",
+                    cursor: full ? "default" : "pointer",
+                    fontFamily: "var(--oh-font-body)",
+                    opacity: full ? 0.45 : 1,
+                    padding: "0.7rem 0.85rem",
+                    textAlign: "left",
+                }}
+                >
+                <div style={{ color: "var(--oh-text-strong)", fontFamily: "var(--oh-font-display)", fontSize: "var(--oh-t-sm)", fontWeight: 700 }}>{who.name}</div>
+                <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)", marginBottom: "0.4rem" }}>{who.charge}</div>
+                <div style={{ color: "var(--oh-text)", fontSize: "var(--oh-t-2xs)", fontStyle: "italic", lineHeight: 1.45, marginBottom: "0.45rem" }}>{who.line}</div>
+                <div style={{ color: "var(--oh-grant)", fontSize: "var(--oh-t-2xs)", lineHeight: 1.4 }}>+ {who.boonSays}</div>
+                <div style={{ color: "var(--oh-alert)", fontSize: "var(--oh-t-2xs)", lineHeight: 1.4 }}>− {who.baneSays}</div>
+                </button>
+            );
+        })}
+        </div>
+        </div>
+
+        <div style={{ margin: "1.8rem 0 0", maxWidth: "62ch" }}>
+        <label className="oh-label" style={{ color: "var(--oh-text-strong)", display: "block", marginBottom: "0.4rem" }}>Votre déclaration devant l'Église</label>
         <textarea
         value={declaration}
         onChange={(e) => setDeclaration(e.target.value)}
-        placeholder="What you were elected to change — the whole Church will read it, and hold you to it."
+        placeholder="Ce que vous avez été élu pour changer. Toute l'Église le lira, et vous y tiendra."
         rows={5}
         style={{ ...fieldStyle, lineHeight: 1.5, resize: "vertical" }}
         />
@@ -223,8 +288,9 @@ const Inauguration = ({ world, player, onDone }) => {
             textTransform: "var(--oh-label-case)",
         }}
         >
-        Sign and begin the pontificate
+        Signer et commencer le pontificat
         </button>
+        </div>
         </div>
     );
 };
