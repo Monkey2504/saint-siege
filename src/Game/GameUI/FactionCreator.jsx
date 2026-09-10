@@ -188,7 +188,7 @@ const FactionCreator = ({ regionsGeojson, onCreate, onCancel, busy }) => {
         >
           {busy ? "Creating…" : "Create & play"}
         </button>
-        <button type="button" onClick={onCancel} style={{ ...pill(false), padding: "0.55rem 1rem" }}>Cancel</button>
+        <button type="button" onClick={onCancel} style={{ ...pill(false), padding: "0.55rem 1rem" }}>Annuler</button>
       </div>
 
       {/* Portalled to <body>, exactly as the editor mounts it outside its own

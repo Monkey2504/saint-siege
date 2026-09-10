@@ -8,6 +8,7 @@
 
 import { economyIndicators } from "./economy.js";
 import { totalFaithful } from "./churchFaithful.js";
+import { frontFigures } from "./fronts.js";
 
 const num = (v) => (Number.isFinite(Number(v)) ? Number(v) : null);
 
@@ -45,10 +46,19 @@ export const registerFigures = (world, player) => {
  */
 export const ensureRegisterBaseline = (world, player, { date = "" } = {}) => {
   if (!world || typeof world !== "object") return world;
-  if (world.registerBaseline && typeof world.registerBaseline === "object") return world;
   const figures = registerFigures(world, player);
-  if (Object.values(figures).every((v) => v == null)) return world;
-  return { ...world, registerBaseline: { date: String(date || ""), figures } };
+  const fronts = frontFigures(world, player);
+  const empty = (o) => Object.values(o).every((v) => v == null);
+  // A game already under way, from before the six fronts existed, has a
+  // baseline for the money and none for the rest. It gets one, once, against
+  // today — otherwise every front would read "flat" for ever in exactly the
+  // games that most need to see them move.
+  if (world.registerBaseline && typeof world.registerBaseline === "object") {
+    if (world.registerBaseline.fronts || empty(fronts)) return world;
+    return { ...world, registerBaseline: { ...world.registerBaseline, fronts } };
+  }
+  if (empty(figures) && empty(fronts)) return world;
+  return { ...world, registerBaseline: { date: String(date || ""), figures, fronts } };
 };
 
 // Which way is good. Debt-like figures fall to improve; everything else rises.

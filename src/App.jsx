@@ -165,10 +165,20 @@ function GameApp() {
   // The map is what says "the world has drawn". With no map nothing ever says
   // it, and the startup screen would sit at 97% for ever — so the newspaper
   // edition raises the same flag itself, once, as soon as it has mounted.
+  //
+  // Not through requestAnimationFrame alone. A browser does not run animation
+  // frames in a window that is not being painted: launch the game and switch to
+  // something else while it loads — which is what anyone does during a first
+  // launch — and the callback never fires, so the screen holds at 97% until the
+  // window is looked at again, and holds there for ever if the player has
+  // already concluded the game does not start. Observed exactly that way in a
+  // hidden pane. The frame is kept for the case where it does paint, with a
+  // timer behind it that runs whether anyone is watching or not.
   useEffect(() => {
     if (HAS_MAP) return undefined;
-    const id = requestAnimationFrame(() => handleFirstWorldIdle());
-    return () => cancelAnimationFrame(id);
+    const frame = requestAnimationFrame(() => handleFirstWorldIdle());
+    const timer = setTimeout(() => handleFirstWorldIdle(), 250);
+    return () => { cancelAnimationFrame(frame); clearTimeout(timer); };
   }, []);
 
   const startupOverlayState = useMemo(() => {

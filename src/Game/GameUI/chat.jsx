@@ -407,14 +407,21 @@ const MessageBubble = ({ msg }) => {
             </div>
         )}
 
-        {/* Player-typed text stays verbatim under UI translation. */}
-        <div data-no-translate={isPlayer ? "" : undefined} style={{
-            padding: "0.6rem 0.85rem",
-            borderRadius: "2px",
-            backgroundColor: isPlayer ? "var(--oh-accent)" : "var(--oh-alert-soft)",
+        {/* Player-typed text stays verbatim under UI translation.
+
+            A letter the pope signs is a letter, not a chat bubble: it prints on
+            the paper like the one it answers, and is told apart by the rule at
+            its head — blue for what went out, alert for what came in — which is
+            how the design proposal draws both halves of the exchange. Solid ink
+            on a solid blue lozenge made the player's own words the loudest
+            thing on a page of correspondence. */}
+        <div className="oh-dispatch-body" data-no-translate={isPlayer ? "" : undefined} style={{
+            padding: "0.7rem 0.95rem 0.75rem",
+            borderRadius: "var(--oh-r-flat)",
+            backgroundColor: isPlayer ? "var(--oh-plate-2)" : "var(--oh-alert-soft)",
             fontSize: "var(--oh-t-sm)", lineHeight: "1.5", whiteSpace: "pre-wrap", wordBreak: "break-word",
-            border: isPlayer ? "1px solid var(--oh-accent-soft)" : "1px solid var(--oh-alert-soft)",
-            color: isPlayer ? "var(--oh-on-accent)" : "var(--oh-text)",
+            borderTop: `3px solid ${isPlayer ? "var(--oh-accent)" : "var(--oh-alert)"}`,
+            color: "var(--oh-text)",
             boxSizing: "border-box",
         }}>
         {isPlayer ? msg.text : <div className="chat-markdown"><ReactMarkdown>{msg.text}</ReactMarkdown></div>}
@@ -615,7 +622,7 @@ const CountrySelectorModal = ({
         <div style={{ padding: "0.75rem 1rem", borderTop: "1px solid var(--oh-line)", display: "flex", gap: "0.5rem", flexShrink: 0 }}>
         <button onClick={onCancel} style={{ flex: 1, padding: "0.65rem", borderRadius: "10px", border: "1px solid var(--oh-line)", background: "var(--oh-plate-2)", color: "var(--oh-text-strong)", fontSize: "var(--oh-t-xs)", fontWeight: 500, cursor: "pointer", fontFamily: "inherit" }}
         onMouseEnter={e => e.currentTarget.style.background = "var(--oh-plate-2)"}
-        onMouseLeave={e => e.currentTarget.style.background = "var(--oh-plate-2)"}>Cancel</button>
+        onMouseLeave={e => e.currentTarget.style.background = "var(--oh-plate-2)"}>Annuler</button>
         <button onClick={() => selected.length > 0 && onStart(selected)} disabled={selected.length === 0}
         style={{ flex: 2, padding: "0.65rem", borderRadius: "10px", border: "none", background: selected.length > 0 ? "var(--oh-accent)" : "var(--oh-accent-soft)", color: selected.length > 0 ? "var(--oh-on-accent)" : "var(--oh-text-strong)", fontSize: "var(--oh-t-xs)", fontWeight: 600, cursor: selected.length > 0 ? "pointer" : "not-allowed", fontFamily: "inherit" }}
         onMouseEnter={e => { if (selected.length > 0) e.currentTarget.style.background = "var(--oh-accent)"; }}
@@ -866,12 +873,11 @@ const ConversationView = ({ chat, playerCountry, gameDate, onDelete, onBack, onM
 
         return (
             <>
-            {page ? (
-                <div style={{ alignItems: "baseline", borderBottom: "4px solid var(--oh-text-strong)", display: "flex", flexShrink: 0, gap: "1rem", justifyContent: "space-between", paddingBottom: "0.4rem" }}>
-                <span className="oh-label" style={{ color: "var(--oh-text-strong)" }}>Letters</span>
-                <span style={{ color: "var(--oh-text-strong)", fontFamily: "var(--oh-font-display)", fontSize: "var(--oh-t-md)", fontWeight: 700, letterSpacing: "-0.01em", minWidth: 0, overflow: "hidden", textAlign: "right", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{addressee}</span>
-                </div>
-            ) : (
+            {/* On the letters page the correspondent is already named above, with
+                where they stand and how many letters have been exchanged
+                (GameUI/correspondence.jsx). This header printed the name a
+                second time, immediately under the first. */}
+            {page ? null : (
             <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.85rem 1rem", borderBottom: "1px solid var(--oh-line)", flexShrink: 0 }}>
             <button onClick={onBack} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--oh-text-strong)", display: "flex", padding: "0.2rem", borderRadius: "6px" }}
             onMouseEnter={e => { e.currentTarget.style.color = "var(--oh-text-strong)"; e.currentTarget.style.background = "var(--oh-plate-2)"; }}
@@ -958,7 +964,7 @@ const ConversationView = ({ chat, playerCountry, gameDate, onDelete, onBack, onM
                 style={{ backgroundColor: playerInput.trim() ? "var(--oh-accent)" : "var(--oh-accent-soft)", color: playerInput.trim() ? "var(--oh-on-accent)" : "var(--oh-text-strong)", border: "none", borderRadius: "10px", width: page ? "auto" : "2.5rem", height: page ? "auto" : "2.5rem", padding: page ? "0.8rem 1.4rem" : 0, display: "flex", alignItems: "center", justifyContent: "center", cursor: playerInput.trim() ? "pointer" : "not-allowed", flexShrink: 0, fontFamily: page ? "var(--oh-font-label)" : "inherit", fontSize: page ? "var(--oh-t-xs)" : "var(--oh-t-base)", fontWeight: 700, letterSpacing: page ? "var(--oh-label-track)" : undefined, textTransform: page ? "var(--oh-label-case)" : undefined, transition: "background-color 0.2s" }}
                 onMouseEnter={e => { if (playerInput.trim()) e.currentTarget.style.backgroundColor = "var(--oh-accent)"; }}
                 onMouseLeave={e => { if (playerInput.trim()) e.currentTarget.style.backgroundColor = "var(--oh-accent)"; }}
-                >{page ? "Send" : "🚀"}</button>
+                >{page ? "Envoyer" : "🚀"}</button>
                 </div>
             ) : null}
             </>

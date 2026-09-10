@@ -43,6 +43,15 @@ import {
   embedScenarioBundleVector,
 } from "../../runtime/communityBasemaps.js";
 import { zipBundle, unzipBundle, looksLikeZip } from "../../runtime/bundleZip.js";
+import { HAS_HUB } from "../../runtime/edition.js";
+
+// The library's own tabs, in French like everything the player reads, with the
+// community hub present only in an edition that has one (runtime/edition.js).
+const LIBRARY_TABS = [
+  ["games", "Parties"],
+  ["scenarios", "Scénarios"],
+  ...(HAS_HUB ? [["community", "Communauté"]] : []),
+];
 
 const UNIT_TYPE_LABELS = {
   infantry: "Infantry",
@@ -1033,7 +1042,7 @@ const EditorDrawer = ({
           style={{ ...actionButtonStyle, background: `${record.accentColor}cc`, borderColor: `${record.accentColor}dd`, color: "var(--oh-text-strong)", minWidth: "7.2rem" }}
           type="button"
         >
-          {isBusy ? "Saving..." : "Save"}
+          {isBusy ? "Enregistrement…" : "Enregistrer"}
         </button>
         {kind === "scenario" && onOpenMapEditor && (
           <button
@@ -2334,7 +2343,7 @@ const LibraryTopBar = () => {
                       />
                     </Suspense>
                     <button type="button" onClick={() => { setCountryPicker(null); setPlayGameId(null); setCustomRegionData(null); setPickerOwnerOverrides(null); }} style={{ ...actionButtonStyle, marginTop: "0.6rem" }}>
-                      {playGameId ? "Done" : "Cancel"}
+                      {playGameId ? "Terminé" : "Annuler"}
                     </button>
                   </>
                 )}
@@ -2394,7 +2403,13 @@ const LibraryTopBar = () => {
             </div>
 
             <div style={{ alignItems: "center", display: "flex", gap: "0.55rem", justifyContent: "center", justifySelf: "center" }}>
-              {["games", "scenarios", "community"].map((tab) => (
+              {/* The Community tab is Open Historia's own hub: a GitHub feed of
+                  war scenarios — Kaiserreich, the Great War of 1911, the Third
+                  Reich. This edition is one game about one pope, and that feed
+                  was the first thing a visitor met on it. It is gone from the
+                  bar (runtime/edition.js HAS_HUB), and the section it opened
+                  goes with it. */}
+              {LIBRARY_TABS.map(([tab, label]) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
@@ -2407,7 +2422,7 @@ const LibraryTopBar = () => {
                   }}
                   type="button"
                 >
-                  {tab === "games" ? "Games" : tab === "scenarios" ? "Scenarios" : "Community"}
+                  {label}
                 </button>
               ))}
             </div>
@@ -2444,11 +2459,11 @@ const LibraryTopBar = () => {
           </div>
 
           <div style={{ flex: 1, overflowY: "auto", padding: isMobile ? "1.1rem 0.8rem 2.5rem" : "1.5rem 1.6rem 3rem" }}>
-            {activeTab === "community" ? (
+            {HAS_HUB && activeTab === "community" ? (
               <Suspense
                 fallback={
                   <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)", padding: "1rem 0" }}>
-                    Loading Community…
+                    Chargement…
                   </div>
                 }
               >
@@ -2458,9 +2473,11 @@ const LibraryTopBar = () => {
               loaded && visibleGames.length === 0 && archivedGames.length === 0 ? (
                 <div style={{ alignItems: "center", display: "flex", flexDirection: "column", justifyContent: "center", minHeight: "60vh", textAlign: "center" }}>
                   <img alt="" src="/logo.png" style={{ height: "5rem", marginBottom: "1.2rem", opacity: 0.9, width: "5rem" }} />
-                  <div style={{ fontSize: "var(--oh-t-lg)", fontWeight: 800, letterSpacing: "-0.02em" }}>No games yet</div>
+                  <div style={{ fontSize: "var(--oh-t-lg)", fontWeight: 800, letterSpacing: "-0.02em" }}>Aucune partie</div>
                   <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-sm)", lineHeight: 1.6, margin: "0.6rem 0 1.6rem", maxWidth: "26rem" }}>
-                    Start a new game from one of your scenarios, or grab new scenarios from the community first.
+                    {HAS_HUB
+                      ? "Commencez une partie à partir d'un de vos scénarios, ou allez en chercher de nouveaux sur le hub."
+                      : "Commencez une partie à partir d'un de vos scénarios."}
                   </div>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: "0.7rem", justifyContent: "center" }}>
                     <button
@@ -2468,15 +2485,17 @@ const LibraryTopBar = () => {
                       style={{ ...actionButtonStyle, background: "var(--oh-accent-soft)", borderColor: "var(--oh-accent-soft)", minHeight: "2.8rem", padding: "0 1.4rem" }}
                       onClick={() => setActiveTab("scenarios")}
                     >
-                      Start from a scenario
+                      Commencer une partie
                     </button>
-                    <button
-                      type="button"
-                      style={{ ...actionButtonStyle, minHeight: "2.8rem", padding: "0 1.4rem" }}
-                      onClick={() => setActiveTab("community")}
-                    >
-                      Browse community scenarios
-                    </button>
+                    {HAS_HUB && (
+                      <button
+                        type="button"
+                        style={{ ...actionButtonStyle, minHeight: "2.8rem", padding: "0 1.4rem" }}
+                        onClick={() => setActiveTab("community")}
+                      >
+                        Parcourir les scénarios partagés
+                      </button>
+                    )}
                   </div>
                 </div>
               ) : (

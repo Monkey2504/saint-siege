@@ -3,6 +3,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import ReactMarkdown from "react-markdown";
 import dayjs from "dayjs";
 import {
+    readActionsState,
     readEventsState,
     readGameData,
     readWorldState,
@@ -12,13 +13,16 @@ import { ActionsPanel } from "./actions.jsx";
 import { writeWorldState } from "../../runtime/gameState.js";
 import { inaugurate, isInaugurated } from "../../runtime/inauguration.js";
 import { ensureRegisterBaseline, registerRows } from "../../runtime/register.js";
+import { frontRows } from "../../runtime/fronts.js";
 import { CONCENTRATION_CEILING, driveMovement, sourceShares } from "../../runtime/drives.js";
 import { normalizeRecord } from "../../runtime/record.js";
 import { normalizeTreasuries } from "../../runtime/treasuries.js";
 import { normalizeGatherings } from "../../runtime/gatherings.js";
 import { outageNotice } from "../../runtime/outageNotice.js";
 import { preferredLanguage } from "../../runtime/i18n.js";
-import { simulateTimelineJump } from "../AI/gameplay.js";
+import { nextEdition } from "../../runtime/nextEdition.js";
+import { useSurface } from "../../runtime/useSurface.js";
+import { simulateAutoJump, simulateTimelineJump } from "../AI/gameplay.js";
 
 // Written as a page, not as a panel dressed up as one. Nothing here inherits the
 // floating-drawer chrome the rest of the interface was built from: no border, no
@@ -249,11 +253,78 @@ const fmtCount = (value) => {
     return String(Math.round(n));
 };
 
+// ── The six fronts ───────────────────────────────────────────────────────────
+//
+// Field report, in the player's words: "c'est trop finance parce que moi je
+// suis financier. Il y a des gens qui ne vont jamais faire un seul truc de
+// finances, et tout leur retour ne sera que finance."
+//
+// He was right, and the count proved it: of the twelve figures the register
+// prints, ten were money. A pope who spent his pontificate on vocations, on the
+// abuse files, on holding the college together or on making peace read a page
+// that never once mentioned any of it, concluded the game had not registered
+// what he did, and went to ask someone. The engine now holds all six
+// (runtime/fronts.js); this is where they are read.
+//
+// A front with no figure prints as absent rather than as zero: a scenario with
+// no college has no unity to lose, and a bar at nothing would say the opposite.
+const FRONT_FORMAT = {
+    share: (v) => `${Math.round(v)}%`,
+    count: fmtCount,
+    money: (v) => `${Math.round(v)} SY`,
+};
+
+const Front = ({ row }) => {
+    const format = FRONT_FORMAT[row.unit] ?? fmtCount;
+    const held = row.value != null;
+    // A share is the only unit that has a meaningful full: a count of hostile
+    // powers or of seminarians has no ceiling to draw a bar against.
+    const bar = row.unit === "share" && held ? Math.max(0, Math.min(100, row.value)) : null;
+    return (
+        <div style={{ borderTop: "1px solid var(--oh-line)", padding: "0.55rem 0 0.6rem" }}>
+        <div style={{ alignItems: "baseline", display: "flex", gap: "0.5rem", justifyContent: "space-between" }}>
+        <span style={{ color: "var(--oh-text)", fontSize: "var(--oh-t-xs)" }}>{row.label}</span>
+        <span style={{ alignItems: "baseline", display: "flex", flexShrink: 0 }}>
+        <b style={{ color: held ? "var(--oh-text-strong)" : "var(--oh-text-dim)", fontFamily: "var(--oh-font-data)", fontSize: "var(--oh-t-sm)", fontVariantNumeric: "tabular-nums" }}>
+        {held ? format(row.value) : "not held"}
+        </b>
+        <Movement row={row} format={format} />
+        </span>
+        </div>
+        {bar != null && (
+            <div style={{ background: "var(--oh-plate-2)", height: "0.3rem", marginTop: "0.35rem", position: "relative" }}>
+            <div style={{ background: row.good === false ? "var(--oh-alert)" : "var(--oh-accent)", inset: "0 auto 0 0", position: "absolute", width: `${bar}%` }} />
+            </div>
+        )}
+        </div>
+    );
+};
+
+const Fronts = ({ rows }) => (
+    <section style={{ borderBottom: "1px solid var(--oh-line)", padding: "0.9rem 0 1rem" }}>
+    <SectionHead aside="since the pontificate began">The six fronts</SectionHead>
+    <p style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)", lineHeight: 1.5, margin: "0.5rem 0 0.7rem", maxWidth: "54ch" }}>
+    A pontificate is judged on all six at once. Money is one of them.
+    </p>
+    {rows.map((row) => <Front key={row.key} row={row} />)}
+    </section>
+);
+
 // ── The press ────────────────────────────────────────────────────────────────
-// The next turn is the next edition: the reader chooses how far the presses
-// run, reads the date the sheet will bear, and sends it to press. The jump is
-// the engine's (AI/gameplay.js simulateTimelineJump); the page redraws itself
-// from the new state when it returns. Nothing here leaves the paper for the map.
+// The next turn is the next edition. The reader does NOT choose how far the
+// presses run: the engine reads what is at the desk and fixes the date itself
+// (runtime/nextEdition.js), and the button says that date before it is pressed.
+//
+// Field report: the page opened on five span buttons and a default of one
+// month, and the reader — who had never once set a date on purpose — was being
+// asked, every single turn, a question only the engine could answer. A letter
+// written and then jumped a year lands eleven months after it mattered. The
+// automatic jump existed in the engine all along (AI/gameplay.js
+// simulateAutoJump, its own task and its own schema); when the turn moved onto
+// this page only the manual jump came with it.
+//
+// So the automatic jump is the button, and setting a date by hand is the
+// exception it always was — folded away behind "set the date myself".
 const SPANS = [
     { label: "1 week", days: 7 },
     { label: "1 month", days: 30 },
@@ -269,11 +340,14 @@ const fmtMillions = (value, currency = "") => {
     return currency ? `${unit} ${currency}` : unit;
 };
 
-const Press = ({ game, world, focus, onPrinted }) => {
-    const [days, setDays] = useState(30);
+const Press = ({ game, world, actions, focus, onPrinted }) => {
     const [running, setRunning] = useState(false);
     const [error, setError] = useState("");
     const [stopped, setStopped] = useState(false);
+    // The exception, not the rule: a reader who wants a particular date opens
+    // this and picks a span. Closed, the engine decides.
+    const [byHand, setByHand] = useState(false);
+    const [chosen, setChosen] = useState(30);
     const abortRef = useRef(null);
     const ref = useRef(null);
 
@@ -284,6 +358,13 @@ const Press = ({ game, world, focus, onPrinted }) => {
 
     const inaugurated = Boolean(world && isInaugurated(world));
     const from = game?.gameDate ? dayjs(game.gameDate) : null;
+    // The engine's own reading of the desk, re-derived whenever an order is
+    // added or an edition prints.
+    const auto = useMemo(
+        () => nextEdition(world, actions, { today: game?.gameDate || "" }),
+        [world, actions, game?.gameDate],
+    );
+    const days = byHand ? chosen : auto.days;
     const to = from && from.isValid() ? from.add(days, "day") : null;
 
     const print = async () => {
@@ -294,7 +375,12 @@ const Press = ({ game, world, focus, onPrinted }) => {
         const controller = new AbortController();
         abortRef.current = controller;
         try {
-            await simulateTimelineJump({ days, signal: controller.signal });
+            // The automatic jump is a different task from the manual one: it
+            // reads the desk and carries the world of its own accord, which is
+            // exactly what a reader who never sets a date is asking for.
+            await (byHand
+                ? simulateTimelineJump({ days, signal: controller.signal })
+                : simulateAutoJump({ days, signal: controller.signal }));
             onPrinted();
         } catch (err) {
             // Field report: Stop left the page on the pre-press sheet and said
@@ -327,8 +413,30 @@ const Press = ({ game, world, focus, onPrinted }) => {
         {to ? fmtDate(to) : "—"}
         </div>
         <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)", marginBottom: "0.7rem" }}>
-        the date the next sheet will bear
+        {byHand ? "the date the next sheet will bear" : `set by ${auto.reason}${auto.from ? ` — ${auto.from}` : ""}`}
         </div>
+        <div style={{ marginBottom: "0.8rem" }}>
+        <button
+        type="button"
+        disabled={running}
+        onClick={() => setByHand((open) => !open)}
+        style={{
+            background: "none",
+            border: 0,
+            color: "var(--oh-text-dim)",
+            cursor: running ? "default" : "pointer",
+            fontFamily: "var(--oh-font-label)",
+            fontSize: "var(--oh-t-2xs)",
+            letterSpacing: "var(--oh-label-track)",
+            padding: 0,
+            textDecoration: "underline",
+            textTransform: "var(--oh-label-case)",
+        }}
+        >
+        {byHand ? "let the desk set the date" : "set the date myself"}
+        </button>
+        </div>
+        {byHand && (
         <div style={{ display: "flex", flexWrap: "wrap", gap: "0.35rem", marginBottom: "0.8rem" }}>
         {SPANS.map((span) => {
             const active = span.days === days;
@@ -337,7 +445,7 @@ const Press = ({ game, world, focus, onPrinted }) => {
                 key={span.days}
                 type="button"
                 disabled={running}
-                onClick={() => setDays(span.days)}
+                onClick={() => setChosen(span.days)}
                 style={{
                     background: active ? "var(--oh-accent)" : "transparent",
                     border: `1px solid ${active ? "var(--oh-accent)" : "var(--oh-line)"}`,
@@ -356,6 +464,7 @@ const Press = ({ game, world, focus, onPrinted }) => {
             );
         })}
         </div>
+        )}
         {!inaugurated ? (
             <p style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-sm)", fontStyle: "italic", lineHeight: 1.5, margin: 0, maxWidth: "40ch" }}>
             The presses wait: the pope takes a name and declares his programme before the first edition prints.
@@ -673,9 +782,13 @@ const Gatherings = ({ gatherings, usdPerSY }) => {
 };
 
 const Bulletin = ({ onOpenAdvisor, pressFocus = 0 }) => {
+    useSurface("press");
     const [game, setGame] = useState(null);
     const [world, setWorld] = useState(null);
     const [events, setEvents] = useState([]);
+    // The desk: what is queued but not yet carried out. The press reads it to
+    // fix the date of the next edition.
+    const [actions, setActions] = useState([]);
     // Bumped when the presses have run: the sheet re-reads the new state.
     const [printed, setPrinted] = useState(0);
     const reload = useCallback(() => setPrinted((tick) => tick + 1), []);
@@ -683,13 +796,15 @@ const Bulletin = ({ onOpenAdvisor, pressFocus = 0 }) => {
     useEffect(() => {
         let active = true;
         const load = async () => {
-            const [nextGame, nextWorld, nextEvents] = await Promise.all([
+            const [nextGame, nextWorld, nextEvents, nextActions] = await Promise.all([
                 readGameData().catch(() => null),
                 readWorldState({ force: true }).catch(() => null),
                 readEventsState().catch(() => []),
+                readActionsState({ force: true }).catch(() => []),
             ]);
             if (!active) return;
             setGame(nextGame);
+            setActions(Array.isArray(nextActions) ? nextActions : []);
             // A game from before the register gets its baseline now, once.
             const based = nextWorld ? ensureRegisterBaseline(nextWorld, nextGame?.country || "", { date: nextGame?.gameDate || "" }) : nextWorld;
             if (based && based !== nextWorld) writeWorldState(based).catch(() => {});
@@ -746,6 +861,11 @@ const Bulletin = ({ onOpenAdvisor, pressFocus = 0 }) => {
     // to convert with, SY only when it has none at all (moneyOf, top of file).
     const money = (sy) => moneyOf(sy, usdPerSY);
     const rows = useMemo(() => Object.fromEntries(registerRows(world, player).map((r) => [r.key, r])), [world, player]);
+    // The six fronts, each with its movement since the pontificate began. A
+    // front the scenario does not hold still gets a row, saying so — a game with
+    // no college has no unity to lose, and hiding the line would let a player
+    // believe the front was being watched when nothing was watching it.
+    const fronts = useMemo(() => (world ? frontRows(world, player) : []), [world, player]);
 
 
 
@@ -777,8 +897,11 @@ const Bulletin = ({ onOpenAdvisor, pressFocus = 0 }) => {
         };
     }, [world]);
 
+    // The paper's own room: rag stock, printer's ink, hard rules, a condensed
+    // masthead (theme.css, [data-surface="press"]).
     return (
         <div
+        data-surface="press"
         style={{
             background: "var(--oh-plate)",
             bottom: "2.6rem",
@@ -923,7 +1046,12 @@ const Bulletin = ({ onOpenAdvisor, pressFocus = 0 }) => {
         </section>
 
         {/* The presses: how far the next edition runs, and the order to print. */}
-        <Press game={game} world={world} focus={pressFocus} onPrinted={reload} />
+        <Press game={game} world={world} actions={actions} focus={pressFocus} onPrinted={reload} />
+
+        {/* What the pontificate has moved, on all six fronts — above the money,
+            because it was the money being the only answer that made a player
+            who never touches finance read a page about nothing he did. */}
+        {fronts.length > 0 && <Fronts rows={fronts} />}
 
         <Drives drives={world?.drives} sinceDate={world?.simulationHistory?.[0]?.fromDate || ""} player={player} />
 

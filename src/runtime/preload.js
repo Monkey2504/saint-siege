@@ -12,6 +12,7 @@ import {
   warmRemoteResources,
 } from "./assets.js";
 import { warmCountryLabelCollections } from "./countryLabels.js";
+import { HAS_MAP } from "./edition.js";
 
 export const STARTUP_TIME_BUDGET_MS = 30_000;
 const INITIAL_VIEWPORT = {
@@ -79,7 +80,17 @@ const buildInitialViewportTextureUrls = (
   });
 };
 
-const STARTUP_TASKS = [
+// Every task below that exists to fill a map carries `needsMap`. An edition
+// without one (runtime/edition.js) skips them all.
+//
+// Field report: the Holy See edition has no map — it is played in a newspaper,
+// and its polity owns half a square kilometre — and its first launch still went
+// through seven startup steps, cached 65 MB of country geometry and then waited
+// on "Finalizing first world render" for a map that is never drawn. Six of the
+// seven steps were warming tiles for a screen that does not exist. That is the
+// first thing a new player sees, and it is the kind of wall nobody can talk
+// them past: they would simply decide the game does not start.
+const ALL_STARTUP_TASKS = [
   {
     id: "state",
     label: "Syncing saves and runtime state",
@@ -98,6 +109,7 @@ const STARTUP_TASKS = [
   },
   {
     id: "textures",
+    needsMap: true,
     label: "Warming world textures",
     weight: 20,
     run: async ({ signal }) => {
@@ -119,6 +131,7 @@ const STARTUP_TASKS = [
   },
   {
     id: "countries",
+    needsMap: true,
     label: "Caching country geometry",
     weight: 26,
     // NOT skipped on a custom map, unlike regions below. countries.pmtiles is
@@ -131,24 +144,28 @@ const STARTUP_TASKS = [
   },
   {
     id: "country-index",
+    needsMap: true,
     label: "Building country index",
     weight: 8,
     run: () => loadCountryNames(),
   },
   {
     id: "country-labels",
+    needsMap: true,
     label: "Building country labels",
     weight: 14,
     run: () => warmCountryLabelCollections(),
   },
   {
     id: "cities",
+    needsMap: true,
     label: "Caching city layer",
     weight: 10,
     run: ({ signal }) => warmPmtilesArchive(PMTILES_ARCHIVES.cities, { signal }),
   },
   {
     id: "regions",
+    needsMap: true,
     // Warmed on EVERY world, custom included — this archive is what paints
     // owners above z6.5 on a re-ownership scenario (Nations.jsx: regions-fill
     // fades in as the seed's far layer fades out), so a custom map needs it
@@ -159,6 +176,11 @@ const STARTUP_TASKS = [
     run: ({ signal }) => warmPmtilesArchive(PMTILES_ARCHIVES.regions, { signal }),
   },
 ];
+
+// What this edition actually has to warm. Filtered once, here, so the weights,
+// the step list and the "N of M" count all agree — a filter applied at the run
+// loop alone would have left the screen counting seven steps and doing one.
+const STARTUP_TASKS = HAS_MAP ? ALL_STARTUP_TASKS : ALL_STARTUP_TASKS.filter((task) => !task.needsMap);
 
 const TOTAL_WEIGHT = STARTUP_TASKS.reduce((sum, task) => sum + task.weight, 0);
 

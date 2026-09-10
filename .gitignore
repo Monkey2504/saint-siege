@@ -61,3 +61,6 @@ electron/build-id.json
 # installateurs) ne concernent pas cette edition et publieraient sous un autre
 # compte. Elles sont retirees plutot que reprises.
 .github/workflows/
+
+# Maquettes recues pour reference, pas du code du jeu.
+.maquette/

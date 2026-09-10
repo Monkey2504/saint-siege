@@ -37,6 +37,10 @@
   --oh-font-body: "Archivo", "Segoe UI", system-ui, sans-serif;
   --oh-font-label: "Archivo", "Segoe UI", system-ui, sans-serif;
   --oh-font-data: "Archivo", "Segoe UI", system-ui, sans-serif;
+  /* The reading face. Not a room's face: a role's. Anything written to be read
+     as prose — a letter, a written analysis, the body of an article — is set in
+     it; everything that labels, counts or commands stays in Archivo. */
+  --oh-font-serif: "Newsreader", Georgia, "Iowan Old Style", "Times New Roman", serif;
   --oh-label-case: uppercase;
   --oh-label-track: 0.02em;
   --oh-label-weight: 700;
@@ -454,3 +458,51 @@ button, input, textarea, select {
 .oh-letters > div:first-child, .oh-letters > div:last-child { padding-left: 0 !important; padding-right: 0 !important; }
 .oh-letters textarea { font-size: var(--oh-t-base) !important; min-height: 5.5rem; padding: 0.9rem 1rem !important; resize: vertical !important; }
 .oh-letters .oh-picker > div { border-radius: 0 !important; }
+
+/* A letter is read, not scanned. The design proposal sets every dispatch in
+   Newsreader at a reading size and holds the column near 62 characters — the
+   width prose stays legible at, and the reason a letter reads as a letter
+   rather than a chat bubble. The dispatch's 3px rule and its letterhead belong
+   to the mechanism (GameUI/chat.jsx); only the reading is set here. */
+.oh-letters .oh-dispatch-body,
+.oh-letters .oh-dispatch-body p {
+  font-family: var(--oh-font-serif);
+  font-size: var(--oh-t-md);
+  line-height: 1.55;
+}
+.oh-letters .oh-dispatch { max-width: 62ch; }
+.oh-letters textarea { font-family: var(--oh-font-serif) !important; }
+
+/* ---- one house, one paper -------------------------------------------------- */
+
+/* Field report, in the player's words: "je veux que chaque page soit cohérente
+   — la page message, c'est juste une boîte perso; la boîte finance, on doit
+   avoir l'impression d'être comptable ou économiste; la page bulletin, un
+   agenda de l'Écho." Then, on the first attempt at it: "depuis que tu as
+   touché, c'est beaucoup moins bien visuellement." Then: "fais EXACTEMENT ce
+   que design a fait, sinon aucun intérêt."
+ *
+ * That first attempt gave every section its own paper and its own ink — five
+ * beiges and greys, none committed — which made the house LESS coherent, not
+ * more, and dragged the bulletin off a direction nobody had complained about.
+ * The contrast audit passed throughout: a ratio measures legibility and never
+ * says whether a page holds together.
+ *
+ * The design proposal settles it. Its five sections all print on THIS paper —
+ * #f4f0e6, this ink, this ministry blue — and are told apart by how the
+ * information is laid out and which face carries it: Newsreader for anything
+ * written to be read, Archivo for anything that labels or counts, Bricolage for
+ * what a page is called. So the sections carry layout, not palette, and the
+ * only thing left at this level is the one property a book of record needs on
+ * everything inside it. Anything here that touches paper or ink is refused by
+ * runtime/contrastAudit.test.js. */
+
+[data-surface] {
+  background: var(--oh-plate);
+  color: var(--oh-text);
+}
+
+/* A column of money reads as a column only if every digit is the same width. */
+[data-surface="ledger"] {
+  font-variant-numeric: tabular-nums;
+}

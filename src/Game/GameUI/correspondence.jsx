@@ -1,6 +1,8 @@
 /*! Open Historia — the correspondence: the pope's letters, as a page © 2026 Nicholas Krol, MIT (see src/Editor/LICENSE). */
 import React, { useEffect, useMemo, useState } from "react";
 import { readGameData, readWorldState } from "../../runtime/gameState.js";
+import { groupsOn, normalizeAssembly, temper } from "../../runtime/factions.js";
+import { useSurface } from "../../runtime/useSurface.js";
 import { ensureOrganizations } from "./organizationsView.jsx";
 import {
     ConversationView,
@@ -16,12 +18,22 @@ import {
     writeSeen,
 } from "./chat.jsx";
 
-// Written as a page, not as the map's drawer stretched wide. A masthead like the
-// bulletin's, then two columns: the correspondents on the left, the letters of
-// the one chosen on the right. The conversation itself — the dispatches with
-// their letterheads, the composer, the model's replies — is the one mechanism
-// the map's panel already runs (chat.jsx ConversationView); only the page
-// around it is new.
+// The Post — the design proposal's letter box (option 2b), built as it was
+// drawn: a 320px column of correspondents against a full-height rule, the
+// letters of the one chosen beside it, and nothing else on the page.
+//
+// It prints on the house's own paper. The proposal is explicit about that — all
+// five of its sections use this stock, this ink, this ministry blue — and an
+// earlier attempt to give each page a paper of its own is what the player
+// rejected: "depuis que tu as touché, c'est beaucoup moins bien visuellement."
+// What makes this a letter box rather than a page of the paper is the layout
+// and the reading face, never the palette.
+//
+// Two things the proposal adds that the page never had. A correspondent's row
+// carries where they stand — a coloured edge and a line of standing — so the
+// box says who is with you before you open anything. And the foot of the column
+// says what a letter is worth, because a player who thinks writing is free
+// writes differently from one who knows it costs standing.
 
 const fmtDate = (value) => {
     if (!value) return "";
@@ -29,29 +41,67 @@ const fmtDate = (value) => {
     return Number.isNaN(d.getTime()) ? String(value) : d.toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" });
 };
 
-const SectionHead = ({ children, aside }) => (
-    <div style={{ alignItems: "baseline", borderBottom: "4px solid var(--oh-text-strong)", display: "flex", gap: "1rem", justifyContent: "space-between", paddingBottom: "0.4rem" }}>
-    <span className="oh-label" style={{ color: "var(--oh-text-strong)" }}>{children}</span>
-    {aside && <span style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)" }}>{aside}</span>}
-    </div>
-);
+const fmtShort = (value) => {
+    if (!value) return "";
+    const d = new Date(value);
+    return Number.isNaN(d.getTime()) ? "" : d.toLocaleDateString(undefined, { day: "numeric", month: "short" });
+};
 
-// One correspondent in the margin: who, the last line exchanged, and a mark
-// when something arrived that the player has not read.
-const CorrespondentRow = ({ chat, active, unread, onOpen, onDelete }) => {
+// Which drawer a correspondent belongs in. The proposal files them in four; the
+// game's own three kinds are states, the currents that carry intents, and the
+// bodies of the era, so those are the four tabs it gets.
+const KINDS = [
+    { id: "all", label: "All" },
+    { id: "current", label: "Currents" },
+    { id: "state", label: "States" },
+    { id: "body", label: "Bodies" },
+];
+
+const kindOf = (chat) => {
+    const list = Array.isArray(chat?.countries) ? chat.countries : [];
+    if (list.some((c) => c?.faction)) return "current";
+    if (list.every((c) => c?.organization)) return "body";
+    return "state";
+};
+
+// Where a correspondent stands, when the assembly knows. A current that holds
+// seats has an average approval, which is what the edge and the standing line
+// report; anyone else has neither, and gets neither rather than a made-up one.
+const standingOf = (chat, blocs) => {
+    const names = (Array.isArray(chat?.countries) ? chat.countries : []).map((c) => String(c?.name ?? "").toLowerCase());
+    const bloc = blocs.find((g) => names.includes(String(g.name).toLowerCase()));
+    if (!bloc) return null;
+    const approval = Math.round(bloc.approval);
+    const mood = temper(bloc.approval);
+    return {
+        seats: bloc.seats,
+        approval,
+        mood,
+        // The token by role, not a hue picked for looks: what is with you is the
+        // grant, what is against is the alert, what has gone further is caution.
+        tone: approval >= 20 ? "grant" : approval <= -50 ? "alert" : approval <= -20 ? "caution" : "accent",
+    };
+};
+
+const toneVar = (tone) => `var(--oh-${tone})`;
+
+// One correspondent in the column: who, where they stand, the last line
+// exchanged, and a mark when something arrived unread.
+const CorrespondentRow = ({ chat, active, unread, standing: where, onOpen, onDelete }) => {
     const [confirming, setConfirming] = useState(false);
     const names = (chat.countries ?? []).map((c) => c.name).join(", ") || "Unknown";
     const last = chat.messages?.at(-1);
     const preview = last?.text ? `${last.speaker ? `${last.speaker}: ` : ""}${last.text}` : "No letter exchanged yet.";
+    const edge = where ? toneVar(where.tone) : "var(--oh-line)";
     return (
         <div
         style={{
-            alignItems: "flex-start",
+            background: active ? "var(--oh-plate-2)" : "transparent",
             borderBottom: "1px solid var(--oh-line)",
-            borderLeft: `4px solid ${active ? "var(--oh-accent)" : "transparent"}`,
+            borderLeft: `4px solid ${edge}`,
             display: "flex",
-            gap: "0.6rem",
-            padding: "0.75rem 0.6rem 0.8rem 0.8rem",
+            gap: "0.5rem",
+            padding: "0.85rem 0.9rem 0.9rem 1rem",
         }}
         >
         <button
@@ -59,27 +109,41 @@ const CorrespondentRow = ({ chat, active, unread, onOpen, onDelete }) => {
         onClick={onOpen}
         style={{ background: "none", border: 0, color: "inherit", cursor: "pointer", flex: 1, minWidth: 0, padding: 0, textAlign: "left" }}
         >
-        <div style={{ alignItems: "baseline", display: "flex", gap: "0.5rem" }}>
-        <span style={{ color: "var(--oh-text-strong)", fontFamily: "var(--oh-font-display)", fontSize: "var(--oh-t-md)", fontWeight: 700, letterSpacing: "-0.01em", lineHeight: 1.15, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{names}</span>
-        {unread && <span className="oh-label" style={{ background: "var(--oh-alert)", color: "var(--oh-on-accent)", flexShrink: 0, fontSize: "var(--oh-t-2xs)", padding: "0.05rem 0.35rem" }}>new</span>}
+        <div style={{ alignItems: "baseline", display: "flex", gap: "0.5rem", justifyContent: "space-between" }}>
+        <span style={{ color: "var(--oh-text-strong)", fontFamily: "var(--oh-font-display)", fontSize: "var(--oh-t-base)", fontWeight: 700, letterSpacing: "-0.01em", lineHeight: 1.2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+        {names}
+        {unread && <span style={{ background: "var(--oh-alert)", borderRadius: "var(--oh-r-pill)", display: "inline-block", height: "0.45rem", marginLeft: "0.35rem", verticalAlign: "middle", width: "0.45rem" }} />}
+        </span>
+        <span style={{ color: "var(--oh-text-dim)", flexShrink: 0, fontSize: "var(--oh-t-2xs)" }}>{fmtShort(last?.time)}</span>
         </div>
-        <div style={{ color: unread ? "var(--oh-text)" : "var(--oh-text-dim)", fontSize: "var(--oh-t-sm)", lineHeight: 1.4, marginTop: "0.2rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{preview}</div>
+        {/* Two lines of the last letter, clamped: enough to recognise the
+            exchange, never enough to read it here. */}
+        <div style={{ WebkitBoxOrient: "vertical", WebkitLineClamp: 2, color: "var(--oh-text)", display: "-webkit-box", fontSize: "var(--oh-t-xs)", lineHeight: 1.45, marginTop: "0.25rem", overflow: "hidden" }}>
+        {preview}
+        </div>
+        {where && (
+            <div style={{ color: toneVar(where.tone), fontSize: "var(--oh-t-2xs)", fontWeight: 600, marginTop: "0.35rem" }}>
+            {where.seats} {where.seats === 1 ? "elector" : "electors"} · {where.mood} ({where.approval > 0 ? "+" : ""}{where.approval})
+            </div>
+        )}
         </button>
         <button
         type="button"
         title={confirming ? "Click again to file this correspondence away" : "File away"}
         onClick={() => { if (confirming) onDelete(); else setConfirming(true); }}
         onBlur={() => setConfirming(false)}
-        style={{ background: confirming ? "var(--oh-alert-soft)" : "none", border: 0, color: confirming ? "var(--oh-text-strong)" : "var(--oh-text-dim)", cursor: "pointer", flexShrink: 0, fontSize: "var(--oh-t-sm)", lineHeight: 1, padding: "0.15rem 0.35rem" }}
+        style={{ background: confirming ? "var(--oh-alert-soft)" : "none", border: 0, color: confirming ? "var(--oh-text-strong)" : "var(--oh-text-dim)", cursor: "pointer", flexShrink: 0, fontSize: "var(--oh-t-sm)", height: "1.4rem", lineHeight: 1, padding: "0.15rem 0.3rem" }}
         >
-        {confirming ? "file away?" : "×"}
+        {confirming ? "file?" : "×"}
         </button>
         </div>
     );
 };
 
 const Correspondence = () => {
+    useSurface("desk");
     const [game, setGame] = useState(null);
+    const [world, setWorld] = useState(null);
     const [chats, setChats] = useState([]);
     const [countries, setCountries] = useState([]);
     // The currents that act in the world, kept apart so they can be addressed
@@ -88,6 +152,7 @@ const Correspondence = () => {
     const [loadingCountries, setLoadingCountries] = useState(true);
     const [activeId, setActiveId] = useState(null);
     const [composing, setComposing] = useState(false);
+    const [kind, setKind] = useState("all");
     const [unreadIds, setUnreadIds] = useState(() => new Set());
 
     const playerCountry = game?.country || "";
@@ -111,14 +176,15 @@ const Correspondence = () => {
             // player — could write to him and could not be written to. A player
             // who reads a warning from a faction and finds no way to answer it
             // is looking at a wall, not at a correspondence.
-            const world = await readWorldState().catch(() => null);
-            const currents = [...new Set((Array.isArray(world?.intents) ? world.intents : [])
+            const nextWorld = await readWorldState().catch(() => null);
+            const currents = [...new Set((Array.isArray(nextWorld?.intents) ? nextWorld.intents : [])
                 .map((i) => String(i?.owner ?? "").trim())
                 .filter(Boolean))]
                 .filter((name) => !bodies.some((b) => b.name.toLowerCase() === name.toLowerCase()))
                 .map((name) => ({ name, code: "", organization: true, faction: true }));
             if (!active) return;
             setGame(nextGame);
+            setWorld(nextWorld);
             const list = Array.isArray(saved) ? saved : [];
             setChats(list);
             setFactions(currents);
@@ -159,11 +225,22 @@ const Correspondence = () => {
         return () => { cancelled = true; clearInterval(iv); };
     }, [activeId]);
 
+    // The blocs the assembly actually holds, so a row can say where its
+    // correspondent stands instead of guessing from the letters.
+    const blocs = useMemo(() => {
+        const assembly = normalizeAssembly(world?.assembly);
+        return assembly ? groupsOn(assembly, "follows") : [];
+    }, [world]);
+
     const openChats = useMemo(() => chats.filter((c) => c.status !== "closed"), [chats]);
+    const filtered = useMemo(
+        () => (kind === "all" ? openChats : openChats.filter((c) => kindOf(c) === kind)),
+        [openChats, kind],
+    );
     const ordered = useMemo(() => [
-        ...openChats.filter((c) => unreadIds.has(String(c.id))),
-        ...openChats.filter((c) => !unreadIds.has(String(c.id))),
-    ], [openChats, unreadIds]);
+        ...filtered.filter((c) => unreadIds.has(String(c.id))),
+        ...filtered.filter((c) => !unreadIds.has(String(c.id))),
+    ], [filtered, unreadIds]);
     const activeChat = useMemo(() => openChats.find((c) => String(c.id) === String(activeId)) ?? null, [openChats, activeId]);
     const availableCountries = useMemo(() => countries.filter((c) => !countryMatchesIdentity(c, playerCountry)), [countries, playerCountry]);
     // The player carries standing intents of their own, so their polity appears
@@ -173,6 +250,7 @@ const Correspondence = () => {
         () => factions.filter((f) => !countryMatchesIdentity(f, playerCountry)),
         [factions, playerCountry],
     );
+    const activeStanding = useMemo(() => (activeChat ? standingOf(activeChat, blocs) : null), [activeChat, blocs]);
 
     const openChat = (chat) => {
         setActiveId(chat.id);
@@ -198,30 +276,77 @@ const Correspondence = () => {
         setChats((prev) => { const u = prev.map((c) => (c.id === chatId ? { ...c, messages } : c)); saveAllChats(u); return u; });
     };
 
-    return (
-        <div style={{ background: "var(--oh-plate)", bottom: "2.6rem", color: "var(--oh-text)", left: 0, overflow: "hidden", position: "fixed", right: 0, top: 0, zIndex: 10002, display: "flex", flexDirection: "column" }}>
-        <div style={{ display: "flex", flex: 1, flexDirection: "column", margin: "0 auto", maxWidth: "74rem", minHeight: 0, padding: "1.6rem 1.5rem 0", width: "100%" }}>
+    const unread = ordered.filter((c) => unreadIds.has(String(c.id))).length;
+    const activeNames = (activeChat?.countries ?? []).map((c) => c.name).join(", ");
 
-        {/* The masthead: the same sheet as the bulletin, a different section. */}
-        <header style={{ borderBottom: "4px solid var(--oh-text-strong)", flexShrink: 0, paddingBottom: "0.5rem" }}>
-        <h1 style={{ color: "var(--oh-text-strong)", fontFamily: "var(--oh-font-display)", fontSize: "clamp(2.2rem, 5vw, 3.6rem)", fontWeight: 800, letterSpacing: "-0.035em", lineHeight: 0.95, margin: 0 }}>
-        {playerCountry || "Correspondence"}
+    return (
+        <div data-surface="desk" style={{ background: "var(--oh-plate)", bottom: "2.6rem", color: "var(--oh-text)", display: "grid", gridTemplateColumns: "minmax(17rem, 20rem) minmax(0, 1fr)", left: 0, overflow: "hidden", position: "fixed", right: 0, top: 0, zIndex: 10002 }}>
+
+        {/* ── The column of correspondents ─────────────────────────────────── */}
+        <div style={{ borderRight: "1px solid var(--oh-line)", display: "flex", flexDirection: "column", minHeight: 0 }}>
+
+        <div style={{ borderBottom: "1px solid var(--oh-line)", flexShrink: 0, padding: "1.35rem 1.2rem 0.9rem" }}>
+        <span className="oh-label" style={{ color: "var(--oh-text-dim)" }}>{playerCountry ? `${playerCountry} · section` : "section"}</span>
+        <h1 style={{ color: "var(--oh-text-strong)", fontFamily: "var(--oh-font-display)", fontSize: "var(--oh-t-xl)", fontWeight: 800, letterSpacing: "-0.04em", lineHeight: 0.95, margin: "0.4rem 0 0" }}>
+        The Post
         </h1>
-        </header>
-        <div style={{ alignItems: "baseline", borderBottom: "1px solid var(--oh-line)", display: "flex", flexShrink: 0, gap: "1rem", justifyContent: "space-between", marginBottom: "1.2rem", padding: "0.4rem 0 0.7rem" }}>
-        <span className="oh-label" style={{ color: "var(--oh-text-strong)" }}>Correspondence</span>
-        <span style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)" }}>{fmtDate(gameDate)}</span>
+        <p style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)", lineHeight: 1.45, margin: "0.55rem 0 0" }}>
+        {unread > 0 ? `${unread} unread · ` : ""}replies go out with the next edition
+        </p>
         </div>
 
-        <div style={{ display: "grid", flex: 1, gap: "2rem", gridTemplateColumns: "minmax(16rem, 22rem) minmax(0, 1fr)", minHeight: 0 }}>
+        {/* Which drawer. */}
+        <div style={{ borderBottom: "1px solid var(--oh-line)", display: "flex", flexShrink: 0, flexWrap: "wrap", gap: "0.35rem", padding: "0.7rem 1.2rem" }}>
+        {KINDS.map((k) => {
+            const on = k.id === kind;
+            return (
+                <button
+                key={k.id}
+                type="button"
+                onClick={() => setKind(k.id)}
+                style={{
+                    background: on ? "var(--oh-text-strong)" : "transparent",
+                    border: `1px solid ${on ? "var(--oh-text-strong)" : "var(--oh-line)"}`,
+                    color: on ? "var(--oh-plate)" : "var(--oh-text)",
+                    cursor: "pointer",
+                    fontFamily: "var(--oh-font-label)",
+                    fontSize: "var(--oh-t-2xs)",
+                    fontWeight: 700,
+                    letterSpacing: "var(--oh-label-track)",
+                    padding: "0.35rem 0.55rem",
+                    textTransform: "var(--oh-label-case)",
+                }}
+                >
+                {k.label}
+                </button>
+            );
+        })}
+        </div>
 
-        {/* Left: who the pope writes to. */}
-        <div style={{ display: "flex", flexDirection: "column", minHeight: 0 }}>
-        <SectionHead aside={`${openChats.length} ${openChats.length === 1 ? "thread" : "threads"}`}>Correspondents</SectionHead>
+        <div style={{ flex: 1, minHeight: 0, overflowY: "auto", scrollbarWidth: "none" }}>
+        {ordered.length === 0 && (
+            <p style={{ color: "var(--oh-text-dim)", fontFamily: "var(--oh-font-serif)", fontSize: "var(--oh-t-sm)", fontStyle: "italic", lineHeight: 1.5, margin: "1.1rem 1.2rem" }}>
+            Nothing filed here yet. Open a letter below: a state, a current, or a body of the era.
+            </p>
+        )}
+        {ordered.map((chat) => (
+            <CorrespondentRow
+            key={chat.id}
+            chat={chat}
+            active={String(chat.id) === String(activeId)}
+            unread={unreadIds.has(String(chat.id))}
+            standing={standingOf(chat, blocs)}
+            onOpen={() => openChat(chat)}
+            onDelete={() => fileAway(chat.id)}
+            />
+        ))}
+        </div>
+
+        <div style={{ borderTop: "1px solid var(--oh-line)", display: "flex", flexDirection: "column", flexShrink: 0, gap: "0.4rem", padding: "0.9rem 1.2rem 1rem" }}>
         <button
         type="button"
         onClick={() => setComposing(true)}
-        style={{ background: "var(--oh-accent)", border: 0, color: "var(--oh-on-accent)", cursor: "pointer", flexShrink: 0, fontFamily: "var(--oh-font-label)", fontSize: "var(--oh-t-xs)", fontWeight: 700, letterSpacing: "var(--oh-label-track)", margin: "0.8rem 0 0.4rem", padding: "0.75rem 1rem", textTransform: "var(--oh-label-case)" }}
+        style={{ background: "var(--oh-accent)", border: 0, color: "var(--oh-on-accent)", cursor: "pointer", fontFamily: "var(--oh-font-label)", fontSize: "var(--oh-t-xs)", fontWeight: 700, letterSpacing: "var(--oh-label-track)", padding: "0.7rem 1rem", textTransform: "var(--oh-label-case)" }}
         >
         New letter
         </button>
@@ -232,26 +357,38 @@ const Correspondence = () => {
             <button
             type="button"
             onClick={() => startChat(addressableFactions)}
-            style={{ background: "transparent", border: "1px solid var(--oh-line)", color: "var(--oh-text)", cursor: "pointer", flexShrink: 0, fontFamily: "var(--oh-font-label)", fontSize: "var(--oh-t-2xs)", letterSpacing: "var(--oh-label-track)", marginBottom: "0.4rem", padding: "0.55rem 1rem", textTransform: "var(--oh-label-case)" }}
+            style={{ background: "transparent", border: "1px solid var(--oh-line)", color: "var(--oh-text)", cursor: "pointer", fontFamily: "var(--oh-font-label)", fontSize: "var(--oh-t-2xs)", letterSpacing: "var(--oh-label-track)", padding: "0.5rem 1rem", textTransform: "var(--oh-label-case)" }}
             >
             Address all {addressableFactions.length} currents at once
             </button>
         )}
-        <div style={{ flex: 1, minHeight: 0, overflowY: "auto", scrollbarWidth: "none" }}>
-        {ordered.length === 0 && (
-            <p style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-sm)", fontStyle: "italic", margin: "0.9rem 0", maxWidth: "36ch" }}>
-            No letter has been sent or received yet. Open one below: a state, a faction, or a body of the era.
-            </p>
-        )}
-        {ordered.map((chat) => (
-            <CorrespondentRow key={chat.id} chat={chat} active={String(chat.id) === String(activeId)} unread={unreadIds.has(String(chat.id))} onOpen={() => openChat(chat)} onDelete={() => fileAway(chat.id)} />
-        ))}
+        {/* What a letter costs. Left unsaid, a player writes as though writing
+            were free — and the engine judges every letter against the record. */}
+        <p style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)", lineHeight: 1.5, margin: "0.3rem 0 0" }}>
+        A letter is worth what your standing is worth. It reaches only those still listening, and anything the record contradicts costs you ground.
+        </p>
         </div>
         </div>
 
-        {/* Right: the letters of the correspondent chosen. */}
+        {/* ── The letters of the correspondent chosen ──────────────────────── */}
         <div className="oh-letters" style={{ display: "flex", flexDirection: "column", minHeight: 0, position: "relative" }}>
         {activeChat ? (
+            <>
+            <div style={{ alignItems: "baseline", borderBottom: "1px solid var(--oh-line)", display: "flex", flexShrink: 0, gap: "1.5rem", justifyContent: "space-between", padding: "1.35rem 1.8rem 0.8rem" }}>
+            <div style={{ minWidth: 0 }}>
+            <div style={{ color: "var(--oh-text-strong)", fontFamily: "var(--oh-font-display)", fontSize: "var(--oh-t-lg)", fontWeight: 800, letterSpacing: "-0.03em", lineHeight: 1 }}>{activeNames}</div>
+            <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)", marginTop: "0.4rem" }}>
+            {(activeChat.countries ?? []).length > 1 ? `${(activeChat.countries ?? []).length} at the table` : kindOf(activeChat) === "current" ? "a current of the college" : kindOf(activeChat) === "body" ? "a body of the era" : "a state"}
+            {activeStanding ? ` · ${activeStanding.seats} ${activeStanding.seats === 1 ? "elector" : "electors"}` : ""}
+            </div>
+            </div>
+            <div style={{ color: "var(--oh-text-dim)", flexShrink: 0, fontSize: "var(--oh-t-xs)", lineHeight: 1.5, textAlign: "right" }}>
+            {activeStanding && (
+                <div>Opinion <b style={{ color: toneVar(activeStanding.tone) }}>{activeStanding.approval > 0 ? "+" : ""}{activeStanding.approval}, {activeStanding.mood}</b></div>
+            )}
+            <div>{chatMessageCount(activeChat)} exchanged · {fmtDate(gameDate)}</div>
+            </div>
+            </div>
             <ConversationView
             key={activeChat.id}
             chat={activeChat}
@@ -262,22 +399,21 @@ const Correspondence = () => {
             onMessagesUpdate={onMessagesUpdate}
             page
             />
+            </>
         ) : (
-            <>
-            <SectionHead>Letters</SectionHead>
-            <p style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-md)", fontStyle: "italic", lineHeight: 1.5, margin: "1rem 0", maxWidth: "48ch" }}>
+            <div style={{ margin: "auto", maxWidth: "46ch", padding: "2rem" }}>
+            <span className="oh-label" style={{ color: "var(--oh-text-dim)" }}>Letters</span>
+            <p style={{ color: "var(--oh-text)", fontFamily: "var(--oh-font-serif)", fontSize: "var(--oh-t-md)", lineHeight: 1.55, margin: "0.8rem 0 0" }}>
             Choose a correspondent on the left, or write a new letter. What you write is read in character by the power you address, and what it answers is held against what it actually wants.
             </p>
-            </>
+            </div>
         )}
-        </div>
-        </div>
         </div>
 
         {/* Who the letter goes to: the picker in a sheet over the page, sized as
             a sheet, not stretched to the page. */}
         {composing && (
-            <div className="oh-letters" style={{ alignItems: "center", background: "rgba(var(--oh-plate-rgb), 0.88)", display: "flex", inset: 0, justifyContent: "center", position: "absolute", zIndex: 20 }}>
+            <div className="oh-letters" style={{ alignItems: "center", background: "rgba(var(--oh-plate-rgb), 0.88)", display: "flex", gridColumn: "1 / -1", inset: 0, justifyContent: "center", position: "absolute", zIndex: 20 }}>
             <div className="oh-picker" style={{ border: "1px solid var(--oh-text-strong)", height: "min(42rem, 88vh)", position: "relative", width: "min(44rem, 94vw)" }}>
             <CountrySelectorModal
             countries={availableCountries}

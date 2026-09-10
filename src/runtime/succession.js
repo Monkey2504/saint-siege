@@ -18,7 +18,7 @@
 //
 // Pure: no store reads, no React, no Math.random.
 
-import { seededRandom } from "../Game/Map/unitCombat.js";
+import { seededRandom } from "./seededRandom.js";
 
 export const LEADER_MODES = ["election", "hereditary", "life", "appointment", "conclave"];
 export const DUE_KINDS = ["election", "conclave", "death-risk", "term-end"];

@@ -115,7 +115,7 @@ const OrganizationsView = ({ playerCountry, gameDate, onTalk }) => {
                   style={{ width: "100%", boxSizing: "border-box", background: "var(--oh-plate-2)", color: "var(--oh-text)", border: "1px solid var(--oh-line)", borderRadius: "8px", padding: "0.45rem", fontSize: "var(--oh-t-xs)", fontFamily: "inherit" }} />
                 <div style={{ display: "flex", gap: "0.35rem", marginTop: "0.35rem" }}>
                   <button style={button(true)} disabled={!draft.trim()} onClick={() => act(`Resolution at ${o.name}`, `${playerCountry} tables the following resolution at ${o.name} and calls a vote under its ${o.votingRule} rule: ${draft.trim()}`)}>Table it</button>
-                  <button style={button(false)} onClick={() => { setComposer(null); setDraft(""); }}>Cancel</button>
+                  <button style={button(false)} onClick={() => { setComposer(null); setDraft(""); }}>Annuler</button>
                 </div>
               </div>
             )}
@@ -135,7 +135,7 @@ const OrganizationsView = ({ playerCountry, gameDate, onTalk }) => {
             style={{ width: "100%", boxSizing: "border-box", background: "var(--oh-plate-2)", color: "var(--oh-text)", border: "1px solid var(--oh-line)", borderRadius: "8px", padding: "0.45rem", fontSize: "var(--oh-t-xs)", fontFamily: "inherit" }} />
           <div style={{ display: "flex", gap: "0.35rem", marginTop: "0.35rem" }}>
             <button style={button(true)} disabled={!draft.trim()} onClick={() => act("Found an international organization", `${playerCountry} convenes the founding of a new international body and invites the named polities to sign its charter: ${draft.trim()}`)}>Convene</button>
-            <button style={button(false)} onClick={() => { setComposer(null); setDraft(""); }}>Cancel</button>
+            <button style={button(false)} onClick={() => { setComposer(null); setDraft(""); }}>Annuler</button>
           </div>
         </div>
       )}

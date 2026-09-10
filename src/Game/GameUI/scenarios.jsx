@@ -662,7 +662,7 @@ const ScenarioEditor = ({
       minWidth: "7.2rem",
     }}
     >
-    {isBusy ? "Saving..." : "Save"}
+    {isBusy ? "Enregistrement…" : "Enregistrer"}
     </button>
     <button onClick={onSetActive} style={actionButtonStyle}>
     Activate

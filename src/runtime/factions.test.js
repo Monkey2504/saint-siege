@@ -5,7 +5,8 @@ import test from "node:test";
 import {
   ASSEMBLY_RULES, AXES, LOYAL_AT, MAX_APPROVAL_STEP, RADICAL_AT, SCHISM_AT,
   applySpeech, describeAssembly, driftFromBlunders, groupsOn, judgeGovernance,
-  coalition, normalizeAssembly, ownBloc, putToTheVote, seatAssembly, speechFromOrder, standing, temper,
+  PERSUASION_MAX_STEP, affinity, coalition, normalizeAssembly, ownBloc, persuadeNeighbours,
+  putToTheVote, seatAssembly, speechFromOrder, standing, temper,
 } from "./factions.js";
 
 // The register's own faithful. The college follows these, so nobody has to keep
@@ -253,4 +254,71 @@ test("following a current is a fourth axis, and the unattached are named", () =>
   assert.match(text, /By follows: Saint-Siège 1/);
   assert.doesNotMatch(text, /By follows: [^\n]*\s{2}/);
   assert.match(text, /1 follow no current at all/);
+});
+
+// "Dans les électeurs qui se radicalisent, certains pourraient essayer de
+// convaincre d'autres, en bien ou en mal." Opinion moved from governing, from
+// speeches and from rivals' failures — never from one elector talking to the
+// next, so a college could hold twenty zealots and twenty radicals for a year
+// with nothing passing between them.
+test("only the convinced preach, and they are heard by their own kind first", () => {
+  const near = { doctrine: "traditional", region: "africa", role: "bishops", follows: "Rome" };
+  const far = { doctrine: "reforming", region: "europe", role: "curia", follows: "Autre" };
+  const a = normalizeAssembly({
+    electors: [
+      { ...near, approval: 80 },              // a zealot
+      { ...near, approval: 0 },               // one of his own, undecided
+      { ...far, approval: 0 },                // a stranger, undecided
+      { doctrine: "traditional", region: "europe", role: "curia", follows: "Autre", approval: 0 },
+    ],
+  });
+  const out = persuadeNeighbours(a, { date: "2030-01-01" });
+  const [, sameKind, stranger, partial] = out.assembly.electors;
+
+  assert.ok(sameKind.approval > 0, "his own are carried");
+  assert.equal(stranger.approval, 0, "somebody who shares nothing hears nothing");
+  assert.ok(partial.approval > 0 && partial.approval < sameKind.approval,
+    `sharing one axis carries less than sharing all four: ${partial.approval} vs ${sameKind.approval}`);
+  assert.ok(out.rows.length > 0 && out.rows.every((r) => AXES.includes(r.axis)));
+});
+
+test("a radical works the room the other way, and a committed listener is nearly deaf", () => {
+  const kin = { doctrine: "reforming", region: "americas", role: "orders", follows: "Ordres" };
+  const a = normalizeAssembly({
+    electors: [
+      { ...kin, approval: -70 },   // radicalised against the player
+      { ...kin, approval: 0 },     // undecided, same kind
+      { ...kin, approval: 55 },    // committed the other way
+    ],
+  });
+  const out = persuadeNeighbours(a, { date: "2030-01-01" });
+  const [, undecided, committed] = out.assembly.electors;
+
+  assert.ok(undecided.approval < 0, "the undecided are pulled against the player");
+  assert.ok(committed.approval > 50, "somebody already convinced the other way barely moves");
+  assert.ok(Math.abs(55 - committed.approval) < Math.abs(undecided.approval),
+    "conviction is a defence: the committed move less than the undecided");
+});
+
+test("nobody preaches when nobody has gone to an extreme, and no turn is a landslide", () => {
+  const a = college();
+  assert.deepEqual(persuadeNeighbours(a).rows, [], "a wholly undecided room argues about nothing");
+
+  // Even a room half made of zealots moves slowly: a college is not a crowd.
+  const stirred = { ...a, electors: a.electors.map((e, i) => ({ ...e, approval: i % 2 ? 90 : 0 })) };
+  const out = persuadeNeighbours(stirred, { date: "2030-01-01" });
+  const moved = out.assembly.electors.map((e, i) => Math.abs(e.approval - (i % 2 ? 90 : 0)));
+  assert.ok(Math.max(...moved) <= PERSUASION_MAX_STEP + 1e-9,
+    `no elector may be swung more than ${PERSUASION_MAX_STEP} in one turn, got ${Math.max(...moved)}`);
+  assert.equal(out.assembly.seats, 160, "the roll is untouched");
+});
+
+test("affinity is the share of the four axes two electors have in common", () => {
+  const base = { doctrine: "traditional", region: "africa", role: "bishops", follows: "Rome" };
+  assert.equal(affinity(base, base), 1);
+  assert.equal(affinity(base, { ...base, follows: "Autre" }), 0.75);
+  assert.equal(affinity(base, { doctrine: "reforming", region: "europe", role: "curia", follows: "Autre" }), 0);
+  assert.equal(affinity(null, base), 0);
+  // An elector attached to no current does not count that as something shared.
+  assert.equal(affinity({ ...base, follows: "" }, { ...base, follows: "" }), 0.75);
 });

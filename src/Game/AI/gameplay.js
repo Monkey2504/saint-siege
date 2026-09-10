@@ -5,6 +5,8 @@ import { getGameplayTool, validateGameplayPayload } from "./gameplaySchemas.js";
 import { toCountryName } from "../../runtime/ownerNames.js";
 import { describesOrganizationalPower } from "../../runtime/organizations.js";
 import { applyFaithfulOps, stepFaithful } from "../../runtime/churchFaithful.js";
+import { ensureBodyFromOrders } from "../../runtime/fronts.js";
+import { bequestEvent, bequestFor, consequencesOf } from "../../runtime/consequences.js";
 import { filterUnitOpsByWars, resolveAiClashes, warEconomyFlags } from "../../runtime/wars.js";
 import { seedLeaderFromStats, stepLeaders } from "../../runtime/succession.js";
 import { stepMigration } from "../../runtime/migration.js";
@@ -16,7 +18,7 @@ import { ensureDrivesFromOrders, pruneDormantDrives, reconcileNarration } from "
 import { appendRecord } from "../../runtime/record.js";
 import { ensureTreasuryMovesFromOrders, stepTreasuries } from "../../runtime/treasuries.js";
 import { ensureLiabilityMovesFromOrders } from "../../runtime/liabilities.js";
-import { applySpeech, driftFromBlunders, judgeGovernance, speechFromOrder, standing } from "../../runtime/factions.js";
+import { applySpeech, driftFromBlunders, judgeGovernance, persuadeNeighbours, speechFromOrder, standing } from "../../runtime/factions.js";
 import { checkLedgerClaims } from "../../runtime/claimCheck.js";
 import { naturalizeContacts } from "../../runtime/naturalize.js";
 import { economyIndicators } from "../../runtime/economy.js";
@@ -1618,7 +1620,29 @@ const fallbackJumpSimulation = async ({ bundle, days, mode, targetDate }) => {
     });
   }
 
-  const lastEvent = events.at(-1) ?? null;
+  // What the world's own state already makes true (runtime/consequences.js).
+  //
+  // Without this, a fallback edition was one generic sentence and three empty
+  // impact lists — while the engine, on the very same turn, emptied a purse,
+  // held a congress, let pledges lapse and pushed electors into schism. The
+  // player read that foreign ministries were adjusting to the balance of power
+  // and concluded the game was broken. On Google's free tier — 1,000 requests a
+  // day — that is not the rare case, it is most of an evening's play.
+  //
+  // These entries invent nothing: each one reports a figure the engine holds,
+  // past a threshold written down in that file. They go LAST so the real state
+  // of the world closes the edition, and they carry the same shape as any other
+  // event, so nothing downstream needs to know where they came from.
+  const stateOfTheWorld = consequencesOf(bundle.world, bundle.game, {
+    player: bundle.game.country,
+    from: bundle.game.gameDate,
+    to: targetDate,
+  });
+  events.push(...stateOfTheWorld);
+
+  // The catalyst is a scene the player is asked to judge, so it belongs to what
+  // the world did, not to the last thing the player typed.
+  const lastEvent = stateOfTheWorld.at(-1) ?? events.at(-1) ?? null;
   const catalyst = lastEvent
     ? {
         choices: [
@@ -1637,8 +1661,9 @@ const fallbackJumpSimulation = async ({ bundle, days, mode, targetDate }) => {
     clearActions: true,
     events,
     stopDate: targetDate,
-    summary:
-      plannedActions.length > 0
+    summary: stateOfTheWorld.length
+      ? `Written without the model. What follows is not narration: ${stateOfTheWorld.map((e) => e.title.toLowerCase()).join("; ")}.`
+      : plannedActions.length > 0
         ? `${bundle.game.country} moves from planning into execution, and the world begins adjusting to the turn's most concrete orders.`
         : `Time advances without a direct order from ${bundle.game.country}, but the wider system keeps shifting and building pressure.`,
   };
@@ -2072,11 +2097,18 @@ const applySimulationResult = async ({
     const blundered = driftFromBlunders(judged.assembly, worldWithImpacts.intents, {
       asOf: nextGame.gameDate, date: nextGame.gameDate,
     });
-    worldWithImpacts.assembly = blundered.assembly;
+    // And then they work on each other. Those who have gone to an extreme argue
+    // with the people around them, for the player or against — heard in
+    // proportion to what they share, and hardly at all by anyone already
+    // committed the other way. Without it a college could hold twenty zealots
+    // and twenty radicals for a year with nothing passing between them.
+    const preached = persuadeNeighbours(blundered.assembly, { date: nextGame.gameDate });
+    worldWithImpacts.assembly = preached.assembly;
+    if (preached.preachers) console.warn(`[assembly] ${preached.preachers} electors worked on the room`);
 
     // One row per group that actually shifted, so the paper reads the room
     // rather than a hundred and sixty individual moods.
-    for (const row of [...judged.rows, ...blundered.rows]) {
+    for (const row of [...judged.rows, ...blundered.rows, ...preached.rows]) {
       worldWithImpacts.record = appendRecord(worldWithImpacts.record, [{
         date: nextGame.gameDate, polity: row.group, kind: "standing",
         what: row.reason, amount: row.step, unit: "pt",
@@ -2094,6 +2126,34 @@ const applySimulationResult = async ({
     const who = baseGame.country ?? "";
     const flow = advanced.flows?.[who];
     const rows = [];
+
+    // Money that arrives without being asked for (runtime/consequences.js).
+    //
+    // The player kept having to ask me to invent a donor, because the engine
+    // never produced one: every inflow beyond the standing `transfers` came
+    // from the model, so a world without the model was a world where nothing
+    // could ever arrive and a pope in deficit had no move that was not a cut.
+    // The rule instead: legacies run at a fixed share of the standing donation
+    // flow, scaled by how far the pontificate is trusted, inside a band. Small
+    // on purpose — not a way out of a deficit, just the reason holding your
+    // standing is worth something in cash as well as in votes.
+    if (who && Number(flow?.years) > 0) {
+      const economy = worldWithImpacts.economies?.[who];
+      const left = bequestFor(economy, { years: Number(flow.years) });
+      if (left > 0) {
+        worldWithImpacts.economies = {
+          ...worldWithImpacts.economies,
+          [who]: { ...economy, treasury: (Number.isFinite(Number(economy?.treasury)) ? Number(economy.treasury) : 0) + left },
+        };
+        rows.push({ date: nextGame.gameDate, polity: who, kind: "money", what: "legacies and unsolicited gifts", amount: left, unit: "SY", source: "step:bequests" });
+        const entry = bequestEvent({ amount: left, player: who, date: nextGame.gameDate, economy });
+        if (entry) {
+          const normalized = normalizeEventEntry({ ...entry, id: `bequest-${nextGame.round}` }, turnEvents.length + battleEvents.length);
+          if (normalized) battleEvents.push(normalized);
+        }
+      }
+    }
+
     if (flow && Number(flow.years) > 0) {
       if (Math.round(Number(flow.balance) || 0) !== 0) {
         rows.push({ date: nextGame.gameDate, polity: who, kind: "money", what: Number(flow.balance) < 0 ? "budget shortfall over the period" : "budget surplus over the period", amount: Number(flow.balance), unit: "SY", source: "step:balance" });
@@ -2111,6 +2171,25 @@ const applySimulationResult = async ({
   // Holy See's standing over the same elapsed time (null ledger → untouched).
   if (normalizeWorldState(worldAfterImpacts).church) {
     worldWithImpacts.church = stepFaithful(normalizeWorldState(worldAfterImpacts).church, { years: elapsed / 365.25, legitimacy: advanced.economies?.[HOLY_SEE]?.legitimacy, date: nextGame.gameDate });
+
+    // The other five fronts (runtime/fronts.js). The clergy ages at its real
+    // rate, the abuse files move at whatever pace the curia has been set, and
+    // BOTH are bent by what the player's own orders actually say — read here,
+    // from the orders, rather than asked of the model in a prompt. A pope who
+    // opens seminaries across Africa sees Africa's seminaries fill whatever the
+    // edition writes about it, and a pope who only announces zero tolerance
+    // watches the backlog grow exactly as it would have without him.
+    const body = ensureBodyFromOrders(worldWithImpacts, plannedActionSnapshot, {
+      years: elapsed / 365.25,
+      date: nextGame.gameDate,
+    });
+    worldWithImpacts.churchBody = body.churchBody;
+    if (body.notes.length) {
+      worldWithImpacts.record = appendRecord(worldWithImpacts.record, body.notes.map((what) => ({
+        date: nextGame.gameDate, polity: HOLY_SEE, kind: "body", what, source: "orders:fronts",
+      })));
+    }
+
     // The edition just narrated is the one the declaration was owed; from here on
     // the answers are no longer due (runtime/inauguration.js).
     Object.assign(worldWithImpacts, markDeclarationAnswered(worldWithImpacts));

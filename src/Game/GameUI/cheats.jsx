@@ -466,7 +466,7 @@ const ToolView = ({ tool, header, busy, status, game, polities, refresh, runBusy
                         >
                         Confirm
                         </button>
-                        <button type="button" style={{ ...buttonStyle, padding: "0.25rem 0.55rem" }} onClick={() => setEditingId(null)}>Cancel</button>
+                        <button type="button" style={{ ...buttonStyle, padding: "0.25rem 0.55rem" }} onClick={() => setEditingId(null)}>Annuler</button>
                         </div>
                     ) : (
                         <button type="button" disabled={busy} style={{ ...buttonStyle, flexShrink: 0, padding: "0.25rem 0.55rem" }} onClick={() => setEditingId(snap.id)}>Roll back</button>
@@ -796,7 +796,7 @@ const ToolView = ({ tool, header, busy, status, game, polities, refresh, runBusy
                     <span style={{ fontSize: "var(--oh-t-xs)", fontWeight: 700 }}>{props.city || props.name || `Feature ${index + 1}`}</span>
                     <div style={{ display: "flex", gap: "0.3rem" }}>
                     <button type="button" style={{ ...buttonStyle, padding: "0.2rem 0.5rem" }} onClick={() => { setEditingId(isEditing ? null : index); setFields(isEditing ? {} : { name: props.city || props.name || "", tier: String(props.tier ?? 2), population: String(props.population ?? "") }); }}>
-                    {isEditing ? "Close" : "Edit"}
+                    {isEditing ? "Fermer" : "Modifier"}
                     </button>
                     <button
                     type="button"
@@ -976,7 +976,7 @@ const ToolView = ({ tool, header, busy, status, game, polities, refresh, runBusy
                     </div>
                     <div style={{ display: "flex", flexShrink: 0, gap: "0.3rem" }}>
                     <button type="button" style={{ ...buttonStyle, padding: "0.2rem 0.5rem" }} onClick={() => { setEditingId(isEditing ? null : event.id); setFields(isEditing ? {} : { title: event.title, description: event.description, date: event.date }); }}>
-                    {isEditing ? "Close" : "Edit"}
+                    {isEditing ? "Fermer" : "Modifier"}
                     </button>
                     <button
                     type="button"

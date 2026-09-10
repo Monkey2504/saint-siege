@@ -19,9 +19,32 @@ const SKIP = [/\/Editor\//, /\/web\//, /\.test\.js$/, /basemapLibrary\.js$/, /Pr
 
 // ---- the palette, read from the sheet so the audit can never drift from it ----
 const theme = fs.readFileSync(path.join(SRC, "theme.css"), "utf8");
-const rootBlock = theme.slice(theme.indexOf(":root {"), theme.indexOf("\n}", theme.indexOf(":root {")));
-const TOKENS = {};
-for (const m of rootBlock.matchAll(/--oh-([a-z0-9-]+):\s*([^;]+);/g)) TOKENS[`--oh-${m[1]}`] = m[2].trim();
+const block = (selector) => {
+  const open = theme.indexOf(`${selector} {`);
+  return open === -1 ? "" : theme.slice(open, theme.indexOf("\n}", open));
+};
+const tokensIn = (text) => {
+  const out = {};
+  for (const m of text.matchAll(/--oh-([a-z0-9-]+):\s*([^;]+);/g)) out[`--oh-${m[1]}`] = m[2].trim();
+  return out;
+};
+
+const ROOT = tokensIn(block(":root"));
+
+// Every room in the house, not just the ground floor. The palette used to be
+// read from :root alone, so when the sections grew their own paper the audit
+// went on measuring a palette two of them no longer used — ink from one room on
+// another room's ground would have shipped unmeasured, which is the whole
+// failure this file exists to prevent. A room inherits what it does not
+// redefine, exactly as the cascade does, and is measured on the result.
+const SURFACES = [...theme.matchAll(/\[data-surface="([a-z]+)"\]\s*\{/g)].map((m) => m[1]);
+const PALETTES = [
+  { room: ":root", tokens: ROOT },
+  ...SURFACES.map((room) => ({ room, tokens: { ...ROOT, ...tokensIn(block(`[data-surface="${room}"]`)) } })),
+];
+
+// The palette in force while a pair is being measured. Set per room below.
+let TOKENS = ROOT;
 
 const hexToRgb = (hex) => {
   const h = hex.replace("#", "");
@@ -41,9 +64,11 @@ const luminance = ([r, g, b]) => {
   const f = (c) => { const s = c / 255; return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4; };
   return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
 };
-// A translucent ground is composited over the paper before it is measured.
-const paper = parse(TOKENS["--oh-plate"]).rgb;
-const over = ({ rgb, a }) => rgb.map((c, i) => Math.round(c * a + paper[i] * (1 - a)));
+// A translucent ground is composited over the paper of the room being measured.
+const over = ({ rgb, a }) => {
+  const paper = parse(TOKENS["--oh-plate"]).rgb;
+  return rgb.map((c, i) => Math.round(c * a + paper[i] * (1 - a)));
+};
 const contrast = (fg, bg) => {
   const l1 = luminance(over(fg));
   const l2 = luminance(over(bg));
@@ -147,23 +172,55 @@ const pairs = (fgs, bgs) => {
 const isSolidAccent = (v) => /^var\(--oh-(accent|alert|grant|caution)\)$/.test(v);
 const isPaper = (v) => /^var\(--oh-(plate|plate-2|ground)\)$/.test(v);
 
-test("every text/ground pair painted together reads at 4.5:1 or better", () => {
+test("every text/ground pair painted together reads at 4.5:1 or better, in every room", () => {
   const offenders = [];
-  for (const file of files) {
-    const text = fs.readFileSync(file, "utf8");
-    for (const obj of styleObjects(text, rel(file))) {
-      const fgs = values(obj.body, "color");
-      const bgs = [...values(obj.body, "backgroundColor"), ...values(obj.body, "background")];
-      if (!fgs.length || !bgs.length) continue;
-      for (const [fg, bg] of pairs(fgs, bgs)) {
-        const f = parse(fg); const b = parse(bg);
-        if (!f || !b || b.a < 0.05) continue; // "none", gradients, images: not measurable here
-        const ratio = contrast(f, b);
-        if (ratio < 4.5) offenders.push(`${rel(file)}:${obj.line}: ${fg} on ${bg} = ${ratio.toFixed(2)}:1`);
+  for (const palette of PALETTES) {
+    TOKENS = palette.tokens;
+    for (const file of files) {
+      const text = fs.readFileSync(file, "utf8");
+      for (const obj of styleObjects(text, rel(file))) {
+        const fgs = values(obj.body, "color");
+        const bgs = [...values(obj.body, "backgroundColor"), ...values(obj.body, "background")];
+        if (!fgs.length || !bgs.length) continue;
+        for (const [fg, bg] of pairs(fgs, bgs)) {
+          const f = parse(fg); const b = parse(bg);
+          if (!f || !b || b.a < 0.05) continue; // "none", gradients, images: not measurable here
+          const ratio = contrast(f, b);
+          if (ratio < 4.5) offenders.push(`[${palette.room}] ${rel(file)}:${obj.line}: ${fg} on ${bg} = ${ratio.toFixed(2)}:1`);
+        }
       }
     }
   }
+  TOKENS = ROOT;
   assert.deepEqual(offenders, [], `low contrast:\n${offenders.join("\n")}`);
+});
+
+// One paper and one ink for the whole house.
+//
+// The first attempt at giving the sections their own character gave each of
+// them its own paper and its own ink as well — five beiges and greys, none of
+// them committed — and the player's verdict was immediate: less good, not more
+// coherent, and the bulletin dragged off a direction nobody had complained
+// about. Every pair still measured above 4.5:1 throughout, which is exactly why
+// this rule exists as well: a ratio measures legibility and says nothing about
+// whether a page holds together.
+//
+// So a room may change how it sets type and which single accent marks it. The
+// paper, the ink and the rules belong to the house.
+const HOUSE_TOKENS = [
+  "--oh-ground", "--oh-plate", "--oh-plate-rgb", "--oh-plate-2",
+  "--oh-line", "--oh-line-strong",
+  "--oh-text", "--oh-text-strong", "--oh-text-dim", "--oh-on-accent",
+];
+
+test("no room repaints the house: one paper, one ink, whatever the section", () => {
+  const offenders = [];
+  for (const room of SURFACES) {
+    const own = tokensIn(block(`[data-surface="${room}"]`));
+    const taken = HOUSE_TOKENS.filter((token) => token in own);
+    if (taken.length) offenders.push(`${room}: ${taken.join(", ")}`);
+  }
+  assert.deepEqual(offenders, [], `rooms repainting the house:\n${offenders.join("\n")}`);
 });
 
 test("a solid accent, alert, grant or caution ground carries the on-accent colour, never ink", () => {

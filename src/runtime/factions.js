@@ -399,6 +399,98 @@ export const judgeGovernance = (assembly, { movements = {}, upheaval = 0, date =
   return { assembly: next, rows };
 };
 
+// ---- electors working on each other ------------------------------------------------
+
+// Only those who have gone past arguing do the arguing. An undecided elector
+// persuades nobody: they have no position to carry, and a room where everyone
+// influences everyone equally converges to its own average within a few turns,
+// which is the opposite of politics.
+// Calibrated against the gap it multiplies, which runs to two hundred points.
+// At 0.5 every listener hit the cap below, and hitting the cap erases the whole
+// point: a neighbour who shares one axis then moved exactly as far as one who
+// shares all four. The force has to leave the cap for the extreme cases only.
+export const PERSUASION_FORCE = 0.03;
+// How much of what they hear an elector actually takes. Deliberately small: a
+// college is not a crowd, and a bloc that could flip the room in one turn would
+// make governing irrelevant.
+export const PERSUASION_MAX_STEP = 2.5;
+
+/**
+ * How much one elector listens to another, from 0 to 1: the share of the four
+ * axes they have in common. A traditional African bishop hears a traditional
+ * African bishop; he barely hears a reforming European curial official, however
+ * loudly that one talks.
+ */
+export const affinity = (a, b) => {
+  if (!a || !b) return 0;
+  let shared = 0;
+  for (const axis of AXES) {
+    const x = str(a[axis]);
+    if (x && lower(x) === lower(b[axis])) shared += 1;
+  }
+  return shared / AXES.length;
+};
+
+/**
+ * The electors who have gone to an extreme work on the people around them, for
+ * you or against you. This is the piece that was missing: opinion moved from the
+ * player's governing, the player's speeches and rivals' failures, and never from
+ * one elector talking to the next — so a college could hold twenty zealots and
+ * twenty radicals for a year and nothing passed between them.
+ *
+ * Three rules keep it from becoming a landslide. Only the convinced persuade.
+ * They are heard in proportion to what they share with the listener. And a
+ * listener already committed the other way hardly hears at all — which is what
+ * produces blocs that harden rather than a room that agrees.
+ */
+export const persuadeNeighbours = (assembly, { date = "" } = {}) => {
+  const a = normalizeAssembly(assembly);
+  if (!a) return { assembly, rows: [] };
+
+  const preachers = a.electors.filter((e) => e.approval >= ZEALOUS_AT || e.approval <= RADICAL_AT);
+  if (!preachers.length) return { assembly: a, rows: [] };
+
+  const electors = a.electors.map((listener) => {
+    let pull = 0;
+    for (const preacher of preachers) {
+      if (preacher === listener) continue;
+      const heard = affinity(preacher, listener);
+      if (!heard) continue;
+      // Nobody is argued across the whole room: what carries is the gap between
+      // them, and only a fraction of it.
+      const gap = preacher.approval - listener.approval;
+      // A listener already committed the other way is nearly deaf to this
+      // preacher. Without it the loudest camp simply wins, and the college stops
+      // being a place where two convictions can coexist.
+      const deafness = (preacher.approval > 0) === (listener.approval > 0) || listener.approval === 0
+        ? 1
+        : 0.25;
+      pull += gap * heard * deafness * (PERSUASION_FORCE / preachers.length);
+    }
+    if (!pull) return listener;
+    const step = clamp(pull, -PERSUASION_MAX_STEP, PERSUASION_MAX_STEP);
+    return { ...listener, approval: clamp(listener.approval + step, -APPROVAL_RANGE, APPROVAL_RANGE) };
+  });
+
+  const next = { ...a, electors };
+  // Reported by group, like every other movement, so the player reads the room
+  // and not a hundred and sixty conversations.
+  const rows = [];
+  for (const axis of AXES) {
+    const before = new Map(groupsOn(a, axis).map((g) => [g.name, g.approval]));
+    for (const g of groupsOn(next, axis)) {
+      const moved = g.approval - (before.get(g.name) ?? 0);
+      if (Math.abs(moved) < 0.05) continue;
+      rows.push({
+        date, axis, group: g.name, seats: g.seats,
+        approval: Math.round(g.approval * 10) / 10, step: Math.round(moved * 10) / 10,
+        reason: moved > 0 ? "was talked round by those already with you" : "was talked round by those already against you",
+      });
+    }
+  }
+  return { assembly: next, rows, preachers: preachers.length };
+};
+
 // ---- speeches the player makes ----------------------------------------------------
 //
 // Read from the player's own order, for the fifth time and the same reason: a

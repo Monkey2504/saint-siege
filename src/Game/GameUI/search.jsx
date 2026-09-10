@@ -322,7 +322,7 @@ const Search = memo(({ mapRef }) => {
             color: status === "error" ? "var(--oh-alert)" : "var(--oh-text)",
             transition: "color 0.2s",
           }}
-          title={expanded ? "Close" : "Search place"}
+          title={expanded ? "Fermer" : "Chercher un lieu"}
         >
           {status === "loading" ? (
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">

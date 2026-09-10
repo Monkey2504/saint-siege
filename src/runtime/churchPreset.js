@@ -31,6 +31,7 @@ import { normalizeOrganizations } from "./organizations.js";
 import { FAITHFUL_2023, normalizeChurch } from "./churchFaithful.js";
 import { normalizeExtraRegions } from "./extraRegions.js";
 import { seatAssembly } from "./factions.js";
+import { normalizeChurchBody } from "./fronts.js";
 import { VATICAN_CITY_CENTER, VATICAN_CITY_GEOMETRY } from "./vaticanBoundary.js";
 
 // The one region the Holy See owns on the map: a drawn ("reg_*") id so the
@@ -423,5 +424,13 @@ export const applyChurchPreset = (world, { date = "", availableCountries = [] } 
     seed: 11,
   });
 
-  return { ...w, polityOverrides, countryTags, countryStats, organizations, intents, economies, simulationRules, canonFacts, church, assembly, extraRegions, regionOwnershipOverrides, markers, customRegions: true };
+  // The body of the Church, live: priests and seminarians by continent at their
+  // real counts, and the abuse files with the backlog a pontificate inherits
+  // (runtime/fronts.js). Seeded HERE for the same reason the college is — a
+  // front that only comes into being after the first turn is a front the
+  // opening page cannot show, and a player reading "not held" on his first
+  // edition concludes the game does not track it at all.
+  const churchBody = w.churchBody ?? normalizeChurchBody({ asOf: "2022-12-31" });
+
+  return { ...w, polityOverrides, countryTags, countryStats, organizations, intents, economies, simulationRules, canonFacts, church, assembly, churchBody, extraRegions, regionOwnershipOverrides, markers, customRegions: true };
 };

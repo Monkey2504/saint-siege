@@ -26,3 +26,17 @@ export const HAS_MAP = false;
 // What the app shows when no page is chosen. With the map gone the front door is
 // the bulletin, which is the right front door for a newspaper game anyway.
 export const HOME_SECTION = HAS_MAP ? "map" : "bulletin";
+
+// The community hub — Open Historia's GitHub-backed feed of shared scenarios.
+//
+// False in this edition. The feed is upstream's, and what it carries is war
+// scenarios: Kaiserreich, the Great War of 1911, the Third Reich, the Second
+// World War. Published to the web, that was the third tab a visitor met on a
+// game about one pope, and the first thing many of them would have clicked.
+// The player's own words: "supprime l'onglet communauté, le seul qui compte
+// c'est le jeu pape."
+//
+// Switched off here rather than deleted, like the map: an edition that shares
+// scenarios still wants it, and communityHub.jsx is only ever imported behind
+// this flag, so nothing of it reaches the bundle while it is false.
+export const HAS_HUB = false;

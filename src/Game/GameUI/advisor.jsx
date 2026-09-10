@@ -6,6 +6,7 @@ import { sendMessage, startChat, loadHistory } from "../AI/main.jsx";
 import { JSON_URLS, readJson, writeJson } from "../../runtime/assets.js";
 import { chatLanguageDiffersFromUi, isRtlLanguage, resolveChatLanguage } from "../../runtime/i18n.js";
 import StatsPane from "./stats.jsx";
+import { useSurface } from "../../runtime/useSurface.js";
 
 Chart.register(...registerables);
 
@@ -221,6 +222,11 @@ const AdvisorPanel = ({ isAdvisorOpen, onClose, width, onResize, fullPage = fals
     // the panel keeps its own tabs.
     const activeTab = section ?? localTab;
     const setActiveTab = (tab) => (typeof onSection === "function" ? onSection(tab) : setLocalTab(tab));
+    // One window, two rooms. The books are the books — ruled paper, tabular
+    // figures, the accountant's green and red — and the adviser is one person
+    // talking, on plain office paper (theme.css). As a drawer over the map the
+    // panel claims no room: the map is not a room of the house.
+    useSurface(!fullPage ? "" : activeTab === "stats" ? "ledger" : "cabinet");
     const inputRef = useRef(null);
     const [isResizing, setIsResizing] = useState(false);
     const [handleHover, setHandleHover] = useState(false);
