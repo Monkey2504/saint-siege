@@ -58,6 +58,24 @@ export const temper = (approval) => {
   return "schismatic";
 };
 
+// Le mot que le joueur lit pour chacune de ces humeurs.
+//
+// Table séparée, et non traduction de temper() : ses valeurs sont des CLÉS que
+// le moteur compare et que les tests fixent. Traduire la clé mettrait une
+// chaîne d'affichage là où une comparaison est attendue — la faute exacte que
+// la consigne signale (« ne pas traduire les clés »).
+const TEMPER_WORDS = Object.freeze({
+  zealous: "vous suivrait partout",
+  loyal: "avec vous",
+  wary: "réservé",
+  hostile: "contre vous",
+  radical: "radicalisé",
+  schismatic: "en schisme",
+});
+
+/** L'humeur d'un corps ou d'un courant, dans la langue du joueur. */
+export const temperWord = (approval) => TEMPER_WORDS[temper(approval)] ?? "";
+
 // The three axes. Every elector carries one value on each, and a question is
 // asked ON an axis — which is what makes the same room split differently
 // depending on what is put to it.

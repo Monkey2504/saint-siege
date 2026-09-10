@@ -5,16 +5,20 @@ import React from "react";
 // and on the bulletin page. It used to live inside actions.jsx; the bulletin
 // needs the identical thing, and two drawings of one verdict would drift.
 
+// The keys stay English — they are the engine's, and realityCheck.js writes
+// them. Only what the player reads is French, in the words the implementation
+// brief fixes (CONSIGNE-CLAUDE-CODE.md §1).
 export const VERDICT_RESULT = {
-    feasible: "Carried in full",
-    constrained: "Carried in part",
-    blocked: "Refused",
+    feasible: "Exécuté en entier",
+    constrained: "Accordé en partie",
+    blocked: "Refusé",
 };
 
 // One word set for every visual direction. It reads as a map legend under Atlas
-// and as a count of votes under College, and unlike Latin it survives the runtime
-// translator that rewrites the interface into the player's language.
-const VOTE_WORDS = { grant: "granted", caution: "reserved", alert: "refused" };
+// and as a count of votes under College. Written in French in the source rather
+// than left to the runtime translator: the translator needs a model, and the
+// player who has no key is exactly the player reading this sheet.
+const VOTE_WORDS = { grant: "accordé", caution: "réservé", alert: "refusé" };
 
 // The same two thresholds the verdict itself uses (runtime/realityCheck.js):
 // under 0.4 a constraint is noted but does not bind, under 0.9 it binds, at or
@@ -35,12 +39,12 @@ export const RealityTally = ({ assessment }) => {
         <div className={`oh-tally oh-tally-${verdict || "feasible"}`}>
         {constraints.length === 0 ? (
             <div className="oh-vote">
-            <span className="oh-vote-name">Nothing stands in the way</span>
+            <span className="oh-vote-name">Rien ne s'y oppose</span>
             <span>
             <span className="oh-key oh-key-grant" />
             <span className="oh-vote-verdict oh-vote-grant"> {VOTE_WORDS.grant}</span>
             </span>
-            <span>no budget, reach, legitimacy or standing objection binds this order</span>
+            <span>ni le budget, ni la portée, ni la légitimité, ni une opposition déclarée ne bride cet ordre</span>
             </div>
         ) : (
             constraints.map((constraint) => {

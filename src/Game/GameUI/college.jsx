@@ -20,11 +20,11 @@ const NEEDED = 50;
 // doctrine, by region or by role. That IS the mechanic, made visible.
 
 const MOOD = [
-    { at: ZEALOUS_AT, tone: "var(--oh-grant)", word: "would follow you anywhere" },
-    { at: LOYAL_AT, tone: "var(--oh-grant)", word: "with you" },
-    { at: HOSTILE_AT + 1, tone: "var(--oh-text-dim)", word: "undecided" },
-    { at: RADICAL_AT + 1, tone: "var(--oh-caution)", word: "against you" },
-    { at: -Infinity, tone: "var(--oh-alert)", word: "past arguing" },
+    { at: ZEALOUS_AT, tone: "var(--oh-grant)", word: "vous suivraient partout" },
+    { at: LOYAL_AT, tone: "var(--oh-grant)", word: "avec vous" },
+    { at: HOSTILE_AT + 1, tone: "var(--oh-text-dim)", word: "indécis" },
+    { at: RADICAL_AT + 1, tone: "var(--oh-caution)", word: "contre vous" },
+    { at: -Infinity, tone: "var(--oh-alert)", word: "au-delà de la discussion" },
 ];
 const moodOf = (approval) => MOOD.find((m) => approval >= m.at) ?? MOOD[MOOD.length - 1];
 
@@ -63,7 +63,7 @@ const Hemicycle = ({ electors, axis, colours, selected, onSelect, byMood }) => {
     const seated = useMemo(() => [...electors].sort((a, b) => String(a[axis]).localeCompare(String(b[axis]))), [electors, axis]);
     const points = useMemo(() => seatPositions(seated.length), [seated.length]);
     return (
-        <svg viewBox="0 0 200 112" role="img" aria-label={`${seated.length} electors by ${axis}`} style={{ display: "block", width: "100%" }}>
+        <svg viewBox="0 0 200 112" role="img" aria-label={`${seated.length} électeurs par ${axis}`} style={{ display: "block", width: "100%" }}>
         {points.map((p, i) => {
             const e = seated[i];
             if (!e) return null;
@@ -144,8 +144,8 @@ export const College = () => {
         return (
             <div data-surface="chamber" style={{ background: "var(--oh-plate)", bottom: "2.6rem", color: "var(--oh-text)", left: 0, overflowY: "auto", position: "fixed", right: 0, top: 0, zIndex: 10002 }}>
             <div style={{ margin: "0 auto", maxWidth: "42rem", padding: "3rem 1.5rem" }}>
-            <h1 style={{ color: "var(--oh-text-strong)", fontFamily: "var(--oh-font-display)", fontSize: "var(--oh-t-xl)", margin: 0 }}>No assembly</h1>
-            <p style={{ fontSize: "var(--oh-t-base)", lineHeight: 1.6 }}>This scenario has no body of electors yet.</p>
+            <h1 style={{ color: "var(--oh-text-strong)", fontFamily: "var(--oh-font-display)", fontSize: "var(--oh-t-xl)", margin: 0 }}>Aucune assemblée</h1>
+            <p style={{ fontSize: "var(--oh-t-base)", lineHeight: 1.6 }}>Ce scénario n'a pas encore de corps d'électeurs.</p>
             </div>
             </div>
         );
@@ -176,7 +176,7 @@ export const College = () => {
         <figure style={{ margin: "0 0 1rem", position: "relative" }}>
         <img
         src="/college.png"
-        alt="Cardinals assembled in consistory"
+        alt="Cardinaux réunis en consistoire"
         style={{ display: "block", height: "clamp(7rem, 16vw, 11rem)", objectFit: "cover", objectPosition: "center 40%", width: "100%" }}
         />
         <figcaption
@@ -257,15 +257,15 @@ export const College = () => {
         {pact && (
             <section style={{ marginTop: "1.6rem" }}>
             <div className="oh-label" style={{ borderBottom: "4px solid var(--oh-text-strong)", color: "var(--oh-text-strong)", paddingBottom: "0.4rem" }}>
-            Carrying a decision — {pact.need} needed
+            Pour emporter une décision — il en faut {pact.need}
             </div>
             <p style={{ fontSize: "var(--oh-t-sm)", lineHeight: 1.6, margin: "0.8rem 0 0.6rem", maxWidth: "70ch" }}>
-            <b style={{ color: pact.carriesAlone ? "var(--oh-grant)" : "var(--oh-text-strong)" }}>{pact.alone} follow you.</b>{" "}
+            <b style={{ color: pact.carriesAlone ? "var(--oh-grant)" : "var(--oh-text-strong)" }}>{pact.alone} vous suivent.</b>{" "}
             {pact.carriesAlone
-                ? "You carry this body alone and need nobody."
-                : <>With the {pact.partners.length} {pact.partners.length === 1 ? "current" : "currents"} you have sat down with, {pact.held}. {pact.carries
-                    ? <b style={{ color: "var(--oh-grant)" }}>That carries it.</b>
-                    : <>Still {pact.short} short. {pact.unattached} electors follow no current at all — those are the ones in play.</>}</>}
+                ? "Vous emportez ce corps seul, sans personne."
+                : <>Avec {pact.partners.length === 1 ? "le courant" : `les ${pact.partners.length} courants`} avec qui vous vous êtes assis, {pact.held}. {pact.carries
+                    ? <b style={{ color: "var(--oh-grant)" }}>Cela l'emporte.</b>
+                    : <>Il en manque {pact.short}. {pact.unattached} électeurs ne suivent aucun courant — ce sont eux qui sont en jeu.</>}</>}
             </p>
             <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
             {currents.map((c) => {
@@ -296,10 +296,10 @@ export const College = () => {
 
         <section style={{ marginTop: "1.6rem" }}>
         <div className="oh-label" style={{ borderBottom: "4px solid var(--oh-text-strong)", color: "var(--oh-text-strong)", paddingBottom: "0.4rem" }}>
-        {selected ? `Speak to the ${selected}` : "Speak to the whole college"}
+        {selected ? `Speak to the ${selected}` : "Parler au collège"}
         </div>
         <textarea value={draft} onChange={(e) => { setDraft(e.target.value); setSent(false); }} rows={4}
-        placeholder="What you will tell them, and why they should follow you."
+        placeholder="Ce que vous allez leur dire, et pourquoi ils devraient vous suivre."
         style={{
             background: "var(--oh-plate-2)", border: "1px solid var(--oh-line)", color: "var(--oh-text-strong)",
             fontFamily: "var(--oh-font-body)", fontSize: "var(--oh-t-base)", marginTop: "0.8rem",
@@ -312,8 +312,8 @@ export const College = () => {
             color: draft.trim() ? "var(--oh-on-accent)" : "var(--oh-text-dim)",
             cursor: draft.trim() ? "pointer" : "default", fontFamily: "var(--oh-font-label)",
             fontSize: "var(--oh-t-2xs)", letterSpacing: "var(--oh-label-track)", padding: "0.55rem 1.1rem", textTransform: "uppercase",
-        }}>Put it to them</button>
-        {sent && <span style={{ color: "var(--oh-grant)", fontSize: "var(--oh-t-xs)" }}>Queued. It is delivered, and judged, on the next edition.</span>}
+        }}>Le leur dire</button>
+        {sent && <span style={{ color: "var(--oh-grant)", fontSize: "var(--oh-t-xs)" }}>Versé au dossier. Livré et jugé à la prochaine édition.</span>}
         <button type="button" onClick={() => setTick((t) => t + 1)}
         style={{ background: "transparent", border: "none", color: "var(--oh-text-dim)", cursor: "pointer", fontSize: "var(--oh-t-xs)", marginLeft: "auto" }}>Refresh</button>
         </div>

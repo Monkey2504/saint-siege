@@ -155,7 +155,7 @@ const ActionItem = ({ action, onDelete, realityContext }) => {
         <button
         type="button"
         onClick={onDelete}
-        title="Delete action"
+        title="Supprimer l'ordre"
         style={{
             alignItems: "center",
             background: hovered ? "var(--oh-alert-soft)" : "none",
@@ -207,7 +207,7 @@ const SuggestionCard = ({ topic, onQueue, queuedIds }) => {
         </div>
         {contested && (
             <div style={{ color: "var(--oh-text-strong)", fontSize: "var(--oh-t-xs)", fontStyle: "italic", lineHeight: "1.5", marginTop: "0.4rem" }}>
-            <span className="oh-label" style={{ color: "var(--oh-caution)", fontStyle: "normal", marginRight: "0.4rem" }}>Choice to make</span>
+            <span className="oh-label" style={{ color: "var(--oh-caution)", fontStyle: "normal", marginRight: "0.4rem" }}>Choix à faire</span>
             {topic.dilemma}
             </div>
         )}
@@ -219,7 +219,7 @@ const SuggestionCard = ({ topic, onQueue, queuedIds }) => {
                 <button
                 key={action.id}
                 type="button"
-                title={isQueued ? "Queued — click to withdraw this order" : "Queue this order"}
+                title={isQueued ? "Versé au dossier — cliquez pour le retirer" : "Verser cet ordre au dossier"}
                 onClick={() => onQueue(action, isQueued)}
                 style={{
                     background: isQueued ? "var(--oh-grant-soft)" : "var(--oh-accent-soft)",
@@ -242,7 +242,7 @@ const SuggestionCard = ({ topic, onQueue, queuedIds }) => {
                 {action.text}
                 </div>
                 {isQueued && (
-                    <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)", marginTop: "0.25rem" }}>Click again to withdraw</div>
+                    <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)", marginTop: "0.25rem" }}>Cliquez encore pour retirer</div>
                 )}
                 </button>
             );
@@ -480,7 +480,7 @@ const ActionsPanel = ({ isOpen, onClose, onOpenAdvisor, embedded = false }) => {
 
     const suggestionButtonLabel = hasRequestedSuggestions
     ? (isSuggesting ? "Refreshing AI suggestions..." : "Refresh AI suggestions")
-    : (isSuggesting ? "Loading AI suggestions..." : "Get AI suggestions");
+    : (isSuggesting ? "Suggestions en cours…" : "Demander des suggestions");
 
     return (
         <div
@@ -531,8 +531,8 @@ const ActionsPanel = ({ isOpen, onClose, onOpenAdvisor, embedded = false }) => {
         }}
         >
         {embedded
-            ? <span className="oh-label" style={{ color: "var(--oh-text-strong)" }}>Orders</span>
-            : <span style={{ fontSize: "var(--oh-t-base)", fontWeight: 700, letterSpacing: "0.01em" }}>Actions</span>}
+            ? <span className="oh-label" style={{ color: "var(--oh-text-strong)" }}>Ordres</span>
+            : <span style={{ fontSize: "var(--oh-t-base)", fontWeight: 700, letterSpacing: "0.01em" }}>Ordres</span>}
         {!embedded && <button
         type="button"
         onClick={onClose}
@@ -599,7 +599,7 @@ const ActionsPanel = ({ isOpen, onClose, onOpenAdvisor, embedded = false }) => {
             event.currentTarget.style.borderColor = "var(--oh-accent-soft)";
         }}
         >
-        Help brainstorm actions
+        M'aider à trouver des idées
         </button>
 
         <button
@@ -666,7 +666,7 @@ const ActionsPanel = ({ isOpen, onClose, onOpenAdvisor, embedded = false }) => {
             textTransform: "var(--oh-label-case)",
         }}
         >
-        Your Submitted Actions
+        Vos ordres versés au dossier
         </p>
 
         <div
@@ -681,7 +681,7 @@ const ActionsPanel = ({ isOpen, onClose, onOpenAdvisor, embedded = false }) => {
         >
         {submittedActions.length === 0 && (
             <p style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-sm)", fontStyle: "italic", margin: 0 }}>
-            No order standing yet. Write one below; the verdict appears the moment it is queued.
+            Aucun ordre en cours. Écrivez-en un ci-dessous : le verdict paraît dès qu'il est versé au dossier.
             </p>
         )}
         {submittedActions.map(({ normalized, originalIndex }) => (
@@ -724,7 +724,7 @@ const ActionsPanel = ({ isOpen, onClose, onOpenAdvisor, embedded = false }) => {
         <textarea
         ref={inputRef}
         className="actions-composer"
-        placeholder={embedded ? "Give an order… (Shift+Enter for a new line)" : "Enter your action…  (Shift+Enter for a new line)"}
+        placeholder={embedded ? "Donnez un ordre… (Maj+Entrée pour une nouvelle ligne)" : "Écrivez votre ordre…  (Maj+Entrée pour une nouvelle ligne)"}
         value={inputValue}
         onChange={(event) => setInputValue(event.target.value)}
         onKeyDown={handleKeyDown}
@@ -755,8 +755,8 @@ const ActionsPanel = ({ isOpen, onClose, onOpenAdvisor, embedded = false }) => {
         <button
         type="button"
         onClick={isImproving ? handleStopImprove : handleImprove}
-        title={isImproving ? "Stop generating" : "Improve action text"}
-        aria-label={isImproving ? "Stop generating" : "Improve action text"}
+        title={isImproving ? "Arrêter" : "Améliorer le texte de l'ordre"}
+        aria-label={isImproving ? "Arrêter" : "Améliorer le texte de l'ordre"}
         style={{
             alignItems: "center",
             background: "none",

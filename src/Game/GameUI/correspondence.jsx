@@ -1,7 +1,7 @@
 /*! Open Historia — the correspondence: the pope's letters, as a page © 2026 Nicholas Krol, MIT (see src/Editor/LICENSE). */
 import React, { useEffect, useMemo, useState } from "react";
 import { readGameData, readWorldState } from "../../runtime/gameState.js";
-import { groupsOn, normalizeAssembly, temper } from "../../runtime/factions.js";
+import { groupsOn, normalizeAssembly, temperWord } from "../../runtime/factions.js";
 import { useSurface } from "../../runtime/useSurface.js";
 import { ensureOrganizations } from "./organizationsView.jsx";
 import {
@@ -51,10 +51,10 @@ const fmtShort = (value) => {
 // game's own three kinds are states, the currents that carry intents, and the
 // bodies of the era, so those are the four tabs it gets.
 const KINDS = [
-    { id: "all", label: "All" },
-    { id: "current", label: "Currents" },
-    { id: "state", label: "States" },
-    { id: "body", label: "Bodies" },
+    { id: "all", label: "Tous" },
+    { id: "current", label: "Courants" },
+    { id: "state", label: "États" },
+    { id: "body", label: "Organismes" },
 ];
 
 const kindOf = (chat) => {
@@ -72,7 +72,7 @@ const standingOf = (chat, blocs) => {
     const bloc = blocs.find((g) => names.includes(String(g.name).toLowerCase()));
     if (!bloc) return null;
     const approval = Math.round(bloc.approval);
-    const mood = temper(bloc.approval);
+    const mood = temperWord(bloc.approval);
     return {
         seats: bloc.seats,
         approval,
@@ -89,9 +89,9 @@ const toneVar = (tone) => `var(--oh-${tone})`;
 // exchanged, and a mark when something arrived unread.
 const CorrespondentRow = ({ chat, active, unread, standing: where, onOpen, onDelete }) => {
     const [confirming, setConfirming] = useState(false);
-    const names = (chat.countries ?? []).map((c) => c.name).join(", ") || "Unknown";
+    const names = (chat.countries ?? []).map((c) => c.name).join(", ") || "Inconnu";
     const last = chat.messages?.at(-1);
-    const preview = last?.text ? `${last.speaker ? `${last.speaker}: ` : ""}${last.text}` : "No letter exchanged yet.";
+    const preview = last?.text ? `${last.speaker ? `${last.speaker}: ` : ""}${last.text}` : "Aucune lettre échangée.";
     const edge = where ? toneVar(where.tone) : "var(--oh-line)";
     return (
         <div
@@ -123,18 +123,18 @@ const CorrespondentRow = ({ chat, active, unread, standing: where, onOpen, onDel
         </div>
         {where && (
             <div style={{ color: toneVar(where.tone), fontSize: "var(--oh-t-2xs)", fontWeight: 600, marginTop: "0.35rem" }}>
-            {where.seats} {where.seats === 1 ? "elector" : "electors"} · {where.mood} ({where.approval > 0 ? "+" : ""}{where.approval})
+            {where.seats} {where.seats === 1 ? "électeur" : "électeurs"} · {where.mood} ({where.approval > 0 ? "+" : ""}{where.approval})
             </div>
         )}
         </button>
         <button
         type="button"
-        title={confirming ? "Click again to file this correspondence away" : "File away"}
+        title={confirming ? "Cliquez encore pour classer cette correspondance" : "Classer"}
         onClick={() => { if (confirming) onDelete(); else setConfirming(true); }}
         onBlur={() => setConfirming(false)}
         style={{ background: confirming ? "var(--oh-alert-soft)" : "none", border: 0, color: confirming ? "var(--oh-text-strong)" : "var(--oh-text-dim)", cursor: "pointer", flexShrink: 0, fontSize: "var(--oh-t-sm)", height: "1.4rem", lineHeight: 1, padding: "0.15rem 0.3rem" }}
         >
-        {confirming ? "file?" : "×"}
+        {confirming ? "classer ?" : "×"}
         </button>
         </div>
     );
@@ -286,12 +286,12 @@ const Correspondence = () => {
         <div style={{ borderRight: "1px solid var(--oh-line)", display: "flex", flexDirection: "column", minHeight: 0 }}>
 
         <div style={{ borderBottom: "1px solid var(--oh-line)", flexShrink: 0, padding: "1.35rem 1.2rem 0.9rem" }}>
-        <span className="oh-label" style={{ color: "var(--oh-text-dim)" }}>{playerCountry ? `${playerCountry} · section` : "section"}</span>
+        <span className="oh-label" style={{ color: "var(--oh-text-dim)" }}>{playerCountry ? `${playerCountry} · cahier` : "cahier"}</span>
         <h1 style={{ color: "var(--oh-text-strong)", fontFamily: "var(--oh-font-display)", fontSize: "var(--oh-t-xl)", fontWeight: 800, letterSpacing: "-0.04em", lineHeight: 0.95, margin: "0.4rem 0 0" }}>
-        The Post
+        Le Courrier
         </h1>
         <p style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)", lineHeight: 1.45, margin: "0.55rem 0 0" }}>
-        {unread > 0 ? `${unread} unread · ` : ""}replies go out with the next edition
+        {unread > 0 ? `${unread} non lues · ` : ""}les réponses partent avec la prochaine édition
         </p>
         </div>
 
@@ -326,7 +326,7 @@ const Correspondence = () => {
         <div style={{ flex: 1, minHeight: 0, overflowY: "auto", scrollbarWidth: "none" }}>
         {ordered.length === 0 && (
             <p style={{ color: "var(--oh-text-dim)", fontFamily: "var(--oh-font-serif)", fontSize: "var(--oh-t-sm)", fontStyle: "italic", lineHeight: 1.5, margin: "1.1rem 1.2rem" }}>
-            Nothing filed here yet. Open a letter below: a state, a current, or a body of the era.
+            Rien de classé ici. Ouvrez une lettre ci-dessous : un État, un courant, ou un organisme de l'époque.
             </p>
         )}
         {ordered.map((chat) => (
@@ -348,7 +348,7 @@ const Correspondence = () => {
         onClick={() => setComposing(true)}
         style={{ background: "var(--oh-accent)", border: 0, color: "var(--oh-on-accent)", cursor: "pointer", fontFamily: "var(--oh-font-label)", fontSize: "var(--oh-t-xs)", fontWeight: 700, letterSpacing: "var(--oh-label-track)", padding: "0.7rem 1rem", textTransform: "var(--oh-label-case)" }}
         >
-        New letter
+        Nouvelle lettre
         </button>
         {/* One letter to every current at once. Writing to seven of them one at a
             time is seven private notes; a pope addresses them together, and they
@@ -359,13 +359,13 @@ const Correspondence = () => {
             onClick={() => startChat(addressableFactions)}
             style={{ background: "transparent", border: "1px solid var(--oh-line)", color: "var(--oh-text)", cursor: "pointer", fontFamily: "var(--oh-font-label)", fontSize: "var(--oh-t-2xs)", letterSpacing: "var(--oh-label-track)", padding: "0.5rem 1rem", textTransform: "var(--oh-label-case)" }}
             >
-            Address all {addressableFactions.length} currents at once
+            Écrire aux {addressableFactions.length} courants à la fois
             </button>
         )}
         {/* What a letter costs. Left unsaid, a player writes as though writing
             were free — and the engine judges every letter against the record. */}
         <p style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)", lineHeight: 1.5, margin: "0.3rem 0 0" }}>
-        A letter is worth what your standing is worth. It reaches only those still listening, and anything the record contradicts costs you ground.
+        Une lettre vaut ce que vaut votre position. Elle n'atteint que ceux qui écoutent encore, et ce que le registre contredit vous fait perdre du terrain.
         </p>
         </div>
         </div>
@@ -378,8 +378,8 @@ const Correspondence = () => {
             <div style={{ minWidth: 0 }}>
             <div style={{ color: "var(--oh-text-strong)", fontFamily: "var(--oh-font-display)", fontSize: "var(--oh-t-lg)", fontWeight: 800, letterSpacing: "-0.03em", lineHeight: 1 }}>{activeNames}</div>
             <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)", marginTop: "0.4rem" }}>
-            {(activeChat.countries ?? []).length > 1 ? `${(activeChat.countries ?? []).length} at the table` : kindOf(activeChat) === "current" ? "a current of the college" : kindOf(activeChat) === "body" ? "a body of the era" : "a state"}
-            {activeStanding ? ` · ${activeStanding.seats} ${activeStanding.seats === 1 ? "elector" : "electors"}` : ""}
+            {(activeChat.countries ?? []).length > 1 ? `${(activeChat.countries ?? []).length} à la table` : kindOf(activeChat) === "current" ? "un courant du collège" : kindOf(activeChat) === "body" ? "un organisme de l'époque" : "un État"}
+            {activeStanding ? ` · ${activeStanding.seats} ${activeStanding.seats === 1 ? "électeur" : "électeurs"}` : ""}
             </div>
             </div>
             <div style={{ color: "var(--oh-text-dim)", flexShrink: 0, fontSize: "var(--oh-t-xs)", lineHeight: 1.5, textAlign: "right" }}>
@@ -402,9 +402,9 @@ const Correspondence = () => {
             </>
         ) : (
             <div style={{ margin: "auto", maxWidth: "46ch", padding: "2rem" }}>
-            <span className="oh-label" style={{ color: "var(--oh-text-dim)" }}>Letters</span>
+            <span className="oh-label" style={{ color: "var(--oh-text-dim)" }}>Lettres</span>
             <p style={{ color: "var(--oh-text)", fontFamily: "var(--oh-font-serif)", fontSize: "var(--oh-t-md)", lineHeight: 1.55, margin: "0.8rem 0 0" }}>
-            Choose a correspondent on the left, or write a new letter. What you write is read in character by the power you address, and what it answers is held against what it actually wants.
+            Choisissez un correspondant à gauche, ou écrivez une nouvelle lettre. Ce que vous écrivez est lu dans son propre caractère par la puissance à qui vous l'adressez, et ce qu'elle répond est jugé sur ce qu'elle veut vraiment.
             </p>
             </div>
         )}
@@ -420,11 +420,11 @@ const Correspondence = () => {
             loading={loadingCountries}
             onStart={startChat}
             onCancel={() => setComposing(false)}
-            title="New letter"
-            subtitle="Choose who receives it: a state, a faction, or a body of the era. Several at once make a round table."
-            selectedLabel="Addressed to"
-            emptyLabel="No one chosen yet"
-            confirmLabel={(n) => (n > 1 ? `Open the table with ${n}` : "Write the letter")}
+            title="Nouvelle lettre"
+            subtitle="Choisissez qui la reçoit : un État, un courant, ou un organisme de l'époque. Plusieurs à la fois font une table ronde."
+            selectedLabel="Adressée à"
+            emptyLabel="Personne de choisi"
+            confirmLabel={(n) => (n > 1 ? `Ouvrir la table à ${n}` : "Écrire la lettre")}
             />
             </div>
             </div>

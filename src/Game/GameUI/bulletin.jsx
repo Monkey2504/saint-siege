@@ -2,6 +2,10 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import dayjs from "dayjs";
+// Les dates dans la langue du journal. Sans cette locale, dayjs imprime
+// « 14 March 2027 » sur une page par ailleurs entièrement française — et la
+// traduction d'exécution ne rattrape pas un mois formaté par une bibliothèque.
+import "dayjs/locale/fr";
 import {
     readActionsState,
     readEventsState,
@@ -30,6 +34,8 @@ import { simulateAutoJump, simulateTimelineJump } from "../AI/gameplay.js";
 // radius, no shadow, no close button in a corner. It is a sheet of newsprint —
 // a masthead, a dateline, stories in a column, and a rail carrying the orders
 // standing in the player's name and the ledger they are spent against.
+
+dayjs.locale("fr");
 
 const fmtDate = (value, pattern = "D MMMM YYYY") => {
     if (!value) return "";
@@ -137,7 +143,7 @@ const Story = ({ event, lead = false, tone }) => (
 // its own, which is why it is a component rather than a block inside one branch.
 const Situation = ({ briefing, date }) => (
     <>
-    <SectionHead aside={fmtDate(date)}>The situation</SectionHead>
+    <SectionHead aside={fmtDate(date)}>La situation</SectionHead>
     <article style={{ padding: "1rem 0 1.2rem" }}>
     <div
     style={{
@@ -148,7 +154,7 @@ const Situation = ({ briefing, date }) => (
         maxWidth: "62ch",
     }}
     >
-    {briefing || "No opening situation has been written for this start."}
+    {briefing || "Aucune situation d'ouverture n'a été écrite pour ce début."}
     </div>
     </article>
     </>
@@ -303,7 +309,7 @@ const Movement = ({ row, format }) => {
     const colour = row.good == null ? "var(--oh-text-dim)" : row.good ? "var(--oh-grant)" : "var(--oh-alert)";
     const glyph = row.direction === "up" ? "▲" : "▼";
     return (
-        <span style={{ color: colour, fontSize: "var(--oh-t-2xs)", fontWeight: 700, marginLeft: "0.45rem", whiteSpace: "nowrap" }} title={`since ${row.from == null ? "the start" : format(row.from)}`}>
+        <span style={{ color: colour, fontSize: "var(--oh-t-2xs)", fontWeight: 700, marginLeft: "0.45rem", whiteSpace: "nowrap" }} title={`depuis ${row.from == null ? "le début" : format(row.from)}`}>
         {glyph} {format(Math.abs(row.delta))}
         </span>
     );
@@ -352,7 +358,7 @@ const Front = ({ row }) => {
         <span style={{ color: "var(--oh-text)", fontSize: "var(--oh-t-xs)" }}>{row.label}</span>
         <span style={{ alignItems: "baseline", display: "flex", flexShrink: 0 }}>
         <b style={{ color: held ? "var(--oh-text-strong)" : "var(--oh-text-dim)", fontFamily: "var(--oh-font-data)", fontSize: "var(--oh-t-sm)", fontVariantNumeric: "tabular-nums" }}>
-        {held ? format(row.value) : "not held"}
+        {held ? format(row.value) : "non mesuré"}
         </b>
         <Movement row={row} format={format} />
         </span>
@@ -368,9 +374,9 @@ const Front = ({ row }) => {
 
 const Fronts = ({ rows }) => (
     <section style={{ borderBottom: "1px solid var(--oh-line)", padding: "0.9rem 0 1rem" }}>
-    <SectionHead aside="since the pontificate began">The six fronts</SectionHead>
+    <SectionHead aside="depuis le début du pontificat">Les six fronts</SectionHead>
     <p style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)", lineHeight: 1.5, margin: "0.5rem 0 0.7rem", maxWidth: "54ch" }}>
-    A pontificate is judged on all six at once. Money is one of them.
+    Un pontificat se juge sur les six à la fois. L'argent est l'un d'eux.
     </p>
     {rows.map((row) => <Front key={row.key} row={row} />)}
     </section>
@@ -399,10 +405,13 @@ const SPANS = [
     { label: "1 year", days: 365 },
 ];
 
+// Les montants à la française : virgule décimale, « Md » pour le milliard, et
+// le vrai signe moins « − » plutôt que le trait d'union.
 const fmtMillions = (value, currency = "") => {
     const n = Number(value);
     if (!Number.isFinite(n)) return "—";
-    const unit = Math.abs(n) >= 1000 ? `${(n / 1000).toFixed(1)} bn` : `${Math.round(n * 10) / 10} M`;
+    const decimal = (v, digits) => v.toFixed(digits).replace(".", ",").replace("-", "−");
+    const unit = Math.abs(n) >= 1000 ? `${decimal(n / 1000, 1)} Md` : `${decimal(Math.round(n * 10) / 10, 1)} M`;
     return currency ? `${unit} ${currency}` : unit;
 };
 
@@ -460,7 +469,7 @@ const Press = ({ game, world, actions, focus, onPrinted }) => {
                 setStopped(true);
                 onPrinted();
             } else {
-                setError(err?.message || "The edition could not be printed.");
+                setError(err?.message || "L'édition n'a pas pu être imprimée.");
             }
         } finally {
             abortRef.current = null;
@@ -472,14 +481,14 @@ const Press = ({ game, world, actions, focus, onPrinted }) => {
     return (
         <section ref={ref} style={{ borderBottom: "1px solid var(--oh-line)", borderTop: "4px solid var(--oh-text-strong)", padding: "0.6rem 0 1rem" }}>
         <div style={{ alignItems: "baseline", display: "flex", gap: "1rem", justifyContent: "space-between" }}>
-        <span className="oh-label" style={{ color: "var(--oh-text-strong)" }}>Next edition</span>
-        <span style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)" }}>{from ? `from ${fmtDate(from)}` : ""}</span>
+        <span className="oh-label" style={{ color: "var(--oh-text-strong)" }}>Prochaine édition</span>
+        <span style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)" }}>{from ? `depuis le ${fmtDate(from)}` : ""}</span>
         </div>
         <div style={{ color: "var(--oh-text-strong)", fontFamily: "var(--oh-font-display)", fontSize: "clamp(1.6rem, 2.6vw, 2.2rem)", fontWeight: 800, letterSpacing: "-0.03em", lineHeight: 1.05, margin: "0.5rem 0 0.2rem" }}>
         {to ? fmtDate(to) : "—"}
         </div>
         <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)", marginBottom: "0.7rem" }}>
-        {byHand ? "the date the next sheet will bear" : `set by ${auto.reason}${auto.from ? ` — ${auto.from}` : ""}`}
+        {byHand ? "la date que portera la prochaine feuille" : `fixée par ${auto.reason}${auto.from ? ` — ${auto.from}` : ""}`}
         </div>
         <div style={{ marginBottom: "0.8rem" }}>
         <button
@@ -499,7 +508,7 @@ const Press = ({ game, world, actions, focus, onPrinted }) => {
             textTransform: "var(--oh-label-case)",
         }}
         >
-        {byHand ? "let the desk set the date" : "set the date myself"}
+        {byHand ? "laisser le dossier fixer la date" : "régler la date moi-même"}
         </button>
         </div>
         {byHand && (
@@ -533,13 +542,13 @@ const Press = ({ game, world, actions, focus, onPrinted }) => {
         )}
         {!inaugurated ? (
             <p style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-sm)", fontStyle: "italic", lineHeight: 1.5, margin: 0, maxWidth: "40ch" }}>
-            The presses wait: the pope takes a name and declares his programme before the first edition prints.
+            Les presses attendent : le pape prend un nom et déclare son programme avant que la première édition sorte.
             </p>
         ) : running ? (
             <div style={{ alignItems: "center", display: "flex", gap: "0.8rem" }}>
-            <span style={{ color: "var(--oh-text-strong)", fontFamily: "var(--oh-font-display)", fontSize: "var(--oh-t-md)", fontWeight: 700 }}>At the presses…</span>
-            <span style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)" }}>the world answers your orders</span>
-            <button type="button" onClick={stop} style={{ background: "none", border: "1px solid var(--oh-alert)", color: "var(--oh-alert)", cursor: "pointer", fontFamily: "var(--oh-font-label)", fontSize: "var(--oh-t-2xs)", fontWeight: 700, letterSpacing: "var(--oh-label-track)", marginLeft: "auto", padding: "0.4rem 0.7rem", textTransform: "var(--oh-label-case)" }}>Stop</button>
+            <span style={{ color: "var(--oh-text-strong)", fontFamily: "var(--oh-font-display)", fontSize: "var(--oh-t-md)", fontWeight: 700 }}>Sous presse…</span>
+            <span style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)" }}>le monde répond à vos ordres</span>
+            <button type="button" onClick={stop} style={{ background: "none", border: "1px solid var(--oh-alert)", color: "var(--oh-alert)", cursor: "pointer", fontFamily: "var(--oh-font-label)", fontSize: "var(--oh-t-2xs)", fontWeight: 700, letterSpacing: "var(--oh-label-track)", marginLeft: "auto", padding: "0.4rem 0.7rem", textTransform: "var(--oh-label-case)" }}>Arrêter</button>
             </div>
         ) : (
             <button
@@ -559,7 +568,7 @@ const Press = ({ game, world, actions, focus, onPrinted }) => {
                 width: "100%",
             }}
             >
-            Go to press
+            Mettre sous presse
             </button>
         )}
         {error && (
@@ -595,7 +604,7 @@ const Drives = ({ drives, sinceDate, player }) => {
     if (!list.length) return null;
     return (
         <section>
-        <SectionHead aside={`${list.length} ${list.length === 1 ? "campaign" : "campaigns"}`}>Money being raised</SectionHead>
+        <SectionHead aside={`${list.length} ${list.length === 1 ? "campaign" : "campaigns"}`}>Campagnes</SectionHead>
         {top && top.pledged > 0 && (
             <div style={{ borderBottom: "1px dotted var(--oh-line)", padding: "0.6rem 0" }}>
             <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)" }}>
@@ -651,7 +660,7 @@ const Drives = ({ drives, sinceDate, player }) => {
                     <div style={{ color: moved.pledged > 0 || moved.collected > 0 ? "var(--oh-grant)" : "var(--oh-alert)", fontSize: "var(--oh-t-xs)", fontWeight: 600, marginTop: "0.5rem" }}>
                     {moved.pledged > 0 || moved.collected > 0
                         ? `Since the last edition: +${fmtMillions(moved.pledged)} pledged, +${fmtMillions(moved.collected)} collected.`
-                        : "Nothing moved since the last edition, whatever the stories say."}
+                        : "Rien n'a bougé depuis la dernière édition, quoi qu'en disent les récits."}
                     </div>
                 )}
                 </div>
@@ -696,13 +705,13 @@ const Record = ({ record, treasuries, player, usdPerSY }) => {
     };
     return (
         <section>
-        <SectionHead aside={rows.length ? `${rows.length} entries` : "nothing moved"}>The record</SectionHead>
+        <SectionHead aside={rows.length ? `${rows.length} lignes` : "rien n'a bougé"}>Le registre</SectionHead>
         <p style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)", fontStyle: "italic", lineHeight: 1.5, margin: "0.6rem 0 0.2rem", maxWidth: "44ch" }}>
-        Written by the engine, never by the stories: a line appears here only when a stock actually moved.
+        Écrit par le moteur, jamais par les récits : une ligne ne paraît ici que si un stock a réellement bougé.
         </p>
         {rows.length === 0 ? (
             <p style={{ color: "var(--oh-alert)", fontSize: "var(--oh-t-sm)", fontWeight: 600, lineHeight: 1.5, margin: "0.5rem 0 0" }}>
-            Nothing has moved. Whatever the editions have said about money arriving, the stocks are where they started.
+            Rien n'a bougé. Quoi que les éditions aient dit d'argent qui arrive, les stocks sont là où ils étaient.
             </p>
         ) : (
             <table className="oh-ledger">
@@ -744,7 +753,7 @@ const Purses = ({ treasuries, usdPerSY }) => {
     const rateOf = (t) => (t.margin > 0 ? t.margin : (list.find((p) => p.body === t.parent)?.margin ?? 0));
     return (
         <section>
-        <SectionHead aside={`${list.length} ${list.length === 1 ? "body" : "bodies"}`}>Bodies with a purse</SectionHead>
+        <SectionHead aside={`${list.length} ${list.length === 1 ? "body" : "bodies"}`}>Caisses</SectionHead>
         {ordered.map(({ t, depth }) => (
             <div key={t.body} style={{ borderBottom: "1px dotted var(--oh-line)", padding: "0.7rem 0 0.7rem", paddingLeft: depth ? "1.2rem" : 0 }}>
             <div style={{ alignItems: "baseline", display: "flex", gap: "0.6rem", justifyContent: "space-between" }}>
@@ -761,7 +770,7 @@ const Purses = ({ treasuries, usdPerSY }) => {
                 one. A body with no capital simply has no capital. */}
             {t.capital > 0
                 ? <>capital {money(t.capital)} at {Math.round(rateOf(t) * 1000) / 10}%{rateOf(t) > 0 ? `, worth ${money(t.capital * rateOf(t))} a year` : ""}</>
-                : <>no capital</>} · {money(t.treasury)} in hand · keeps {Math.round(t.retain * 100)}%
+                : <>sans capital</>} · {money(t.treasury)} in hand · keeps {Math.round(t.retain * 100)}%
             </div>
             {t.earnedMargin > 0 && t.capital > 0 && (
                 <div style={{ color: "var(--oh-text)", fontSize: "var(--oh-t-xs)", lineHeight: 1.5, marginTop: "0.15rem" }}>
@@ -809,7 +818,7 @@ const Gatherings = ({ gatherings, usdPerSY }) => {
     const money = (sy) => moneyOf(sy, usdPerSY);
     return (
         <section>
-        <SectionHead aside={`${list.length} ${list.length === 1 ? "gathering" : "gatherings"}`}>Crowds</SectionHead>
+        <SectionHead aside={`${list.length} ${list.length === 1 ? "gathering" : "gatherings"}`}>Rassemblements</SectionHead>
         {list.map((g) => (
             <div key={g.id} style={{ borderBottom: "1px dotted var(--oh-line)", padding: "0.7rem 0" }}>
             <div style={{ alignItems: "baseline", display: "flex", gap: "0.6rem", justifyContent: "space-between" }}>
@@ -1036,7 +1045,7 @@ const Bulletin = ({ onOpenAdvisor, pressFocus = 0 }) => {
         }}
         >
         <span className="oh-label" style={{ color: "var(--oh-text-strong)" }}>
-        {edition.length ? "This turn's edition" : "Opening edition"}
+        {edition.length ? "Édition du tour" : "Première édition"}
         </span>
         <span style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)" }}>
         {fmtDate(game?.gameDate)}
@@ -1129,7 +1138,7 @@ const Bulletin = ({ onOpenAdvisor, pressFocus = 0 }) => {
 
         {indicators && (
             <section>
-            <SectionHead aside="this year">Ledger — {player}</SectionHead>
+            <SectionHead aside="cette année">Comptes — {player}</SectionHead>
             <div style={{ display: "grid", gap: "1rem", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", padding: "0.9rem 0 1rem" }}>
             <div>
             <div
@@ -1146,7 +1155,7 @@ const Bulletin = ({ onOpenAdvisor, pressFocus = 0 }) => {
                 || `${indicators.balance < 0 ? "−" : "+"}${fmtSY(Math.abs(indicators.balance))}`}
             </div>
             <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)", marginTop: "0.35rem" }}>
-            balance of the year{usdPerSY > 0 ? ` · ${fmtSY(indicators.balance)} SY` : ""}
+            solde de l'année{usdPerSY > 0 ? ` · ${fmtSY(indicators.balance)} SY` : ""}
             <Movement row={rows.balance} format={(v) => (usdPerSY > 0 ? fmtMoney(v * usdPerSY) : `${fmtSY(v)} SY`)} />
             </div>
             </div>
@@ -1164,7 +1173,7 @@ const Bulletin = ({ onOpenAdvisor, pressFocus = 0 }) => {
             {indicators.yearsOfPatrimonyLeft == null ? "—" : `${indicators.yearsOfPatrimonyLeft} yrs`}
             </div>
             <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)", marginTop: "0.35rem" }}>
-            of patrimony left
+            de patrimoine restant
             <Movement row={rows.yearsOfPatrimonyLeft} format={(v) => `${Math.round(v)} yrs`} />
             </div>
             </div>
@@ -1178,24 +1187,24 @@ const Bulletin = ({ onOpenAdvisor, pressFocus = 0 }) => {
                 purse and the patrimony can be compared. The reader could not
                 tell which was the larger. Every sum here goes through moneyOf,
                 which falls back to SY only when the page has no rate at all. */}
-            <tr><td>In hand</td><td>{money(indicators.treasury)}<Movement row={rows.treasury} format={money} /></td></tr>
+            <tr><td>En main</td><td>{money(indicators.treasury)}<Movement row={rows.treasury} format={money} /></td></tr>
             {rows.faithful?.value != null && (
-                <tr><td>Faithful</td><td>{fmtCount(rows.faithful.value)}<Movement row={rows.faithful} format={fmtCount} /></td></tr>
+                <tr><td>Fidèles</td><td>{fmtCount(rows.faithful.value)}<Movement row={rows.faithful} format={fmtCount} /></td></tr>
             )}
-            <tr><td>Patrimony placed</td><td>{money(indicators.endowment)}<Movement row={rows.endowment} format={money} /></td></tr>
+            <tr><td>Patrimoine placé</td><td>{money(indicators.endowment)}<Movement row={rows.endowment} format={money} /></td></tr>
             {/* The rate AND what it actually throws off: a percentage of a stock
                 the reader has to go and find is not an income. */}
-            <tr><td>Yield on patrimony</td><td>{(indicators.endowmentYield * 100).toFixed(2)} % · {money(indicators.endowmentIncome)} a year<Movement row={rows.endowmentYield} format={(v) => `${(v * 100).toFixed(2)} pt`} /></td></tr>
-            <tr><td>Transfers received</td><td>{money(indicators.transfers)}<Movement row={rows.transfers} format={money} /></td></tr>
+            <tr><td>Rendement du patrimoine</td><td>{(indicators.endowmentYield * 100).toFixed(2)} % · {money(indicators.endowmentIncome)} a year<Movement row={rows.endowmentYield} format={(v) => `${(v * 100).toFixed(2)} pt`} /></td></tr>
+            <tr><td>Dons reçus</td><td>{money(indicators.transfers)}<Movement row={rows.transfers} format={money} /></td></tr>
             {/* The federation's remittance, on its own line. It used to land in
                 the treasury and nowhere else, so the balance never felt it. */}
             {rows.bodyTransfers?.value > 0 && (
-                <tr><td>Paid by its own bodies</td><td>{money(rows.bodyTransfers.value)} a year<Movement row={rows.bodyTransfers} format={money} /></td></tr>
+                <tr><td>Versé par ses propres organismes</td><td>{money(rows.bodyTransfers.value)} a year<Movement row={rows.bodyTransfers} format={money} /></td></tr>
             )}
-            <tr><td>Tax revenue</td><td>{indicators.taxRevenue > 0 ? money(indicators.taxRevenue) : "none"}<Movement row={rows.taxRevenue} format={money} /></td></tr>
-            <tr><td>Unfunded promises</td><td>{money(indicators.unfundedLiabilities)}<Movement row={rows.unfundedLiabilities} format={money} /></td></tr>
+            <tr><td>Recettes fiscales</td><td>{indicators.taxRevenue > 0 ? money(indicators.taxRevenue) : "none"}<Movement row={rows.taxRevenue} format={money} /></td></tr>
+            <tr><td>Promesses non financées</td><td>{money(indicators.unfundedLiabilities)}<Movement row={rows.unfundedLiabilities} format={money} /></td></tr>
             {rows.legitimacy?.value != null && (
-                <tr><td>Legitimacy</td><td>{Math.round(rows.legitimacy.value)}/100<Movement row={rows.legitimacy} format={(v) => `${Math.round(v)} pt`} /></td></tr>
+                <tr><td>Légitimité</td><td>{Math.round(rows.legitimacy.value)}/100<Movement row={rows.legitimacy} format={(v) => `${Math.round(v)} pt`} /></td></tr>
             )}
             </tbody>
             </table>

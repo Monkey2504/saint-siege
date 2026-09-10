@@ -814,7 +814,7 @@ const PlannedOrdersBrief = ({ orders }) => {
         }}
         >
         <span style={{ color: "var(--oh-text-strong)", fontSize: "var(--oh-t-xs)", fontWeight: 700 }}>
-        Orders this jump resolves
+        Ordres que ce tour règle
         </span>
         <span style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)" }}>
         {orders.length === 0 ? "none queued" : `${orders.length} standing`}
@@ -823,7 +823,7 @@ const PlannedOrdersBrief = ({ orders }) => {
 
         {orders.length === 0 ? (
             <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)", lineHeight: "1.5", paddingTop: "0.45rem" }}>
-            Nothing is queued: this jump advances the world alone.
+            Rien au dossier : ce tour fait avancer le monde seul.
             </div>
         ) : (
             <>
@@ -1193,7 +1193,7 @@ const TimelineHistoryPanel = ({
             </div>
         )}
         {!record ? (
-            <EmptyPanelState text="No event chain is available yet." />
+            <EmptyPanelState text="Aucune suite d'événements n'est disponible." />
         ) : totalEvents === 0 ? (
             <EmptyPanelState text="No world events were recorded for this time skip." />
         ) : (

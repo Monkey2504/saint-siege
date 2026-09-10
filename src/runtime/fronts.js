@@ -275,11 +275,11 @@ export const ensureBodyFromOrders = (world, orders, { years = 0, date = "" } = {
 // ── The six fronts ───────────────────────────────────────────────────────────
 
 export const FRONTS = Object.freeze([
-  { key: "unity", label: "Unity of the Church", unit: "share" },
-  { key: "safeguarding", label: "Abuse: files answered", unit: "share" },
-  { key: "governance", label: "Synodality and governance", unit: "share" },
+  { key: "unity", label: "Unité de l'Église", unit: "share" },
+  { key: "safeguarding", label: "Abus : dossiers jugés", unit: "share" },
+  { key: "governance", label: "Synodalité et gouvernement", unit: "share" },
   { key: "vocations", label: "Vocations", unit: "count" },
-  { key: "peace", label: "Diplomacy and peace", unit: "count" },
+  { key: "peace", label: "Diplomatie et paix", unit: "count" },
   { key: "finances", label: "Finances", unit: "money" },
 ]);
 
