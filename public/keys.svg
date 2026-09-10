@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Les clés de saint Pierre">
+  <title>Les clés de saint Pierre</title>
+  <!-- The crossed keys of Peter: the Holy See's own emblem, in place of the
+       engine's compass. Drawn rather than fetched so it stays sharp at every
+       size and takes its colour from the page. Gold for the key of heaven,
+       ink for the key of earth, as they are borne on the arms. -->
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="4.5">
+    <!-- Key of gold, bows lower left to wards upper right -->
+    <g stroke="#b8912f">
+      <circle cx="16" cy="49" r="7" />
+      <path d="M21 44 L45 20" />
+      <path d="M45 20 l6 -6" />
+      <path d="M45.5 19.5 l4.5 4.5" />
+      <path d="M50 15 l4 4" />
+    </g>
+    <!-- Key of silver-grey, bows lower right -->
+    <g stroke="#3f4650">
+      <circle cx="48" cy="49" r="7" />
+      <path d="M43 44 L19 20" />
+      <path d="M19 20 l-6 -6" />
+      <path d="M18.5 19.5 l-4.5 4.5" />
+      <path d="M14 15 l-4 4" />
+    </g>
+  </g>
+</svg>

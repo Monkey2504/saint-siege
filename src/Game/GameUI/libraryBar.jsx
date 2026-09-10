@@ -2391,13 +2391,20 @@ const LibraryTopBar = () => {
               padding: isMobile ? "0 0.5rem" : "0 1rem",
             }}
           >
-            <div style={{ alignItems: "center", display: "flex", gap: "0.8rem", minWidth: 0 }}>
-              <div style={{ alignItems: "center", background: "var(--oh-plate-2)", border: "1px solid var(--oh-line)", borderRadius: "999px", display: "flex", flexShrink: 0, height: "2.65rem", justifyContent: "center", overflow: "hidden", width: "2.65rem" }}>
-                <img alt="Open Historia" src="/logo.png" style={{ height: "1.7rem", width: "1.7rem" }} />
+            {/* The library wears the game's own name and the Holy See's own
+                emblem — the crossed keys of Peter (public/keys.svg) — instead of
+                the engine's compass and the words "Open Historia", which sat at
+                the top of every screen of a game about one pope and which the
+                runtime translator, unable to tell a proper noun from a phrase,
+                was rendering as "Ouvrir l'histoire". */}
+            <div style={{ alignItems: "center", display: "flex", gap: "0.7rem", minWidth: 0 }}>
+              <img alt="" src="/keys.svg" style={{ flexShrink: 0, height: "1.9rem", width: "1.9rem" }} />
+              <div style={{ color: "var(--oh-text-strong)", fontFamily: "var(--oh-font-display)", fontSize: "var(--oh-t-md)", fontWeight: 800, letterSpacing: "-0.03em" }} data-no-translate="">
+                Saint-Siège
               </div>
               {!isMobile && (
-                <div style={{ color: "var(--oh-text-strong)", fontSize: "var(--oh-t-base)", fontWeight: 800, letterSpacing: "-0.03em" }}>
-                  Open Historia
+                <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)" }}>
+                  votre bibliothèque
                 </div>
               )}
             </div>
@@ -2472,7 +2479,7 @@ const LibraryTopBar = () => {
             ) : activeTab === "games" ? (
               loaded && visibleGames.length === 0 && archivedGames.length === 0 ? (
                 <div style={{ alignItems: "center", display: "flex", flexDirection: "column", justifyContent: "center", minHeight: "60vh", textAlign: "center" }}>
-                  <img alt="" src="/logo.png" style={{ height: "5rem", marginBottom: "1.2rem", opacity: 0.9, width: "5rem" }} />
+                  
                   <div style={{ fontSize: "var(--oh-t-lg)", fontWeight: 800, letterSpacing: "-0.02em" }}>Aucune partie</div>
                   <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-sm)", lineHeight: 1.6, margin: "0.6rem 0 1.6rem", maxWidth: "26rem" }}>
                     {HAS_HUB

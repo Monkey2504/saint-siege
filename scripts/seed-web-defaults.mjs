@@ -35,21 +35,6 @@ const cover = (() => {
   return { contentType, base64: readFileSync(file).toString("base64") };
 })();
 
-const seed = {
-  meta,
-  cover,
-  colors: readJson("colors.json", {}),
-  data: {
-    game: readJson("game.json", {}),
-    prompts: readJson("prompts.json", {}),
-    world: readJson("world.json", {}),
-    actions: readJson("storage/actions.json", []),
-    advisor: readJson("storage/advisor.json", []),
-    chat: readJson("storage/chat.json", []),
-    events: readJson("storage/events.json", []),
-  },
-};
-
 // The canonical country registry (code -> name) used by the runtime write path's
 // canonicalizeCountryRef, mirroring server/country-names.json.
 const countryNames = (() => {
@@ -61,6 +46,48 @@ const countryNames = (() => {
     return {};
   }
 })();
+
+// The Holy See preset, applied here at build time.
+//
+// Field report: the game was published to the web, and a visitor landed on
+// "Aucune partie / Aucun scénario" with a "Create a scenario" tile as the only
+// thing to click. What this seeded was upstream's generic "Server-backed base
+// scenario" — a blank modern world — so even with a working library there was no
+// pope to play. The player's requirement, from the day this edition started:
+// "n'importe qui puisse se connecter et jouer le pape, on mettra dedans tout ce
+// qui est nécessaire pour lancer directement."
+//
+// So the seed IS the pontificate: the college of 160, the six currents, the real
+// accounts, the faithful, the body of the Church — everything applyChurchPreset
+// builds, computed now rather than asked of the visitor. Web build only; the
+// downloaded app still ships no seed data.
+const { applyChurchPreset, CHURCH_START_DATE, HOLY_SEE } = await import("../src/runtime/churchPreset.js");
+
+const baseGame = readJson("game.json", {});
+const pontificate = applyChurchPreset(readJson("world.json", {}), {
+  date: CHURCH_START_DATE,
+  availableCountries: Object.values(countryNames),
+});
+
+const seed = {
+  meta: {
+    ...meta,
+    description: "Vous êtes le pape. Pas d'armée, un demi-kilomètre carré, un milliard et demi de baptisés.",
+    heroTitle: "Saint-Siège",
+    heroSubtitle: "Une édition par tour. Le collège vote. Les comptes ne mentent pas.",
+  },
+  cover,
+  colors: readJson("colors.json", {}),
+  data: {
+    game: { ...baseGame, country: HOLY_SEE, startDate: CHURCH_START_DATE, gameDate: CHURCH_START_DATE, round: 1 },
+    prompts: readJson("prompts.json", {}),
+    world: pontificate,
+    actions: readJson("storage/actions.json", []),
+    advisor: readJson("storage/advisor.json", []),
+    chat: readJson("storage/chat.json", []),
+    events: readJson("storage/events.json", []),
+  },
+};
 
 mkdirSync(OUT_DIR, { recursive: true });
 writeFileSync(
