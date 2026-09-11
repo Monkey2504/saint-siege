@@ -32,7 +32,7 @@ import { nextEdition } from "../../runtime/nextEdition.js";
 import { useSurface } from "../../runtime/useSurface.js";
 import { simulateAutoJump, simulateTimelineJump } from "../AI/gameplay.js";
 import { CONTENU_TOP } from "./chrome.js";
-import { CahierVide, SectionHead, fmtCount, fmtEntier, fmtMoney, fmtSY, moneyOf } from "./journal.jsx";
+import { CahierVide, SectionHead, fmtCount, fmtDate, fmtEntier, fmtMoney, fmtSY, moneyOf } from "./journal.jsx";
 import { ligneDeRegistre } from "../../runtime/registerWords.js";
 import { ApercuDuCollege } from "./college.jsx";
 
@@ -45,13 +45,8 @@ import { ApercuDuCollege } from "./college.jsx";
 dayjs.locale("fr");
 dayjs.extend(advancedFormat);
 
-// `Do` sous la locale française rend « 1er » et « 2 », ce que « D » ne sait pas
-// faire : une manchette qui titre « 1 septembre » ne se lit pas à voix haute.
-const fmtDate = (value, pattern = "Do MMMM YYYY") => {
-    if (!value) return "";
-    const parsed = dayjs(value);
-    return parsed.isValid() ? parsed.format(pattern) : String(value);
-};
+// fmtDate vient de journal.jsx : la date du journal s'écrit d'une seule façon,
+// et les cahiers qui ne passent pas par cette page en ont besoin aussi.
 
 // fmtSY vient de journal.jsx : l'unité du moteur s'écrit d'une seule façon.
 

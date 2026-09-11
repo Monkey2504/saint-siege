@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { readGameData, readWorldState } from "../../runtime/gameState.js";
 import { groupsOn, normalizeAssembly, temperWord } from "../../runtime/factions.js";
 import { useSurface } from "../../runtime/useSurface.js";
-import { CahierVide } from "./journal.jsx";
+import { CahierVide, EnTeteDeCahier, fmtDate } from "./journal.jsx";
 import { CONTENU_TOP } from "./chrome.js";
 import { ensureOrganizations } from "./organizationsView.jsx";
 import {
@@ -37,11 +37,10 @@ import {
 // says what a letter is worth, because a player who thinks writing is free
 // writes differently from one who knows it costs standing.
 
-const fmtDate = (value) => {
-    if (!value) return "";
-    const d = new Date(value);
-    return Number.isNaN(d.getTime()) ? String(value) : d.toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" });
-};
+// fmtDate vient de journal.jsx. Celui d'ici passait par toLocaleDateString avec
+// une locale `undefined` : la date du Courrier suivait donc celle du NAVIGATEUR
+// — « June 11, 2027 » sur une machine en anglais — pendant que le reste du
+// journal écrivait « 11 juin 2027 ». Une seule écriture pour tout le journal.
 
 const fmtShort = (value) => {
     if (!value) return "";
@@ -283,19 +282,33 @@ const Correspondence = ({ nav = null }) => {
 
     return (
         <div data-surface="desk" style={{ background: "var(--oh-plate)", bottom: 0, color: "var(--oh-text)", display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gridTemplateRows: "auto minmax(0, 1fr)", left: 0, overflow: "hidden", position: "fixed", right: 0, top: CONTENU_TOP, zIndex: 10002 }}>
-        {nav && <div style={{ padding: "0.8rem 1.5rem 0" }}>{nav()}</div>}
+        {/* Ce cahier n'avait pas de bandeau. Son titre vivait DANS la colonne
+            des correspondants, en Bricolage et deux crans plus petit que « Les
+            Ordres » ou « Le Registre » : la même page du même journal, dans une
+            autre police et une autre taille. Le bandeau passe en tête de la
+            feuille, comme les cinq autres, et les deux volets s'ouvrent
+            dessous. */}
+        <div style={{ padding: "1.35rem 1.5rem 0" }}>
+        <EnTeteDeCahier
+        titre="Le Courrier"
+        mention={game?.gameDate ? `Rome, ${fmtDate(game.gameDate)}` : null}
+        sousMention="Les réponses partent avec la prochaine édition"
+        />
+        {nav && <div style={{ paddingTop: "0.8rem" }}>{nav()}</div>}
+        </div>
         <div style={{ display: "grid", gridTemplateColumns: "minmax(17rem, 20rem) minmax(0, 1fr)", minHeight: 0, overflow: "hidden" }}>
 
         {/* ── The column of correspondents ─────────────────────────────────── */}
         <div style={{ borderRight: "1px solid var(--oh-line)", display: "flex", flexDirection: "column", minHeight: 0 }}>
 
-        <div style={{ borderBottom: "1px solid var(--oh-line)", flexShrink: 0, padding: "1.35rem 1.2rem 0.9rem" }}>
-        <span className="oh-label" style={{ color: "var(--oh-text-dim)" }}>{playerCountry ? `${playerCountry} · cahier` : "cahier"}</span>
-        <h1 style={{ color: "var(--oh-text-strong)", fontFamily: "var(--oh-font-display)", fontSize: "var(--oh-t-xl)", fontWeight: 800, letterSpacing: "-0.04em", lineHeight: 0.95, margin: "0.4rem 0 0" }}>
-        Le Courrier
-        </h1>
-        <p style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)", lineHeight: 1.45, margin: "0.55rem 0 0" }}>
-        {unread > 0 ? `${unread} non lues · ` : ""}les réponses partent avec la prochaine édition
+        {/* La colonne garde ce qui lui appartient — le compte des non lues —
+            et rend le titre au bandeau, qui le porte pour toute la feuille. */}
+        <div style={{ borderBottom: "1px solid var(--oh-line)", flexShrink: 0, padding: "1.1rem 1.2rem 0.8rem" }}>
+        <span className="oh-label" style={{ color: "var(--oh-text-dim)" }}>Correspondants</span>
+        <p style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)", lineHeight: 1.45, margin: "0.35rem 0 0" }}>
+        {unread > 0
+            ? `${unread} ${unread === 1 ? "lettre non lue" : "lettres non lues"}`
+            : "Rien de non lu."}
         </p>
         </div>
 

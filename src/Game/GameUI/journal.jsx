@@ -7,7 +7,28 @@
  * issue : recopier l'en-tête, et le voir diverger d'une page à l'autre.
  */
 import React from "react";
+import dayjs from "dayjs";
+import advancedFormat from "dayjs/plugin/advancedFormat";
+import "dayjs/locale/fr";
 import { fmtMoneyFromUsd, fmtSY } from "../../runtime/money.js";
+
+dayjs.locale("fr");
+dayjs.extend(advancedFormat);
+
+/**
+ * La date du journal. Elle vivait dans bulletin.jsx seulement, si bien que les
+ * cahiers qui ne passent pas par lui imprimaient la date BRUTE du moteur : le
+ * Collège titrait « 160 électeurs · 2027-06-11 », un ISO en travers d'une page
+ * qui écrit « 11 juin 2027 » partout ailleurs.
+ *
+ * `Do` sous la locale française rend « 1er » et « 2 », ce que « D » ne sait pas
+ * faire : une manchette qui titre « 1 septembre » ne se lit pas à voix haute.
+ */
+export const fmtDate = (value, pattern = "Do MMMM YYYY") => {
+  if (!value) return "";
+  const parsed = dayjs(value);
+  return parsed.isValid() ? parsed.format(pattern) : String(value);
+};
 
 // L'unité du moteur s'écrit d'un seul endroit — runtime/money.js — parce que le
 // moteur en a besoin lui aussi : ses propres manchettes chiffrent des AS.

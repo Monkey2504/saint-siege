@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { readActionsState, readGameData, readWorldState, writeActionsState } from "../../runtime/gameState.js";
 import { useSurface } from "../../runtime/useSurface.js";
 import { CONTENU_TOP } from "./chrome.js";
-import { CahierVide, EnTeteDeCahier, SectionHead } from "./journal.jsx";
+import { CahierVide, EnTeteDeCahier, SectionHead, fmtDate } from "./journal.jsx";
 import {
     AXES, HOSTILE_AT, LOYAL_AT, RADICAL_AT, ZEALOUS_AT,
     coalition, groupsOn, normalizeAssembly, putToTheVote, speechOrderText, standing, temper,
@@ -217,7 +217,7 @@ export const College = ({ nav = null }) => {
             // des cahiers venait buter contre le bord de l'écran.
             <div data-surface="chamber" style={{ background: "var(--oh-plate)", bottom: 0, color: "var(--oh-text)", left: 0, overflowY: "auto", position: "fixed", right: 0, top: CONTENU_TOP, zIndex: 10002 }}>
             <div style={{ margin: "0 auto", maxWidth: "74rem", padding: "1.6rem 1.5rem 3rem" }}>
-            <EnTeteDeCahier titre="Le Collège" mention={game?.gameDate ? `Rome, ${game.gameDate}` : null} />
+            <EnTeteDeCahier titre="Le Collège" mention={game?.gameDate ? `Rome, ${fmtDate(game.gameDate)}` : null} />
             {nav && nav()}
             <CahierVide quoiFaire="Un scénario qui tient un collège le déclare dans son état de départ ; celui-ci n'en a pas encore.">
             Aucune assemblée. Ce scénario n&apos;a pas encore de corps d&apos;électeurs.
@@ -244,7 +244,7 @@ export const College = ({ nav = null }) => {
     return (
         <div data-surface="chamber" style={{ background: "var(--oh-plate)", bottom: 0, color: "var(--oh-text)", left: 0, overflowY: "auto", position: "fixed", right: 0, top: CONTENU_TOP, zIndex: 10002 }}>
         {nav && nav()}
-        <div style={{ margin: "0 auto", maxWidth: "70rem", padding: "1.6rem 1.5rem 3rem" }}>
+        <div style={{ margin: "0 auto", maxWidth: "74rem", padding: "1.6rem 1.5rem 3rem" }}>
 
         {/* The room itself, so a reader who has never seen a consistory knows
             what the hundred and sixty marks below actually are. Wikimedia
@@ -266,13 +266,18 @@ export const College = ({ nav = null }) => {
         </figcaption>
         </figure>
 
-        <header style={{ borderBottom: "var(--oh-filet-manchette) solid var(--oh-text-strong)", paddingBottom: "0.5rem" }}>
-        <h1 style={{ color: "var(--oh-text-strong)", fontFamily: "var(--oh-font-display)", fontSize: "var(--oh-t-3xl)", fontWeight: 800, letterSpacing: "-0.03em", lineHeight: 1, margin: 0 }}>
-        {assembly.name}
-        </h1>
-        </header>
+        {/* Ce cahier composait son bandeau à la main : Bricolage au lieu de
+            Newsreader, et le nom de l'assemblée en manchette là où les cinq
+            autres titrent leur cahier. Il passe par le même en-tête qu'eux, et
+            le nom de l'assemblée descend en sous-mention, où il renseigne sans
+            prétendre être le titre de la page. */}
+        <EnTeteDeCahier
+        titre="Le Collège"
+        mention={game?.gameDate ? `Rome, ${fmtDate(game.gameDate)}` : null}
+        sousMention={assembly.name}
+        />
         <div style={{ alignItems: "baseline", borderBottom: "1px solid var(--oh-line)", display: "flex", flexWrap: "wrap", gap: "1rem", justifyContent: "space-between", marginBottom: "1.2rem", padding: "0.4rem 0 0.7rem" }}>
-        <span className="oh-label" style={{ color: "var(--oh-text-dim)" }}>{room.seats} électeurs · {game?.gameDate || ""}</span>
+        <span className="oh-label" style={{ color: "var(--oh-text-dim)" }}>{room.seats} électeurs</span>
         <span style={{ fontSize: "var(--oh-t-sm)", fontVariantNumeric: "tabular-nums" }}>
         {/* Opinion only. What CARRIES a decision is the bloc that follows you
             plus whoever you sit with, and that count lives in its own panel —
@@ -313,7 +318,13 @@ export const College = ({ nav = null }) => {
                 <span style={{ color: "var(--oh-text-strong)", fontSize: "var(--oh-t-sm)", fontVariantNumeric: "tabular-nums", marginLeft: "auto" }}>{g.seats}</span>
                 </div>
                 <div style={{ color: mood.tone, fontSize: "var(--oh-t-xs)", marginTop: "0.1rem", paddingLeft: "1.2rem" }}>
-                {byMood ? "" : `${mood.word} `}({g.approval > 0 ? "+" : ""}{Math.round(g.approval)})
+                {/* Groupé par humeur, le nom du groupe est déjà le mot — la ligne
+                    se lisait « indécis 160 » puis « (0) », un nombre sans son
+                    nom. Groupé autrement, le mot renseigne et la parenthèse
+                    suffit. */}
+                {byMood
+                    ? `approbation moyenne ${g.approval > 0 ? "+" : ""}${Math.round(g.approval)}`
+                    : `${mood.word} (${g.approval > 0 ? "+" : ""}${Math.round(g.approval)})`}
                 </div>
                 </button>
             );
