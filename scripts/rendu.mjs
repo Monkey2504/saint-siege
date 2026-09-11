@@ -208,6 +208,49 @@ const PARCOURS = [
  * session de design vient juger. Les rares écrans mangés par une photographie
  * dépassent le budget en PNG ; ceux-là seulement repassent en JPEG.
  */
+/**
+ * Ce qui dépasse de l'écran, par la droite.
+ *
+ * Une capture ne le dit pas : elle rend 390 pixels de large quoi qu'il arrive,
+ * et un chapô coupé en plein mot ressemble à un chapô court. Mesuré sur le
+ * gabarit mobile, la ligne des cahiers poussait la page entière au-delà de
+ * l'écran — la une s'y faisait couper par la droite, photographie comprise — et
+ * onze captures d'affilée ne l'avaient pas dit.
+ *
+ * Le rail des cahiers est exclu : il défile à dessein, et son débordement est
+ * ce qui rend les six cahiers atteignables à l'étroit.
+ */
+const deborde = (page) => page.evaluate(() => {
+  const coupables = [];
+  for (const e of document.querySelectorAll('*')) {
+    if (e.classList.contains('oh-cahiers-rail')) continue;
+    if (e.closest('.oh-cahiers-rail')) continue;
+    const trop = e.scrollWidth - e.clientWidth;
+    const cs = getComputedStyle(e);
+    // Ce qui clippe À DESSEIN n'est pas un débordement : un rail qui défile,
+    // une ligne coupée par des points de suspension. Ce qu'on cherche, c'est
+    // ce qui sort de l'écran sans que personne l'ait voulu.
+    const voulu = cs.overflowX === 'auto' || cs.overflowX === 'scroll'
+      || cs.overflowX === 'hidden' || cs.textOverflow === 'ellipsis';
+    if (trop > 2 && e.clientWidth > 0 && !voulu) {
+      // Le conteneur qui CLIPPE n'est pas le coupable : c'est un de ses
+      // descendants qui est trop large. On nomme le plus large, sinon on
+      // envoie le lecteur corriger la mauvaise boîte.
+      let large = null;
+      for (const d of e.querySelectorAll('*')) {
+        const w = d.getBoundingClientRect().width;
+        if (w > e.clientWidth + 2 && (!large || w > large.getBoundingClientRect().width)) large = d;
+      }
+      const nom = (x) => `${x.tagName.toLowerCase()}${x.className && typeof x.className === 'string' ? '.' + x.className.split(' ')[0] : ''}${x.className ? '' : ' « ' + (x.textContent || '').trim().slice(0, 34) + ' »'}`;
+      coupables.push(`${nom(e)} dépasse de ${trop} px${large ? ` — ${nom(large)} y fait ${Math.round(large.getBoundingClientRect().width)} px` : ''}`);
+    }
+  }
+  // Et la page elle-même, qui est le cas que le joueur voit en premier.
+  const doc = document.documentElement;
+  if (doc.scrollWidth > doc.clientWidth + 2) coupables.unshift(`la page dépasse de ${doc.scrollWidth - doc.clientWidth} px`);
+  return [...new Set(coupables)].slice(0, 3);
+});
+
 const capturer = async (page, nom) => {
   const png = path.join(DOSSIER, nom + '.png');
   await page.screenshot({ path: png });
@@ -276,7 +319,12 @@ for (const etape of PARCOURS) {
   }
   if (!etape.fichier) continue;
   const { fichier, octets } = await capturer(page, etape.fichier);
-  faits.push({ fichier, etat: `capturé, ${ko(octets)}` });
+  const trop = await deborde(page);
+  for (const c of trop) {
+    const ligne = `débordement · ${etape.fichier} : ${c}`;
+    if (!erreurs.includes(ligne)) erreurs.push(ligne);
+  }
+  faits.push({ fichier, etat: `capturé, ${ko(octets)}${trop.length ? ` — ${trop.length} débordement${trop.length > 1 ? 's' : ''}` : ''}` });
 }
 /**
  * Une image ne dit pas quelle police a été substituée : un titre rendu en

@@ -207,7 +207,12 @@ const TableCaisses = ({ caisses, usdPerSY }) => {
           Aucun organisme ne tient encore de bourse.
         </p>
       ) : (
-        <table style={{ borderCollapse: "collapse", marginTop: "0.4rem", width: "100%" }}>
+        // Six colonnes de chiffres insécables font 475 px : à 390, ce tableau
+        // poussait la page hors de l'écran. Un tableau a le droit d'être plus
+        // large que la feuille — à condition de défiler dans sa propre boîte,
+        // et non d'emporter la page avec lui.
+        <div style={{ overflowX: "auto" }}>
+        <table style={{ borderCollapse: "collapse", marginTop: "0.4rem", minWidth: "28rem", width: "100%" }}>
           <thead>
             <tr style={{ borderBottom: "1px solid var(--oh-line)" }}>
               <th className="oh-label" style={{ ...cell, textAlign: "left" }}>Organisme</th>
@@ -249,6 +254,7 @@ const TableCaisses = ({ caisses, usdPerSY }) => {
             </tr>
           </tbody>
         </table>
+        </div>
       )}
     </section>
   );

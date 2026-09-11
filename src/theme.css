@@ -332,6 +332,13 @@ button, input, textarea, select {
   gap: 2.2rem;
   align-items: start;
 }
+/* Un enfant de grille a `min-width: auto` : il ne descend pas sous la largeur
+   minimale de son contenu, et une colonne implicite ne l'y force pas. Mesuré à
+   390 px, la colonne de la une faisait 427 px et poussait la page hors de
+   l'écran — le chapô et la photographie s'y faisaient couper par la droite.
+   Onze captures d'affilée ne l'avaient pas dit ; le canal le mesure maintenant
+   (scripts/rendu.mjs). */
+.oh-bulletin-grid > * { min-width: 0; }
 @media (min-width: 62rem) {
   /* Trois colonnes, comme la maquette journal : les nouvelles, les ordres, puis
      la presse et le registre. Un filet vertical les sépare — c'est lui qui fait
@@ -595,6 +602,11 @@ button, input, textarea, select {
      téléphone. À l'étroit, le rail commence au bord et défile normalement. */
   .oh-barre-cahiers { justify-content: flex-start !important; }
 
+  /* « 0 événements · 0 ordres jugés · 12 lignes au registre » tient sur une
+     seule ligne par défaut, ce qui est juste sur un écran large et pousse la
+     page hors de l'écran sur un téléphone. À l'étroit, il se coupe. */
+  .oh-cahiers-apercu { white-space: normal !important; }
+
   /* Le Courrier tient ses deux volets côte à côte. À 390 px, la grille écrasait
      celui des lettres à soixante-dix pixels : le texte y tombait à un mot par
      ligne, illisible. Un seul volet à la fois — la liste tant qu'aucune lettre
@@ -623,6 +635,8 @@ button, input, textarea, select {
   align-items: start;
   margin-top: 1.4rem;
 }
+/* Même piège : la colonne d'analyse faisait 475 px dans un écran de 390. */
+.oh-comptes-grid > * { min-width: 0; }
 @media (min-width: 62rem) {
   .oh-comptes-grid { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 0; }
   .oh-comptes-grid > * + * {

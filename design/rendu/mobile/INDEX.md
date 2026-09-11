@@ -1,6 +1,6 @@
 # Rendu réel — mobile (390×844)
 
-Capturé le 2026-09-11 15:57 · commit 28accf9 · source http://localhost:4173
+Capturé le 2026-09-11 16:20 · commit 0cc62c4 · source http://localhost:4173
 
 Ces images sont le rendu réel du jeu dans un navigateur, pas une maquette.
 Une session sans navigateur (Claude Design) doit les lire avant de juger le graphisme.
@@ -10,16 +10,16 @@ Une session sans navigateur (Claude Design) doit les lire avant de juger le grap
 - `01-portail.png` — capturé, 43 Ko
 - `02-cle-api.png` — capturé, 90 Ko
 - `03-accueil.png` — capturé, 472 Ko
-- `04-habemus-papam.png` — capturé, 92 Ko
-- `05-edition-du-tour.png` — capturé, 226 Ko
+- `04-habemus-papam.png` — capturé, 93 Ko
+- `05-edition-du-tour.png` — capturé, 200 Ko
 - `06-ordres.png` — capturé, 73 Ko
 - `07-registre.png` — capturé, 93 Ko
 - `08-college.png` — capturé, 126 Ko
-- `09-caisses.png` — capturé, 75 Ko
+- `09-caisses.png` — capturé, 76 Ko
 - `10-correspondance.png` — capturé, 51 Ko
 - `11-courrier-ouvert.png` — capturé, 83 Ko
 
-Total du lot : 1423 Ko.
+Total du lot : 1399 Ko.
 
 ## Polices
 

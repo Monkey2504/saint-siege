@@ -28,7 +28,12 @@ export const BarreDesCahiers = ({ sections, current, onSelect, apercu = "" }) =>
       padding: "0.4rem 0",
     }}
   >
-    <div className="oh-cahiers-rail" style={{ display: "flex", gap: "1.4rem", overflowX: "auto" }}>
+    {/* `minWidth: 0` : un élément de flexbox ne descend pas sous la largeur de
+        son contenu sans lui, et `overflowX: auto` n'y change rien. Le rail des
+        six cahiers mesure plus de six cents pixels ; à 390 px, il poussait donc
+        la ligne — et avec elle la page entière — au-delà de l'écran, et la une
+        se faisait couper par la droite : le chapô, la photographie, tout. */}
+    <div className="oh-cahiers-rail" style={{ display: "flex", gap: "1.4rem", minWidth: 0, overflowX: "auto" }}>
       {sections.map(([id, label]) => {
         const actif = current === id;
         return (
@@ -58,7 +63,13 @@ export const BarreDesCahiers = ({ sections, current, onSelect, apercu = "" }) =>
         );
       })}
     </div>
-    <div style={{ alignItems: "baseline", display: "flex", gap: "0.9rem" }}>
+    {/* Mesuré à 390 px : ce groupe faisait 412 pixels de large et poussait la
+        page entière au-delà de l'écran — la une s'y faisait couper par la
+        droite, chapô et photographie compris. Le compte des cahiers ne se
+        coupe pas (whiteSpace nowrap), et j'y ai ajouté deux boutons. Il se
+        replie maintenant sur lui-même, et le compte se coupe à l'étroit
+        (theme.css, @media max-width 40rem). */}
+    <div style={{ alignItems: "baseline", display: "flex", flexWrap: "wrap", gap: "0.9rem", justifyContent: "flex-end", minWidth: 0 }}>
       {apercu && (
         <span className="oh-cahiers-apercu" style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)", whiteSpace: "nowrap" }}>
           {apercu}
