@@ -2,6 +2,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import dayjs from "dayjs";
+import advancedFormat from "dayjs/plugin/advancedFormat";
 // Les dates dans la langue du journal. Sans cette locale, dayjs imprime
 // « 14 March 2027 » sur une page par ailleurs entièrement française — et la
 // traduction d'exécution ne rattrape pas un mois formaté par une bibliothèque.
@@ -40,8 +41,11 @@ import { ApercuDuCollege } from "./college.jsx";
 // standing in the player's name and the ledger they are spent against.
 
 dayjs.locale("fr");
+dayjs.extend(advancedFormat);
 
-const fmtDate = (value, pattern = "D MMMM YYYY") => {
+// `Do` sous la locale française rend « 1er » et « 2 », ce que « D » ne sait pas
+// faire : une manchette qui titre « 1 septembre » ne se lit pas à voix haute.
+const fmtDate = (value, pattern = "Do MMMM YYYY") => {
     if (!value) return "";
     const parsed = dayjs(value);
     return parsed.isValid() ? parsed.format(pattern) : String(value);
@@ -182,7 +186,7 @@ const ArticleDeUne = ({ dateline, tone = "alert", titre, chapo, sujet, encadre, 
 const Story = ({ event, lead = false, tone }) =>
     lead ? (
     <ArticleDeUne
-    dateline={event.date ? `${fmtDate(event.date, "D MMMM YYYY")} · Rome`.toUpperCase() : null}
+    dateline={event.date ? `${fmtDate(event.date)} · Rome`.toUpperCase() : null}
     tone={tone}
     titre={event.title}
     sujet={`${event.title || ""} ${event.location || ""}`}
@@ -238,7 +242,7 @@ const Situation = ({ briefing, date, world, awaitingInauguration }) => {
     const reactions = Array.isArray(inauguration?.reactions) ? inauguration.reactions.filter((r) => r && r.owner) : [];
     const elu = Boolean(!awaitingInauguration && nom && declaration);
 
-    const jour = date ? fmtDate(date, "D MMMM YYYY") : "";
+    const jour = date ? fmtDate(date) : "";
 
     if (!elu && !briefing) {
         return (
@@ -251,7 +255,8 @@ const Situation = ({ briefing, date, world, awaitingInauguration }) => {
         );
     }
 
-    const texte = briefing || "";
+    const corpsRepeteLaDeclaration = Boolean(elu && declaration && briefing && briefing.includes(declaration));
+    const texte = corpsRepeteLaDeclaration ? "" : (briefing || "");
 
     return (
     <>
@@ -259,7 +264,7 @@ const Situation = ({ briefing, date, world, awaitingInauguration }) => {
     <ArticleDeUne
     dateline={jour ? `${jour} · Rome`.toUpperCase() : null}
     titre={elu ? `${nom} a été élu sur ce programme` : "Ce que le nouveau pape trouve en arrivant"}
-    chapo={elu ? `« ${declaration} »` : null}
+    chapo={elu ? `«\u00a0${declaration}\u00a0»` : null}
     sujet={elu ? "basilique" : ""}
     encadre={elu && reactions.length > 0 ? (
         <>
@@ -1100,9 +1105,16 @@ const Bulletin = ({ onOpenAdvisor, pressFocus = 0, nav = null }) => {
     const awaitingInauguration = Boolean(world) && !isInaugurated(world);
 
     // La page n'a rien à mettre en tête : ni événement du tour, ni récit
-    // d'archive, ni feuille d'investiture à signer. C'est le seul cas où la
-    // grille de la une se recompose.
-    const creuse = !awaitingInauguration && edition.length === 0 && earlier.length === 0;
+    // d'archive, ni feuille d'investiture à signer, ni programme d'élection à
+    // imprimer. C'est le seul cas où la grille se recompose — et il fallait
+    // bien y compter la une : sans cela l'article du programme passait pleine
+    // largeur et sa photographie devenait une affiche, là où la maquette la
+    // veut à la largeur d'une colonne.
+    const creuse = !awaitingInauguration
+        && edition.length === 0
+        && earlier.length === 0
+        && !briefing
+        && !(world?.inauguration?.name && world?.inauguration?.declaration);
 
     // A turn that could not reach the model is written by a deterministic stub
     // that carries NO levers: no money moves, no order is judged, no scheme
@@ -1254,6 +1266,12 @@ const Bulletin = ({ onOpenAdvisor, pressFocus = 0, nav = null }) => {
             <Situation briefing={briefing} date={game?.startDate || game?.gameDate} world={world} awaitingInauguration />
             <Inauguration world={world} player={player} onDone={setWorld} />
             </>
+        ) : edition.length === 0 ? (
+            // L'épisode s'ouvre avant que rien ne soit arrivé. Plutôt qu'une
+            // tête de section suivie de rien, la une porte le programme sur
+            // lequel le pape vient d'être élu — et, à défaut, la situation dont
+            // part le scénario.
+            <Situation briefing={briefing} date={game?.startDate || game?.gameDate} world={world} />
         ) : (
             <>
             <SectionHead aside={`${edition.length} ${edition.length === 1 ? "événement" : "événements"}`}>
