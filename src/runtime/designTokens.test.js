@@ -253,7 +253,12 @@ test("aucun tiers ne mesure ce jeu, et la carte de partage est la sienne", () =>
   const brut = fs.readFileSync(path.resolve(SRC, "..", "index.html"), "utf8");
   const actif = brut.replace(/<!--[\s\S]*?-->/g, "");
 
-  assert.ok(!/googletagmanager|gtag\(/.test(actif), "aucune balise de mesure active dans index.html");
+  // La règle n'est pas « aucune mesure » : c'est « aucun TIERS ». Ce jeu porte
+  // maintenant la propriété de son auteur, et c'est celle de l'amont qui ne doit
+  // jamais revenir — ni elle, ni aucune autre qu'on n'aurait pas choisie.
+  const identifiants = [...actif.matchAll(/G-[A-Z0-9]{6,}/g)].map((m) => m[0]);
+  assert.deepEqual([...new Set(identifiants)], ["G-V2BR97YN1Z"], "une seule propriété mesure ce jeu, celle de son auteur");
+  assert.ok(!actif.includes("G-H9EQ4JFZXZ"), "celle de l'amont ne revient pas");
   for (const amont of ["Pax Historia", "Open-Historia", "Open Historia"]) {
     assert.ok(!actif.includes(amont), `la carte de partage ne nomme plus l'amont (${amont})`);
   }

@@ -13,13 +13,41 @@
  * neutre coupe le cycle »), et c'est la même issue ici.
  */
 
-let _ouvrir = null;
+// Les crochets vivent sur globalThis, pas dans une variable de module.
+//
+// Le premier essai les gardait en variables de module, et le banc d'essai
+// marchait pendant que l'écran des clés restait muet : le crochet POSÉ et le
+// crochet LU n'étaient pas le même, parce que le module qui les porte peut se
+// retrouver en deux exemplaires — ses deux lecteurs ne sont pas toujours
+// empaquetés ensemble. Une clé unique sur globalThis ne peut pas se dédoubler.
+const REGISTRE = Symbol.for("saint-siege.crochets");
+const crochets = globalThis[REGISTRE] ?? (globalThis[REGISTRE] = {});
+
 
 /** Posé par le composant monté, retiré à son démontage. */
-export const poserLaTriche = (fn) => { _ouvrir = typeof fn === "function" ? fn : null; };
+export const poserLaTriche = (fn) => { crochets.triche = typeof fn === "function" ? fn : null; };
 
 /** Ouvre le banc d'essai. Sans composant monté, ne fait rien plutôt que lever. */
-export const ouvrirLaTriche = () => { _ouvrir?.(); };
+export const ouvrirLaTriche = () => { crochets.triche?.(); };
 
 /** Si le panneau est atteignable — une page peut ainsi ne pas offrir le bouton. */
-export const laTricheEstAtteignable = () => typeof _ouvrir === "function";
+export const laTricheEstAtteignable = () => typeof crochets.triche === "function";
+
+// ── Et l'écran des clés ──────────────────────────────────────────────────────
+//
+// « Redonne-moi accès à l'écran originel où poser les clés. »
+//
+// FirstRunKey ne paraît qu'une fois : App.jsx lit hasProviderKey() AU MONTAGE et
+// ne le relit jamais. Une fois une clé donnée, l'écran qui explique ce qu'est
+// une clé, où la prendre et ce qu'on perd sans elle devenait inatteignable —
+// alors que c'est précisément l'écran qu'on veut rouvrir le jour où la clé ne
+// marche plus. Même mécanisme que ci-dessus, et pour la même raison : la ligne
+// des cahiers ne peut pas remonter jusqu'à l'état de App.jsx.
+/** Posé par App.jsx au montage, retiré à son démontage. */
+export const poserLEcranDesCles = (fn) => { crochets.cles = typeof fn === "function" ? fn : null; };
+
+/** Rouvre l'écran des clés. Sans App monté, ne fait rien plutôt que lever. */
+export const ouvrirLEcranDesCles = () => { crochets.cles?.(); };
+
+/** Si l'écran est atteignable — une page peut ainsi ne pas offrir le bouton. */
+export const lEcranDesClesEstAtteignable = () => typeof crochets.cles === "function";

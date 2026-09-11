@@ -227,12 +227,15 @@ export const College = ({ nav = null }) => {
         );
     }
 
+    // Un filtre actif s'imprime à l'encre, comme ceux du Courrier. Il était le
+    // seul aplat bleu de cette page ; deux cahiers du même journal marquaient
+    // leur onglet actif de deux façons différentes.
     const chip = (label, active, onClick) => (
         <button type="button" onClick={onClick} key={label}
         style={{
-            background: active ? "var(--oh-accent)" : "transparent",
-            border: `1px solid ${active ? "var(--oh-accent)" : "var(--oh-line)"}`,
-            color: active ? "var(--oh-on-accent)" : "var(--oh-text)",
+            background: active ? "var(--oh-text-strong)" : "transparent",
+            border: `1px solid ${active ? "var(--oh-text-strong)" : "var(--oh-line)"}`,
+            color: active ? "var(--oh-plate)" : "var(--oh-text)",
             cursor: "pointer", fontFamily: "var(--oh-font-label)", fontSize: "var(--oh-t-2xs)",
             letterSpacing: "var(--oh-label-track)", padding: "0.3rem 0.7rem", textTransform: "uppercase",
         }}>{label}</button>

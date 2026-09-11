@@ -11,7 +11,7 @@
  */
 import React from "react";
 import { openLibraryTab } from "./libraryBar.jsx";
-import { ouvrirLaTriche } from "./triche.js";
+import { ouvrirLEcranDesCles, ouvrirLaTriche } from "./triche.js";
 
 export const BarreDesCahiers = ({ sections, current, onSelect, apercu = "" }) => (
   <nav
@@ -64,6 +64,27 @@ export const BarreDesCahiers = ({ sections, current, onSelect, apercu = "" }) =>
           {apercu}
         </span>
       )}
+      {/* L'écran des clés. Il ne paraissait qu'au tout premier lancement — et
+          c'est le jour où la clé cesse de marcher qu'on veut le relire. */}
+      <button
+        type="button"
+        onClick={() => ouvrirLEcranDesCles()}
+        title="Rouvrir l'écran des clés"
+        style={{
+          background: "none",
+          border: 0,
+          color: "var(--oh-text-dim)",
+          cursor: "pointer",
+          fontFamily: "var(--oh-font-label)",
+          fontSize: "var(--oh-t-2xs)",
+          letterSpacing: "var(--oh-label-track)",
+          lineHeight: 1,
+          padding: 0,
+          textTransform: "var(--oh-label-case)",
+        }}
+      >
+        Clé
+      </button>
       {/* Le banc d'essai. Il vit derrière les Réglages, eux-mêmes derrière un
           bouton que le journal ne montre pas : depuis que la feuille part du
           bord de l'écran, il n'y avait plus d'endroit d'où l'atteindre en

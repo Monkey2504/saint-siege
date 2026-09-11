@@ -7,6 +7,7 @@ import UI from "./Game/GameUI/main.jsx";
 const MapEditor = lazy(() => import("./Editor/MapEditor.jsx"));
 import StartupScreen from "./runtime/StartupScreen.jsx";
 import FirstRunKey, { hasProviderKey } from "./runtime/FirstRunKey.jsx";
+import { poserLEcranDesCles } from "./Game/GameUI/triche.js";
 import { HAS_MAP } from "./runtime/edition.js";
 import Welcome from "./runtime/Welcome.jsx";
 import ErrorBoundary from "./runtime/ErrorBoundary.jsx";
@@ -45,6 +46,15 @@ function GameApp() {
   const worldIdleRef = useRef(false);
   // Read once at mount: a player who has already given a key never sees the door.
   const [needsKey, setNeedsKey] = useState(() => !hasProviderKey());
+  // L'écran des clés ne paraissait qu'une fois, au tout premier lancement : la
+  // ligne ci-dessus lit hasProviderKey() AU MONTAGE et ne la relit jamais. Le
+  // joueur pouvait donc ne plus jamais revoir l'écran qui explique ce qu'est
+  // une clé, où la prendre et ce qu'on perd sans elle — c'est-à-dire le jour où
+  // il en a le plus besoin. Il se rouvre depuis la ligne des cahiers.
+  useEffect(() => {
+    poserLEcranDesCles(() => setNeedsKey(true));
+    return () => poserLEcranDesCles(null);
+  }, []);
   const [entered, setEntered] = useState(false);
   const [startupState, setStartupState] = useState(createInitialStartupState);
   const [isReady, setIsReady] = useState(false);

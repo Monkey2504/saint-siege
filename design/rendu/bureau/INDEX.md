@@ -1,6 +1,6 @@
 # Rendu réel — bureau (1440×900)
 
-Capturé le 2026-09-11 14:42 · commit 4bd12de · source http://localhost:4173
+Capturé le 2026-09-11 15:07 · commit 33d9c88 · source http://localhost:4173
 
 Ces images sont le rendu réel du jeu dans un navigateur, pas une maquette.
 Une session sans navigateur (Claude Design) doit les lire avant de juger le graphisme.
@@ -33,7 +33,6 @@ Toutes les polices annoncées par les tokens sont réellement dessinées ici.
 
 ## Anomalies relevées pendant la capture
 
-- réseau : www.googletagmanager.com
 - réseau : open-historia-registry.nichojkrol.workers.dev
 - réseau : api.github.com
 

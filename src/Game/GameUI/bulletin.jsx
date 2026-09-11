@@ -658,9 +658,11 @@ const Press = ({ game, world, actions, focus, onPrinted }) => {
                 disabled={running}
                 onClick={() => setChosen(span.days)}
                 style={{
-                    background: active ? "var(--oh-accent)" : "transparent",
-                    border: `1px solid ${active ? "var(--oh-accent)" : "var(--oh-line)"}`,
-                    color: active ? "var(--oh-on-accent)" : "var(--oh-text)",
+                    // À l'encre, comme les filtres du Collège et du Courrier :
+                    // le journal ne marque pas ses choix en couleur.
+                    background: active ? "var(--oh-text-strong)" : "transparent",
+                    border: `1px solid ${active ? "var(--oh-text-strong)" : "var(--oh-line)"}`,
+                    color: active ? "var(--oh-plate)" : "var(--oh-text)",
                     cursor: running ? "default" : "pointer",
                     fontFamily: "var(--oh-font-label)",
                     fontSize: "var(--oh-t-2xs)",
