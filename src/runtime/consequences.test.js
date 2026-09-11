@@ -20,8 +20,8 @@ test("a world where nothing has happened produces no news", () => {
 test("a purse that cannot cover its promises is reported, with the shortfall", () => {
   const world = { treasuries: [{ body: "Curial purse", treasury: 1_000, assumedLiabilities: 3_000 }] };
   const [entry] = consequencesOf(world, { country: "Saint-Siège" }, TURN);
-  assert.match(entry.title, /Curial purse cannot cover/);
-  assert.match(entry.description, /2000 SY/);
+  assert.match(entry.title, /Curial purse ne peut couvrir/);
+  assert.match(entry.description, /2000 AS/);
   assert.equal(entry.importance, "major");
 });
 
@@ -33,7 +33,7 @@ test("a purse that covers what it owes is not news", () => {
 test("a gathering whose day falls inside the turn is reported as held", () => {
   const world = { gatherings: [{ name: "Kinshasa 2029", host: "Fonds Sahel", status: "planned", date: "2029-02-14", continent: "africa" }] };
   const [entry] = consequencesOf(world, { country: "Saint-Siège" }, TURN);
-  assert.match(entry.title, /Kinshasa 2029 is held/);
+  assert.match(entry.title, /Kinshasa 2029 a lieu/);
   assert.equal(entry.date, "2029-02-14");
 });
 
@@ -58,7 +58,7 @@ test("electors out of communion lead the edition", () => {
   const entry = consequencesOf(world, { country: "Saint-Siège" }, TURN).find((e) => /communion/.test(e.title));
   assert.ok(entry, "the schism is reported");
   assert.equal(entry.importance, "major");
-  assert.match(entry.description, /A majority needs 3/);
+  assert.match(entry.description, /Il en faut 3 pour la majorité/);
 });
 
 test("a college that merely disagrees is not a fracture", () => {
@@ -75,7 +75,7 @@ test("pledges past the grace period are named", () => {
       log: [{ date: "2026-01-01", op: "pledge", amount: 600 }, { date: "2026-02-01", op: "collect", amount: 100 }],
     }],
   };
-  const entry = consequencesOf(world, { country: "Saint-Siège" }, TURN).find((e) => /past due/.test(e.title));
+  const entry = consequencesOf(world, { country: "Saint-Siège" }, TURN).find((e) => /échue/.test(e.title));
   assert.ok(entry);
   assert.match(entry.description, /Écoles du Sahel/);
 });
@@ -88,9 +88,9 @@ test("a campaign that took nothing this period says so, against its own figures"
       log: [{ date: "2027-06-01", op: "collect", amount: 410 }],
     }],
   };
-  const entry = consequencesOf(world, { country: "Saint-Siège" }, TURN).find((e) => /taken nothing/.test(e.title));
+  const entry = consequencesOf(world, { country: "Saint-Siège" }, TURN).find((e) => /n'a rien encaissé/.test(e.title));
   assert.ok(entry, "the stall is reported");
-  assert.match(entry.description, /410 collected against a target of 900/);
+  assert.match(entry.description, /410 encaissés pour un objectif de 900/);
 });
 
 test("a campaign that collected during the turn is not stalled", () => {
@@ -101,7 +101,7 @@ test("a campaign that collected during the turn is not stalled", () => {
       log: [{ date: "2029-02-01", op: "collect", amount: 500 }],
     }],
   };
-  assert.equal(titles(world).filter((t) => /taken nothing/.test(t)).length, 0);
+  assert.equal(titles(world).filter((t) => /n'a rien encaissé/.test(t)).length, 0);
 });
 
 test("a young campaign is given its time before being called stalled", () => {
@@ -111,7 +111,7 @@ test("a young campaign is given its time before being called stalled", () => {
       status: "open", startedAt: "2029-03-20", log: [],
     }],
   };
-  assert.equal(titles(world).filter((t) => /taken nothing/.test(t)).length, 0, `under ${DRIVE_STALL_DAYS} days is not a stall`);
+  assert.equal(titles(world).filter((t) => /n'a rien encaissé/.test(t)).length, 0, `under ${DRIVE_STALL_DAYS} days is not a stall`);
 });
 
 test("the edition is capped, and the heaviest news comes first", () => {
@@ -124,7 +124,7 @@ test("the edition is capped, and the heaviest news comes first", () => {
   };
   const rows = consequencesOf(world, { country: "Saint-Siège" }, { ...TURN, limit: 3 });
   assert.equal(rows.length, 3);
-  assert.match(rows[0].title, /cannot cover/);
+  assert.match(rows[0].title, /ne peut couvrir/);
 });
 
 test("a rule that throws never takes the turn down with it", () => {
@@ -171,7 +171,7 @@ test("a polity nobody donates to is left nothing, and no line is printed", () =>
 
 test("money that arrives is money the player is told about", () => {
   const entry = bequestEvent({ amount: 80, player: "Saint-Siège", date: TURN.to, economy: { legitimacy: 62 } });
-  assert.match(entry.title, /Legacies/);
-  assert.match(entry.description, /80 SY reaches Saint-Siège/);
+  assert.match(entry.title, /Legs/);
+  assert.match(entry.description, /80 AS parviennent au Saint-Siège/);
   assert.match(entry.description, /62\/100/);
 });
