@@ -102,11 +102,12 @@ const PARCOURS = [
   { fichier: '05-bibliotheque-scenarios', faire: p => cliquer(p, /^Scénarios$/i, 2000) },
   { fichier: '06-habemus-papam',          faire: rouvrirLaPartie },
   {                                       faire: signerLePontificat },
-  { fichier: '07-edition-du-jour',        faire: p => cliquer(p, /^Édition du jour$/i) },
-  { fichier: '08-lettres',                faire: p => cliquer(p, /^Lettres$/i) },
-  { fichier: '09-college',                faire: p => cliquer(p, /^Collège$/i) },
-  { fichier: '10-conseiller',             faire: p => cliquer(p, /^Conseiller$/i) },
-  { fichier: '11-finances',               faire: p => cliquer(p, /^Finances$/i) },
+  { fichier: '07-edition-du-tour',        faire: p => cliquer(p, /^Édition du tour$/i) },
+  { fichier: '08-ordres',                 faire: p => cliquer(p, /^Ordres$/i) },
+  { fichier: '09-registre',               faire: p => cliquer(p, /^Registre$/i) },
+  { fichier: '10-college',                faire: p => cliquer(p, /^Collège$/i) },
+  { fichier: '11-caisses',                faire: p => cliquer(p, /^Caisses$/i) },
+  { fichier: '12-correspondance',         faire: p => cliquer(p, /^Correspondance$/i) },
 ];
 
 /* ---------------------------------------------------------------- capture  */

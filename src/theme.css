@@ -506,3 +506,24 @@ button, input, textarea, select {
 [data-surface="ledger"] {
   font-variant-numeric: tabular-nums;
 }
+
+/* ─── La barre commune et le bandeau, à l'étroit ────────────────────────────
+   Six cahiers, le nom du journal, la date et le bouton du tour ne tiennent pas
+   dans 390 px. Sur un écran étroit le bandeau de barre s'efface — il répète ce
+   que le bandeau du journal dit juste dessous — et les cahiers gardent la place.
+   Le bouton reste, sans sa date : c'est le geste, pas la glose, qui doit tenir. */
+@media (max-width: 40rem) {
+  .oh-barre-titre { display: none; }
+  .oh-barre-arrivee { display: none; }
+
+  /* Le bandeau du journal passe sur une colonne, centré, plutôt que de sortir
+     de la feuille par la droite. */
+  .oh-masthead { grid-template-columns: minmax(0, 1fr) !important; }
+  .oh-masthead-flank { text-align: center !important; }
+
+  /* Centrer un rail qui déborde rend son DÉBUT inatteignable : le contenu
+     sort des deux côtés et le défilement ne peut pas remonter avant le bord
+     gauche. Les deux premiers cahiers étaient perdus pour un joueur sur
+     téléphone. À l'étroit, le rail commence au bord et défile normalement. */
+  .oh-barre-cahiers { justify-content: flex-start !important; }
+}

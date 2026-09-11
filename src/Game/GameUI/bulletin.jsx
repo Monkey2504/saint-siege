@@ -1014,7 +1014,7 @@ const Bulletin = ({ onOpenAdvisor, pressFocus = 0 }) => {
             droite. Un journal se reconnaît à son bandeau avant qu'on l'ait lu ;
             l'ancien n'avait qu'un titre et n'en était pas un. */}
         <header style={{ borderBottom: "3px solid var(--oh-text-strong)", paddingBottom: "0.55rem" }}>
-        <div style={{ alignItems: "end", display: "grid", gap: "1rem", gridTemplateColumns: "1fr auto 1fr" }}>
+        <div className="oh-masthead" style={{ alignItems: "end", display: "grid", gap: "1rem", gridTemplateColumns: "1fr auto 1fr" }}>
         <div className="oh-masthead-flank" style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)", lineHeight: 1.5 }}>
         <div className="oh-label" style={{ color: "var(--oh-text-strong)" }}>
         N° {game?.round || 1} · An {anDuPontificat} du pontificat
@@ -1263,5 +1263,5 @@ const Bulletin = ({ onOpenAdvisor, pressFocus = 0 }) => {
     );
 };
 
-export { Bulletin };
+export { Bulletin, Record };
 export default Bulletin;
