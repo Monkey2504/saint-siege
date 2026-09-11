@@ -594,6 +594,23 @@ button, input, textarea, select {
      gauche. Les deux premiers cahiers étaient perdus pour un joueur sur
      téléphone. À l'étroit, le rail commence au bord et défile normalement. */
   .oh-barre-cahiers { justify-content: flex-start !important; }
+
+  /* Le Courrier tient ses deux volets côte à côte. À 390 px, la grille écrasait
+     celui des lettres à soixante-dix pixels : le texte y tombait à un mot par
+     ligne, illisible. Un seul volet à la fois — la liste tant qu'aucune lettre
+     n'est ouverte, la lettre ensuite. Le retour existait déjà. */
+  /* Et une gouttière : les volets portent `padding-left: 0 !important` (plus
+     haut, pour que le fil colle au filet sur un écran large), si bien qu'à
+     l'étroit « Opinion 0, réservé » venait buter contre le bord de l'écran.
+     La marge se pose sur le conteneur, que cette règle-là ne touche pas. */
+  .oh-courrier-volets { grid-template-columns: minmax(0, 1fr) !important; padding: 0 1rem; }
+  /* Un filet de séparation n'a plus rien à séparer sur une seule colonne. */
+  .oh-courrier-volets > :nth-child(1) { border-right: 0 !important; }
+  /* `!important` parce que les deux volets portent leur `display` en style
+     EN LIGNE, qui l'emporte sur une feuille de style : sans lui, les deux
+     restaient là, simplement empilés. */
+  .oh-courrier-volets[data-lettre-ouverte="non"] > :nth-child(2) { display: none !important; }
+  .oh-courrier-volets[data-lettre-ouverte="oui"] > :nth-child(1) { display: none !important; }
 }
 
 /* ─── Le cahier des comptes ─────────────────────────────────────────────────

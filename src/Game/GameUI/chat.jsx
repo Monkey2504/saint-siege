@@ -911,7 +911,12 @@ const ConversationView = ({ chat, playerCountry, gameDate, onDelete, onBack, onM
                 // Une lettre se lit dans une colonne. Sans cette mesure, le fil
                 // courait jusqu'au bord sur quinze cents pixels, et « Opinion 0,
                 // réservé » se faisait couper au passage.
-                ...(page ? { maxWidth: "62ch" } : null) }}>
+                //
+                // Centrée, et pas seulement bornée : le bandeau du fil l'est,
+                // lui, et les deux se retrouvaient décalés de cent cinquante
+                // pixels — un titre qui ne surplombe pas la colonne qu'il
+                // annonce. « Les distances ne sont toujours pas bonnes. »
+                ...(page ? { margin: "0 auto", maxWidth: "62ch", width: "100%" } : null) }}>
             {countries.map((c) => (
                 <Letterhead key={c.name} name={c.name} head={letterheads[c.name]} flagUrl={letterheadFlags[c.name] ?? null} />
             ))}
@@ -954,7 +959,7 @@ const ConversationView = ({ chat, playerCountry, gameDate, onDelete, onBack, onM
                 )}
                 </div>
             ) : phase === "player" && !isLoading ? (
-                <div style={{ padding: page ? "1rem 0 1.2rem" : "1rem", borderTop: "1px solid var(--oh-line)", display: "flex", alignItems: page ? "flex-end" : "center", gap: "0.5rem", flexShrink: 0, ...(page ? { maxWidth: "62ch" } : null) }}>
+                <div style={{ padding: page ? "1rem 0 1.2rem" : "1rem", borderTop: "1px solid var(--oh-line)", display: "flex", alignItems: page ? "flex-end" : "center", gap: "0.5rem", flexShrink: 0, ...(page ? { margin: "0 auto", maxWidth: "62ch", width: "100%" } : null) }}>
                 <textarea
                 placeholder={page ? `Répondre à ${addressee}… (Maj+Entrée pour une nouvelle ligne)` : "Écrire une lettre…"}
                 rows={1} value={playerInput}

@@ -1,6 +1,6 @@
 # Rendu réel — bureau (1440×900)
 
-Capturé le 2026-09-11 15:32 · commit a727b66 · source http://localhost:4173
+Capturé le 2026-09-11 15:59 · commit 28accf9 · source http://localhost:4173
 
 Ces images sont le rendu réel du jeu dans un navigateur, pas une maquette.
 Une session sans navigateur (Claude Design) doit les lire avant de juger le graphisme.
@@ -19,7 +19,7 @@ Une session sans navigateur (Claude Design) doit les lire avant de juger le grap
 - `10-correspondance.png` — capturé, 93 Ko
 - `11-courrier-ouvert.png` — capturé, 177 Ko
 
-Total du lot : 1901 Ko.
+Total du lot : 1900 Ko.
 
 ## Polices
 

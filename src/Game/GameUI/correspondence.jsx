@@ -281,7 +281,18 @@ const Correspondence = ({ nav = null }) => {
     const activeNames = (activeChat?.countries ?? []).map((c) => c.name).join(", ");
 
     return (
-        <div data-surface="desk" style={{ background: "var(--oh-plate)", bottom: 0, color: "var(--oh-text)", display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gridTemplateRows: "auto minmax(0, 1fr)", left: 0, overflow: "hidden", position: "fixed", right: 0, top: CONTENU_TOP, zIndex: 10002 }}>
+        // « Les distances ne sont toujours pas bonnes. » Ce cahier partait du
+        // bord de l'écran quand les cinq autres tiennent dans 74 rem centrées :
+        // sur un écran large, son bandeau faisait mille neuf cents pixels de
+        // long là où « Les Ordres » en fait mille cent quatre-vingts. Deux
+        // pages du même journal, deux formats de papier.
+        // Le papier couvre l'écran ; la COLONNE tient dans 74 rem, comme les
+        // cinq autres cahiers (voir Feuille dans cahiers.jsx). Poser la mesure
+        // sur le conteneur fixe lui-même laissait le noir de la carte tout
+        // autour : ce journal n'est pas une feuille posée sur un bureau, c'est
+        // la page entière.
+        <div data-surface="desk" style={{ background: "var(--oh-plate)", bottom: 0, color: "var(--oh-text)", left: 0, overflow: "hidden", position: "fixed", right: 0, top: CONTENU_TOP, zIndex: 10002 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gridTemplateRows: "auto minmax(0, 1fr)", height: "100%", margin: "0 auto", maxWidth: "74rem", position: "relative" }}>
         {/* Ce cahier n'avait pas de bandeau. Son titre vivait DANS la colonne
             des correspondants, en Bricolage et deux crans plus petit que « Les
             Ordres » ou « Le Registre » : la même page du même journal, dans une
@@ -296,7 +307,13 @@ const Correspondence = ({ nav = null }) => {
         />
         {nav && <div style={{ paddingTop: "0.8rem" }}>{nav()}</div>}
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "minmax(17rem, 20rem) minmax(0, 1fr)", minHeight: 0, overflow: "hidden" }}>
+        {/* Deux volets sur un écran de bureau, UN SEUL sur un téléphone : à
+            390 px, la grille écrasait le volet des lettres à soixante-dix
+            pixels et le texte tombait à un mot par ligne. Le volet montré est
+            celui qu'on regarde — la liste tant qu'aucune lettre n'est ouverte,
+            la lettre ensuite — et ConversationView portait déjà le retour qu'il
+            faut pour revenir (theme.css, @media max-width 40rem). */}
+        <div className="oh-courrier-volets" data-lettre-ouverte={activeChat ? "oui" : "non"} style={{ display: "grid", gridTemplateColumns: "minmax(17rem, 20rem) minmax(0, 1fr)", minHeight: 0, overflow: "hidden" }}>
 
         {/* ── The column of correspondents ─────────────────────────────────── */}
         <div style={{ borderRight: "1px solid var(--oh-line)", display: "flex", flexDirection: "column", minHeight: 0 }}>
@@ -394,7 +411,12 @@ const Correspondence = ({ nav = null }) => {
         <div className="oh-letters" style={{ display: "flex", flexDirection: "column", minHeight: 0, position: "relative" }}>
         {activeChat ? (
             <>
-            <div style={{ alignItems: "baseline", borderBottom: "1px solid var(--oh-line)", display: "flex", flexShrink: 0, gap: "1.5rem", justifyContent: "space-between", padding: "1.35rem 1.8rem 0.8rem" }}>
+            {/* Et cet en-tête courait sur toute la largeur du volet pendant que
+                les lettres dessous tiennent dans 62 signes : « Opinion +66, vous
+                suivrait partout » finissait huit cents pixels à droite de la
+                colonne qu'il coiffe, et débordait de l'écran. Il prend la mesure
+                des lettres, puisque c'est d'elles qu'il parle. */}
+            <div style={{ alignItems: "baseline", borderBottom: "1px solid var(--oh-line)", display: "flex", flexShrink: 0, gap: "1.5rem", justifyContent: "space-between", margin: "0 auto", maxWidth: "62ch", padding: "1.35rem 0 0.8rem", width: "100%" }}>
             <div style={{ minWidth: 0 }}>
             <div style={{ color: "var(--oh-text-strong)", fontFamily: "var(--oh-font-display)", fontSize: "var(--oh-t-lg)", fontWeight: 800, letterSpacing: "-0.03em", lineHeight: 1 }}>{activeNames}</div>
             <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)", marginTop: "0.4rem" }}>
@@ -412,7 +434,7 @@ const Correspondence = ({ nav = null }) => {
             {activeStanding ? ` · ${activeStanding.seats} ${activeStanding.seats === 1 ? "électeur" : "électeurs"}` : ""}
             </div>
             </div>
-            <div style={{ color: "var(--oh-text-dim)", flexShrink: 0, fontSize: "var(--oh-t-xs)", lineHeight: 1.5, textAlign: "right" }}>
+            <div style={{ color: "var(--oh-text-dim)", flexShrink: 1, fontSize: "var(--oh-t-xs)", lineHeight: 1.5, minWidth: 0, textAlign: "right" }}>
             {activeStanding && (
                 <div>Opinion <b style={{ color: toneVar(activeStanding.tone) }}>{activeStanding.approval > 0 ? "+" : ""}{activeStanding.approval}, {activeStanding.mood}</b></div>
             )}
@@ -461,6 +483,7 @@ const Correspondence = ({ nav = null }) => {
             </div>
             </div>
         )}
+        </div>
         </div>
         </div>
     );
