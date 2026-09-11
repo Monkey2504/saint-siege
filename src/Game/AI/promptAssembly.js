@@ -144,6 +144,20 @@ export const composeTaskSystemPrompt = (taskKey, {
     fonds.push(`[Region and City Capture — Map Truth]\nTerritorial narration and the map must never disagree. If an event's title or description says territory was captured, seized, occupied, annexed, ceded, liberated, retaken, or otherwise changed hands, that SAME event MUST carry impacts.regionTransfers entries covering every region it names or implies — a capture claim with no regionTransfers is invalid output that breaks the map. Emit one entry per affected region; when you do not know a region's exact id, put its plain name in regionId and the engine will resolve it. Resolving ${playerName}'s own ordered military operations into their territorial outcomes is REQUIRED and is never a player-agency violation: the agency rule restricts unprompted decisions, not the map consequences of offensives the player actually ordered. In an active war, sustained successful offensives normally transfer regions every jump. If nothing genuinely changed hands this period, keep capture language out of the event text.\nOn this map, territory is owned by REGIONS, and impacts.regionTransfers MUST name a region exactly as it appears in the [Game Map Description] above — never a city, town, port, or landmark. Cities such as Toulouse or Narbonne are only markers that sit INSIDE a region; a regionTransfer whose regionId is a city name matches no region and is silently discarded, so the border never moves even though the event says it did. To capture a place and the ground around it, transfer the REGION that contains it, and set fromCode to that region\u2019s current owner.\nTaking a region takes everything inside it, cities included — that is the normal case, so a city changing hands usually means transferring its whole region. To capture ONLY a city while its region stays with its current owner (a besieged holdout, an occupied port, an enclave), do NOT name it in regionTransfers; instead emit an impacts.markerOps build for it — {\"op\":\"build\",\"marker\":{\"name\":\"<city>\",\"kind\":\"city\",\"ownerCode\":\"<new holder>\",\"lng\":<lng>,\"lat\":<lat>}} — using that city\u2019s coordinates from [City Coordinates]. That places the city under the new owner without moving the region border.\nWhen a polity is conquered, annexed, partitioned, or unified OUTRIGHT — every region it still holds changing hands at once — you do not need one entry per region. Emit a SINGLE regionTransfer with "wholeCountry": true, put the losing polity's name in regionId instead of a region name, and set toCode to whoever takes it; the engine expands that into every region that polity currently owns. Use this ONLY for a total takeover of everything it holds. Any partial gain — a province, a border strip, a few regions — stays as ordinary per-region transfers, which remain the normal case.`);
   }
 
+  // Les règles de simulation, pour les tâches dont le gabarit ne les demande pas
+  // lui-même. Elles vivaient recopiées dans le résumé de la carte, d'où six
+  // gabarits sur douze les recevaient une SECONDE fois — deux mille cent jetons
+  // en double à chaque appel. Retirées de là, elles doivent atteindre par ici
+  // celles qui n'avaient que cette copie : `actions`, et toute tâche à venir
+  // dont le gabarit gelé ne porte pas la substitution.
+  {
+    const regles = normalizeString(variables.simulationRules);
+    const gabaritLesDemande = templateStates(template, "${HISTORICAL_PRESET_SIMULATION_RULES}");
+    if (regles && !gabaritLesDemande && ["actions", "jumpForward", "autoJumpForward", "catalystCreation", "catalystExecutor", "descriptionToAction", "gameMaster"].includes(taskKey)) {
+      fonds.push(`[Règles de simulation]\n${regles}`);
+    }
+  }
+
   // Polities are identified by their full country name EVERYWHERE. A model that
   // answers "ESP" gets canonicalised on ingest, but it also then reasons about "ESP"
   // and "Spain" as if they were two powers, so state the rule rather than only
