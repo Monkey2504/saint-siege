@@ -31,7 +31,20 @@ const POIDS_MAX = 500 * 1024;
 
 /* ------------------------------------------------------------------ gestes */
 
+const FICHIER_PARTIE = 'design/fixtures/partie-jouee.json';
+const partieJouee = fs.existsSync(FICHIER_PARTIE)
+  ? JSON.parse(fs.readFileSync(FICHIER_PARTIE, 'utf8'))
+  : null;
+
 const bouton = (page, nom) => page.getByRole('button', { name: nom }).first();
+
+/** Clique si le bouton est là, ne dit rien s'il n'y est pas. */
+const siPresent = async (page, nom, repos = 2500) => {
+  const b = bouton(page, nom);
+  if (!(await b.count()) || !(await b.isVisible().catch(() => false))) return false;
+  await cliquer(page, nom, repos);
+  return true;
+};
 
 /**
  * Clique un bouton, puis laisse l'écran suivant se poser.
@@ -57,14 +70,58 @@ const cliquer = async (page, nom, repos = 2500) => {
  * est injoignable et qu'il faut attendre le repli sur l'origine. On attend donc
  * l'activation du bouton, jamais un délai fixe. La modale de démo suit.
  */
-const franchirLePortail = async (page) => {
-  await page.waitForFunction(() => {
-    const b = [...document.querySelectorAll('button')].find(x => /Enter Open Historia/i.test(x.textContent || ''));
-    return b && !b.disabled;
-  }, { timeout: 90000 });
+const franchirLePortail = async (page, { obligatoire = true } = {}) => {
+  try {
+    await page.waitForFunction(() => {
+      const b = [...document.querySelectorAll('button')].find(x => /Enter Open Historia/i.test(x.textContent || ''));
+      return b && !b.disabled;
+    }, { timeout: obligatoire ? 90000 : 8000 });
+  } catch (e) {
+    if (obligatoire) throw e;
+    return; // la porte a déjà été franchie : il n'y a rien à franchir.
+  }
   await cliquer(page, /Enter Open Historia/i, 1500);
   const demo = bouton(page, /Play the demo anyway/i);
   if (await demo.count() && await demo.isVisible()) await cliquer(page, /Play the demo anyway/i, 2000);
+};
+
+/**
+ * Charge la partie de démonstration dans le magasin du navigateur.
+ *
+ * Sans elle, le parcours capture un tour 1 : aucune caisse ouverte, aucune
+ * lettre reçue, aucun ordre jugé, aucune ligne au registre. Ce sont des états
+ * réels, mais ils ne montrent AUCUN des composants qui portent le contenu — et
+ * deux audits de design ont ainsi validé des pages qui ne montraient rien.
+ *
+ * En mode web, `window.fetch` est détourné et l'état vient d'IndexedDB : écrire
+ * la partie, c'est donc faire dans la page les mêmes PUT que le jeu ferait.
+ * Rien n'est contourné, on emprunte le chemin de sauvegarde du jeu lui-même.
+ *
+ * La partie est produite par scripts/partie-de-demonstration.mjs, qui la fait
+ * écrire au moteur plutôt qu'à la main.
+ */
+const chargerLaPartie = async (page, partie) => {
+  const ecrit = await page.evaluate(async (p) => {
+    const put = async (nom, valeur) => {
+      const r = await fetch(`/api/runtime/json/${nom}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(valeur),
+      });
+      return `${nom}:${r.status}`;
+    };
+    return [
+      await put('world', p.world),
+      await put('game', p.game),
+      await put('actions', p.actions),
+      await put('chat', p.chat),
+      await put('events', p.events),
+    ];
+  }, partie);
+  const refuses = ecrit.filter((e) => !/:2\d\d$/.test(e));
+  if (refuses.length) throw new Error(`la partie n'a pas pu être écrite : ${refuses.join(', ')}`);
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await page.waitForTimeout(4000);
 };
 
 /**
@@ -81,6 +138,26 @@ const signerLePontificat = async (page) => {
   await cliquer(page, /Signer et commencer le pontificat/i, 6000);
 };
 
+/**
+ * Charge la partie jouée, puis refait le chemin de la porte jusqu'à l'édition.
+ *
+ * Sans partie de démonstration dans le dépôt, on ne charge rien et le parcours
+ * continue sur le monde neuf : la capture montre alors les états vides, ce qui
+ * est un rendu honnête de ce cas — mais l'INDEX doit le dire, et il le dit.
+ */
+const reprendreSurLaPartieJouee = async (page) => {
+  if (!partieJouee) throw new Error(`aucune partie de démonstration (${FICHIER_PARTIE}) — lancez d'abord node scripts/partie-de-demonstration.mjs`);
+  await chargerLaPartie(page, partieJouee);
+
+  // Le rechargement ne repasse pas forcément par la porte du site : elle n'est
+  // montrée qu'une fois. Chaque écran de ce chemin est donc franchi s'il est
+  // là, et sauté s'il ne l'est pas — un parcours qui EXIGE un écran facultatif
+  // échoue sur l'écran, pas sur le jeu.
+  await franchirLePortail(page, { obligatoire: false });
+  await siPresent(page, /Passer — regarder autour/i, 3000);
+  await siPresent(page, /Reprendre votre partie/i, 5000);
+};
+
 /* ---------------------------------------------------------------- parcours */
 
 /**
@@ -89,15 +166,19 @@ const signerLePontificat = async (page) => {
  * de le rendre visible à une session qui n'a pas de navigateur.
  */
 const PARCOURS = [
-  // L'accueil du site, puis la porte du jeu. « Reprendre votre partie » ne passe
-  // plus par la bibliothèque — celle-ci est dans le menu ⋮ depuis qu'elle a
-  // cessé d'être la porte d'entrée — et mène droit à la feuille d'investiture.
+  // D'abord la porte et la première page de jeu, sur un monde neuf : HABEMUS
+  // PAPAM ne paraît QUE tant que le pontificat n'est pas signé, et la partie de
+  // démonstration l'est. Il faut donc le prendre avant de la charger.
   { fichier: '01-portail' },
   { fichier: '02-cle-api',           faire: franchirLePortail },
   { fichier: '03-accueil',           faire: p => cliquer(p, /Passer — regarder autour/i, 3000) },
   { fichier: '04-habemus-papam',     faire: p => cliquer(p, /Reprendre votre partie/i, 4000) },
-  {                                  faire: signerLePontificat },
-  { fichier: '05-edition-du-tour',   faire: p => cliquer(p, /^Édition du tour$/i) },
+
+  // Puis la partie jouée, et le même chemin une seconde fois : l'écriture
+  // recharge la page, donc il faut repasser la porte.
+  {                                  faire: reprendreSurLaPartieJouee },
+
+  { fichier: '05-edition-du-tour' },
   { fichier: '06-ordres',            faire: p => cliquer(p, /^Ordres$/i) },
   { fichier: '07-registre',          faire: p => cliquer(p, /^Registre$/i) },
   { fichier: '08-college',           faire: p => cliquer(p, /^Collège$/i) },
