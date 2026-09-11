@@ -176,6 +176,31 @@ export const churchBodies = (availableCountries = []) => {
       charter: "Créé par François en 2014 avec la Secrétairerie pour l'Économie (cardinal Pell) et le Réviseur général pour soumettre APSA, IOR et Secrétairerie d'État à un contrôle unique. Les comptes 2024 : revenus 1,23 milliard d'euros (43 % dons, 40 % immobilier et commerce), déficit structurel ramené de 83,5 à 44,5 millions, Denier de Saint-Pierre 57,6 millions de recettes contre 59,8 de dépenses (63 % apportés par les diocèses). Le déficit de pension reste hors bilan.",
       members: [HOLY_SEE, FINANCE, OLD_GUARD],
     },
+    // Trois fronts sur six n'avaient personne. François : « aucun chantier ne
+    // surveille les abus, les vocations ni la paix, alors que les six fronts
+    // les mesurent, je ne comprends pas. » Il n'y avait rien à comprendre :
+    // quatre contre-pouvoirs gardaient la doctrine, la Curie, l'argent et les
+    // prélatures, et un pape qui agissait sur les abus, les vocations ou la
+    // paix déplaçait les chiffres du moteur sans que personne dans l'Église ne
+    // réagisse. Voici les trois corps qui manquaient.
+    {
+      name: "Commission pour la protection des mineurs", kind: "political", founded: "2014-03-22", seat: "Vatican",
+      leader: HOLY_SEE, votingRule: "hegemon", universal: false,
+      charter: "Créée par François en 2014, rattachée au Dicastère pour la Doctrine de la Foi par Praedicate Evangelium (2022). Elle publie depuis 2024 un rapport annuel sur la façon dont les Églises locales traitent les signalements. La norme de procédure est Vos estis lux mundi (2019, révisé 2023) : tout clerc doit signaler, et l'évêque qui étouffe répond lui aussi. Ce que la Commission n'a pas : le pouvoir de sanctionner. Elle constate, elle publie, elle recommande — et ce qu'elle publie devient public.",
+      members: [HOLY_SEE],
+    },
+    {
+      name: "Dicastère pour le Clergé", kind: "political", founded: "1564-08-02", seat: "Vatican",
+      leader: HOLY_SEE, votingRule: "hegemon", universal: false,
+      charter: "Il tient les prêtres et les séminaires : 406 996 prêtres et 106 495 séminaristes (Annuario 2025), une courbe qui monte en Afrique et en Asie et descend partout ailleurs. La formation est réglée par la Ratio Fundamentalis (2016). Un séminaire se remplit en une génération et se vide en une génération : ce dicastère est le seul organe de la Curie dont les décisions ne se mesurent qu'à vingt ans.",
+      members: [HOLY_SEE],
+    },
+    {
+      name: "Section pour les relations avec les États", kind: "political", founded: "1988-06-28", seat: "Vatican",
+      leader: HOLY_SEE, votingRule: "hegemon", universal: false,
+      charter: "La diplomatie du Saint-Siège : relations avec quelque 180 États, observateur permanent à l'ONU, un réseau de nonciatures qui est le plus ancien corps diplomatique du monde. Elle n'a ni armée ni sanctions — son seul instrument est d'être reçue partout, y compris là où personne d'autre ne l'est. L'accord provisoire avec Pékin sur la nomination des évêques (2018, renouvelé depuis) est ce que cet instrument permet, et ce qu'il coûte.",
+      members: [HOLY_SEE],
+    },
     {
       name: "IOR — Institut pour les Œuvres de Religion", kind: "monetary", founded: "1942-06-27", seat: "Vatican",
       leader: FINANCE, votingRule: "weighted", universal: false,
@@ -237,6 +262,29 @@ export const seededIntents = (date = "") => [
   { ownerType: "organization", owner: "Curie romaine", target: HOLY_SEE, kind: "political", secret: false, stage: 40, stance: "supportive", scope: [],
     summary: "Exécuter les ordres du pape : les seize dicastères et leurs 4 000 employés instruisent, rédigent et promulguent ce que le pape décide, l'inertie ralentissant sans jamais annuler l'autorité.",
     triggerHint: "chaque ordre donné à la Curie ; chaque dicastère saisi d'un dossier" },
+
+  // Les trois fronts que le moteur mesurait sans que personne les poursuive.
+  // Aucun de ces trois n'est « pour » ou « contre » le pape : chacun poursuit
+  // une chose, et ce que le pape dit ou fait décide s'il l'y aide ou l'en
+  // empêche. C'est la règle que François a dû redire plusieurs fois.
+  { ownerType: "organization", owner: "Commission pour la protection des mineurs", target: HOLY_SEE, kind: "political", secret: false, stage: 20, stance: "neutral",
+    scope: ["abus", "abuse", "mineur", "minor", "pédocrim", "pedocrim", "safeguard", "protection", "victime", "victim", "signalement", "report", "vos estis", "sanction", "laïcis", "laicis", "défroqu", "prescription",
+      "enquête", "enquete", "investigation", "archive", "dossier", "transparen", "publier", "publish", "étouff", "etouff", "cover-up", "silence", "évêque", "eveque", "bishop", "canonique", "canon", "tribunal", "commission"],
+    summary: "Obtenir que chaque Église locale publie ce qu'elle fait de ses signalements, et que la sanction d'un évêque qui a couvert soit rendue publique comme celle du clerc qu'il a couvert.",
+    triggerHint: "un rapport annuel qui nomme une conférence épiscopale ; une plainte qu'un diocèse n'a pas transmise ; une nomination contestée" },
+
+  { ownerType: "organization", owner: "Dicastère pour le Clergé", target: HOLY_SEE, kind: "political", secret: false, stage: 25, stance: "neutral",
+    scope: ["vocation", "séminaire", "seminaire", "seminary", "séminariste", "seminarian", "formation", "ordination", "ordonner", "ordain", "prêtre", "pretre", "priest", "clergé", "clergy", "curé", "cure ", "paroisse", "parish",
+      "célibat", "celibacy", "diacre", "diacon", "deacon", "recrutement", "religieux", "religious", "consacré", "novice", "noviciat", "vieilliss", "relève", "releve"],
+    summary: "Remplir les séminaires là où ils se vident : obtenir du pape ce qu'il faut — formation, conditions, statut — avant qu'une génération de prêtres parte sans être remplacée.",
+    triggerHint: "une décision sur le célibat ou la formation ; une fermeture de séminaire ; un diocèse qui n'ordonne plus personne" },
+
+  { ownerType: "organization", owner: "Section pour les relations avec les États", target: HOLY_SEE, kind: "diplomatic", secret: false, stage: 30, stance: "supportive",
+    scope: ["paix", "peace", "guerre", "war", "conflit", "conflict", "médiation", "mediation", "négoci", "negoci", "diplomat", "nonciature", "nonce", "nuncio", "ambassad", "traité", "traite ", "treaty", "accord", "concordat",
+      "onu", "nations unies", "united nations", "réfugié", "refugie", "refugee", "migrant", "migration", "désarmement", "disarm", "arme", "weapon", "nucléaire", "nuclear", "cessez-le-feu", "ceasefire", "trêve", "treve", "otage", "hostage",
+      "ukraine", "russie", "russia", "gaza", "israël", "israel", "palestin", "chine", "china", "pékin", "pekin"],
+    summary: "Garder le Saint-Siège reçu partout, y compris là où personne d'autre ne l'est : préserver les canaux ouverts avec les capitales qui comptent, et les offrir au pape le jour où une médiation devient possible.",
+    triggerHint: "une prise de parole du pape sur un conflit en cours ; un renouvellement d'accord ; une nonciature rappelée" },
 ].map((it) => ({ ...it, createdAt: date, updatedAt: date }));
 
 // ---- the real money ------------------------------------------------------------------------
