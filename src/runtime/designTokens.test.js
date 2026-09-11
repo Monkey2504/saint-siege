@@ -247,3 +247,23 @@ test("on-accent sits only on an accent or alert ground", () => {
   }
   assert.deepEqual(offenders, [], `on-accent off the accent:\n${offenders.join("\n")}`);
 });
+
+// La fuite d'audience, et la carte de partage de quelqu'un d'autre.
+//
+// index.html chargeait G-H9EQ4JFZXZ : la propriété Google Analytics DE L'AMONT,
+// héritée du fork. Chaque visiteur de ce jeu était compté dans le compte d'un
+// tiers, que personne ici ne peut ni lire ni effacer. Et la carte de partage —
+// ce qu'on voit quand on colle le lien — annonçait « Open Historia · An open
+// source alternative to Pax Historia », avec une image tirée du dépôt de
+// l'amont. Ce test garde les deux, hors commentaires : un bloc commenté qui
+// explique comment remettre SON propre identifiant reste permis.
+test("aucun tiers ne mesure ce jeu, et la carte de partage est la sienne", () => {
+  const brut = fs.readFileSync(path.resolve(SRC, "..", "index.html"), "utf8");
+  const actif = brut.replace(/<!--[\s\S]*?-->/g, "");
+
+  assert.ok(!/googletagmanager|gtag\(/.test(actif), "aucune balise de mesure active dans index.html");
+  for (const amont of ["Pax Historia", "Open-Historia", "Open Historia"]) {
+    assert.ok(!actif.includes(amont), `la carte de partage ne nomme plus l'amont (${amont})`);
+  }
+  assert.match(actif, /og:title" content="Saint-Siège"/, "elle porte le nom de ce jeu");
+});

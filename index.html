@@ -7,15 +7,25 @@
          réécrit les nœuds de texte sous React, qui ne retrouve plus les siens et
          fait tomber la page entière sur « removeChild ». Rien à traduire ici. -->
     <meta name="google" content="notranslate" />
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-H9EQ4JFZXZ"></script>
+    <!-- Mesure d'audience.
+
+         Ce fichier chargeait G-H9EQ4JFZXZ : la propriété Google Analytics DE
+         L'AMONT, héritée du fork. Chaque visiteur de ce jeu était donc compté
+         dans le compte de quelqu'un d'autre, sans que personne ici puisse ni
+         lire ces chiffres ni les effacer. C'était une fuite, pas un réglage.
+
+         Il est retiré. Pour remettre le vôtre, décommentez ces deux blocs et
+         remplacez G-XXXXXXXXXX par votre identifiant de mesure — il se lit dans
+         Google Analytics, Admin › Flux de données › votre flux web.
+
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
-
-      gtag('config', 'G-H9EQ4JFZXZ');
+      gtag('config', 'G-XXXXXXXXXX');
     </script>
+    -->
     <link rel="icon" type="image/svg+xml" href="/keys.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <meta name="theme-color" content="#0b1020" />
@@ -24,26 +34,26 @@
     <title>Saint-Siège</title>
 
     <!-- Primary Meta -->
-    <meta name="description" content="An open source alternative to Pax Historia." />
+    <meta name="description" content="Vous êtes le pape. Pas d'armée, un demi-kilomètre carré, un milliard et demi de baptisés. Une édition par tour, le collège vote, les comptes ne mentent pas." />
 
     <!-- Open graph — the share card for /play/ (and the local install). Deliberately
          NO canonical and NO structured data here: this file is the game entry, which
          the website serves at /play/, so it must not claim to be the homepage. The
          homepage's own meta + JSON-LD live in site/index.html. -->
     <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="Open Historia" />
-    <meta property="og:title" content="Open Historia" />
-    <meta property="og:description" content="An open source alternative to Pax Historia." />
-    <meta property="og:image" content="https://raw.githubusercontent.com/Open-Historia/open-historia/main/public/loading_screen.jpg" />
+    <meta property="og:site_name" content="Saint-Siège" />
+    <meta property="og:title" content="Saint-Siège" />
+    <meta property="og:description" content="Vous êtes le pape. Une édition par tour, le collège vote, les comptes ne mentent pas." />
+    <meta property="og:image" content="https://raw.githubusercontent.com/Monkey2504/saint-siege/main/public/vatican.jpg" />
     <meta property="og:image:type" content="image/jpeg" />
     <meta property="og:image:width" content="1280" />
     <meta property="og:image:height" content="720" />
 
     <!-- Twitter card -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Open Historia" />
-    <meta name="twitter:description" content="An open source alternative to Pax Historia." />
-    <meta name="twitter:image" content="https://raw.githubusercontent.com/Open-Historia/open-historia/main/public/loading_screen.jpg" />
+    <meta name="twitter:title" content="Saint-Siège" />
+    <meta name="twitter:description" content="Vous êtes le pape. Une édition par tour, le collège vote, les comptes ne mentent pas." />
+    <meta name="twitter:image" content="https://raw.githubusercontent.com/Monkey2504/saint-siege/main/public/vatican.jpg" />
   </head>
   <body>
     <div id="root"></div>
