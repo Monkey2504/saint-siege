@@ -235,6 +235,59 @@ const Story = ({ event, lead = false, tone }) =>
 const STANCE_LABEL = { hostile: "contre", supportive: "pour", rival: "rivale", neutral: "réservée" };
 const str = (v) => String(v ?? "").trim();
 
+/**
+ * « Ce que cela change », d'après runtime/inauguration.js et rien d'autre.
+ *
+ * La première version de cet encadré disait « N chantiers répondent à ce qui a
+ * été déclaré », et le joueur a écrit « tous à poil » pour s'en voir répondre
+ * que la Compagnie de Jésus était pour. Il avait raison de crier : le moteur ne
+ * calcule pas cela. `reactionsToDeclaration` retient un chantier de deux façons
+ * — parce que le texte NOMME un de ses mots de portée (`hits`), ou parce qu'il
+ * n'a aucune portée déclarée et suit alors tout ce que fait le Saint-Siège. Et
+ * `stance` est sa position debout, acquise avant le conclave, jamais son avis
+ * sur le programme.
+ *
+ * L'encadré ne nomme donc que les chantiers réellement nommés, avec le mot qui
+ * les a accrochés. Quand il n'y en a aucun, il le dit — c'est un renseignement
+ * utile : ce qui vient d'être déclaré n'accroche rien de ce que le monde tient.
+ */
+const CeQueCelaChange = ({ reactions }) => {
+    const nommes = reactions.filter((r) => Array.isArray(r.hits) && r.hits.length > 0);
+    const veilleurs = reactions.length - nommes.length;
+    const suite = veilleurs > 0
+        ? (veilleurs === 1
+            ? " Un corps qui suit tout ce que fait le Saint-Siège répondra de toute façon, sur ce que vous êtes et non sur ce que vous avez dit."
+            : ` ${veilleurs} corps qui suivent tout ce que fait le Saint-Siège répondront de toute façon, sur ce que vous êtes et non sur ce que vous avez dit.`)
+        : "";
+
+    if (nommes.length === 0) {
+        return (
+        <>
+        Rien de ce qui a été déclaré ne recoupe un chantier en cours : aucun des mots
+        employés n&apos;est un de ceux que ces corps surveillent.{suite}
+        </>
+        );
+    }
+
+    return (
+    <>
+    {nommes.length === 1
+        ? "Un chantier en cours porte sur ce que vous avez nommé, avec la position qu'il tenait déjà : "
+        : `${nommes.length} chantiers en cours portent sur ce que vous avez nommé, avec la position qu'ils tenaient déjà : `}
+    {nommes.map((r, i) => (
+        <span key={`${r.owner}-${i}`}>
+        {i > 0 ? ", " : ""}
+        <b style={{ color: "var(--oh-text-strong)" }}>{r.owner}</b>
+        {` (« ${r.hits.join(" », « ")} »`}
+        {STANCE_LABEL[String(r.stance || "").toLowerCase()] ? `, ${STANCE_LABEL[String(r.stance).toLowerCase()]}` : ""}
+        {")"}
+        </span>
+    ))}
+    . {nommes.length === 1 ? "Sa réponse tombera" : "Leur réponse tombera"} dans la prochaine édition.{suite}
+    </>
+    );
+};
+
 const Situation = ({ briefing, date, world, awaitingInauguration }) => {
     const inauguration = world?.inauguration;
     const nom = str(inauguration?.name);
@@ -266,21 +319,7 @@ const Situation = ({ briefing, date, world, awaitingInauguration }) => {
     titre={elu ? `${nom} a été élu sur ce programme` : "Ce que le nouveau pape trouve en arrivant"}
     chapo={elu ? `«\u00a0${declaration}\u00a0»` : null}
     sujet={elu ? "basilique" : ""}
-    encadre={elu && reactions.length > 0 ? (
-        <>
-        {reactions.length === 1
-            ? "Un chantier déjà en cours répond à ce qui a été déclaré : "
-            : `${reactions.length} chantiers déjà en cours répondent à ce qui a été déclaré : `}
-        {reactions.map((r, i) => (
-            <span key={`${r.owner}-${i}`}>
-            {i > 0 ? ", " : ""}
-            <b style={{ color: "var(--oh-text-strong)" }}>{r.owner}</b>
-            {STANCE_LABEL[String(r.stance || "").toLowerCase()] ? ` (${STANCE_LABEL[String(r.stance).toLowerCase()]})` : ""}
-            </span>
-        ))}
-        . Leur réponse tombera dans la prochaine édition.
-        </>
-    ) : null}
+    encadre={elu ? <CeQueCelaChange reactions={reactions} /> : null}
     >
     {texte}
     </ArticleDeUne>
