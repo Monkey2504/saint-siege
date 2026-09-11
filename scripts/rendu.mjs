@@ -238,8 +238,23 @@ const ctx = await nav.newContext({ viewport: { width: LARGEUR, height: HAUTEUR }
 const page = await ctx.newPage();
 const erreurs = [];
 page.on('pageerror', e => erreurs.push('page : ' + String(e).slice(0, 200)));
+// Trois hôtes échouent TOUJOURS ici, et ce n'est pas un défaut de la page : la
+// capture tourne sans accès internet. Les relever comme des anomalies envoyait
+// un lecteur futur chasser un problème qui n'existe pas — pire, le tentait de
+// « corriger » une mesure d'audience volontaire. Ils sont nommés à part.
+const HORS_LIGNE = new Map([
+  ['www.googletagmanager.com', "la mesure d'audience du jeu (index.html)"],
+  ['open-historia-registry.nichojkrol.workers.dev', 'le registre des nœuds de carte, sollicité à la première tuile'],
+  ['api.github.com', 'le hub communautaire, qui liste des scénarios'],
+]);
+const attendus = [];
 page.on('requestfailed', r => {
   const h = (() => { try { return new URL(r.url()).host; } catch { return r.url(); } })();
+  if (HORS_LIGNE.has(h)) {
+    const ligne = `${h} — ${HORS_LIGNE.get(h)}`;
+    if (!attendus.includes(ligne)) attendus.push(ligne);
+    return;
+  }
   if (!erreurs.includes('réseau : ' + h)) erreurs.push('réseau : ' + h);
 });
 
@@ -316,6 +331,9 @@ const index = [
     : "Toutes les polices annoncées par les tokens sont réellement dessinées ici.",
   '',
   erreurs.length ? '## Anomalies relevées pendant la capture\n\n' + erreurs.slice(0,12).map(e => '- ' + e).join('\n') + '\n' : '',
+  attendus.length
+    ? '## Appels sortants, sans effet ici\n\nCette capture tourne sans accès internet : ces requêtes échouent toujours, et\nce n\'est pas un défaut de la page.\n\n' + attendus.map(e => '- ' + e).join('\n') + '\n'
+    : '',
 ].join('\n');
 fs.writeFileSync(path.join(DOSSIER, 'INDEX.md'), index + '\n');
 console.log(index);
