@@ -37,9 +37,12 @@
   --oh-font-body: "Archivo", "Segoe UI", system-ui, sans-serif;
   --oh-font-label: "Archivo", "Segoe UI", system-ui, sans-serif;
   --oh-font-data: "Archivo", "Segoe UI", system-ui, sans-serif;
-  /* The reading face. Not a room's face: a role's. Anything written to be read
-     as prose — a letter, a written analysis, the body of an article — is set in
-     it; everything that labels, counts or commands stays in Archivo. */
+  /* La face de lecture, et son emploi exact — le commentaire d'avant était plus
+     large que l'intention et m'avait fait passer le corps des articles au
+     serif, que le brief du 11 septembre a corrigé. Newsreader porte les TITRES,
+     les CHAPÔS, les LETTRES et les ÉTATS VIDES. Le texte de labeur — le corps
+     d'un article, une analyse, un tableau, tout ce qui étiquette, compte ou
+     commande — reste en Archivo. */
   --oh-font-serif: "Newsreader", Georgia, "Iowan Old Style", "Times New Roman", serif;
   --oh-label-case: uppercase;
   --oh-label-track: 0.02em;
@@ -58,16 +61,16 @@
   /* Les deux marches d'affichage. Elles ne sont pas inventées ici : la session
      de design a posé 1 → 1.42 → 2, c'est-à-dire √2 deux fois ; on prolonge le
      même pas, 2.83 puis 4. Le nom du journal fait alors quatre fois le corps du
-     texte, le rapport de la maquette. Proposées à design/tokens.json —
-     voir design/ECHELLE.md. En attendant elles vivent ici, ce qui vaut
-     toujours mieux que les sept clamp() qu'elles remplacent, chacun inventé à
-     son point d'usage. */
+     texte, le rapport de la maquette. Proposées dans design/ECHELLE.md,
+     validées par le brief du 11 septembre et descendues depuis
+     design/tokens.json : `3xl` une fois par page, `2xl` une fois. */
   --oh-t-2xl: clamp(1.9rem, 3.4vw, 2.83rem);
   --oh-t-3xl: clamp(2.3rem, 5.4vw, 4rem);
   /* ---- trois filets, et pas un de plus ---- */
   /* Un journal se lit d'abord à ses filets. Trois graisses, chacune un sens :
      séparer, fermer, ouvrir. Une quatrième épaisseur serait un filet qui ne
-     dit rien. Proposées elles aussi à design/tokens.json. */
+     dit rien — le brief demandait 4 px pour le verdict « par habitude » et a
+     tranché pour les 3 px de `fort`. Validées, et descendues des tokens. */
   --oh-filet: 1px;          /* sépare : colonnes, lignes, articles */
   --oh-filet-fort: 3px;     /* ferme : tête et fin de section, marque active */
   --oh-filet-manchette: 6px; /* ouvre la page : une seule fois par écran */

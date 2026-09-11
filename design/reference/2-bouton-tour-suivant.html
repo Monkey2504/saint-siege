@@ -1,0 +1,33 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>« Tour suivant » — les trois états du bouton</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Archivo:wght@400;500;600;700;800&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400;1,6..72,500&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#e9e4d6;font-family:Archivo,system-ui,sans-serif;color:#2a2d33;padding:28px}
+.brief{max-width:1180px;margin:0 auto 22px;border-top:4px solid #14161a;padding-top:10px}
+.brief h1{font:800 26px/1.05 'Bricolage Grotesque',sans-serif;letter-spacing:-.03em;color:#14161a;margin:0 0 10px}
+.brief .row{display:grid;grid-template-columns:150px minmax(0,1fr);gap:6px 18px;font-size:13px;line-height:1.5;border-top:1px solid #14161a;padding:8px 0}
+.brief .k{font-weight:700;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:#4f535b;padding-top:2px}
+.brief code{font-family:'IBM Plex Mono',monospace;font-size:12.5px;background:#e0dac9;padding:1px 5px}
+.brief ul{margin:0;padding-left:18px}
+.brief li{margin-bottom:3px}
+.dv-olabel{display:none}
+.dv-card{border:1px solid #14161a;margin:0 auto;box-sizing:border-box}
+.dv-opt{max-width:1180px;margin:0 auto}
+</style>
+<div class="brief">
+  <h1>« Tour suivant » — les trois états du bouton</h1>
+  <div class="row"><span class="k">Écran</span><span><code>3b</code> de la propal — maquette de référence, à reproduire en React</span></div>
+  <div class="row"><span class="k">Composant</span><span><code>src/Game/GameUI/time.jsx (remplace DateWidget)</code></span></div>
+  <div class="row"><span class="k">Données à brancher</span><ul><li>date d'arrivée calculée d'après ce qui est au dossier</li><li>durée en jours</li><li>progression pendant la presse</li></ul></div>
+  <div class="row"><span class="k">Règle</span><span>Les valeurs de cette maquette sont écrites en dur : elles montrent le <b>format</b>, pas le contenu. Reprendre exactement les tailles, graisses, filets et couleurs ; brancher les données du moteur à la place des chiffres.</span></div>
+</div>
+<div class="dv-opt" id="3b">
+<div class="dv-olabel"><a class="dv-oid" href="#3b">3b</a>« Tour suivant » — les trois états du bouton, sans réglage de durée</div>
+<div class="dv-card" style="width:520px;background:#f4f0e6;color:#2a2d33;font-family:Archivo,sans-serif;padding:26px 28px;display:flex;flex-direction:column;gap:22px">
+  <div><div style="font:700 10.5px/1 Archivo,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#4f535b;margin-bottom:8px">Au repos — la date est déjà connue</div><div style="display:flex;align-items:center;background:#1f3f86;color:#fff;min-height:40px;white-space:nowrap"><div style="padding:0 16px;font:700 11.5px/1 Archivo,sans-serif;letter-spacing:.05em;text-transform:uppercase;border-right:1px solid rgba(255,255,255,.3);align-self:stretch;display:flex;align-items:center">Tour suivant</div><div style="padding:0 14px;font-size:12px;line-height:1.25"><div style="font-weight:600">→ 14 avril 2027</div><div style="font-size:10.5px;opacity:.8">30 jours · un consistoire est au dossier</div></div></div><p style="font-size:12.5px;line-height:1.5;color:#4f535b;margin:8px 0 0">Le moteur choisit la durée d'après le dossier. Une lettre seule : 7 jours. Un consistoire ou un rassemblement : jusqu'à la date prévue. Dossier vide : jusqu'au prochain événement du monde.</p></div>
+  <div><div style="font:700 10.5px/1 Archivo,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#4f535b;margin-bottom:8px">Sous presse — le bouton devient la progression</div><div style="background:#14161a;color:#f4f0e6;height:40px;position:relative;overflow:hidden;white-space:nowrap"><div style="position:absolute;inset:0 auto 0 0;width:62%;background:#1f3f86"></div><div style="position:relative;display:flex;align-items:center;justify-content:space-between;height:100%;padding:0 16px;font-size:12px"><span style="font:700 11.5px/1 Archivo,sans-serif;letter-spacing:.05em;text-transform:uppercase">Sous presse…</span><span style="font-size:11.5px">14 mars → <b>3 avril</b> → 14 avril</span><span style="font-size:10.5px;text-decoration:underline">Arrêter</span></div></div><p style="font-size:12.5px;line-height:1.5;color:#4f535b;margin:8px 0 0">La page reste lisible pendant la presse ; les cahiers se grisent. Arrêter n'annule pas ce qui est déjà écrit au registre — la page le dit.</p></div>
+  <div><div style="font:700 10.5px/1 Archivo,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#4f535b;margin-bottom:8px">Bloqué — avant l'inauguration</div><div style="display:flex;align-items:stretch;border:1px solid #14161a;color:#4f535b;min-height:40px"><div style="padding:0 16px;font:700 11.5px/1 Archivo,sans-serif;letter-spacing:.05em;text-transform:uppercase;border-right:1px solid #14161a;display:flex;align-items:center;white-space:nowrap">Tour suivant</div><div style="padding:8px 14px;font-size:12px;line-height:1.3">Les presses attendent : prenez un nom et déclarez votre programme.</div></div></div>
+</div>
+</div>

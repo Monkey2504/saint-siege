@@ -3,8 +3,9 @@ import fs from 'node:fs';
 const css = fs.readFileSync('src/theme.css','utf8');
 const m = css.match(/:root\s*\{([\s\S]*?)\n\}/);
 if(!m) throw new Error(':root introuvable');
-const groupes = { couleur:{}, typographie:{}, echelle:{}, rayon:{}, ombre:{}, autre:{} };
+const groupes = { couleur:{}, typographie:{}, echelle:{}, filet:{}, rayon:{}, ombre:{}, autre:{} };
 const classe = n => /font|label-(case|track|weight)|^--oh-t-/.test(n) ? (/^--oh-t-/.test(n)?'echelle':'typographie')
+  : /^--oh-filet/.test(n) ? 'filet'
   : /^--oh-r-|radius/.test(n) ? 'rayon' : /shadow/.test(n) ? 'ombre'
   : /ground|plate|line|text|accent|grant|caution|alert|sea|border|on-accent|sepia|parch|red/.test(n) ? 'couleur' : 'autre';
 for (const ligne of m[1].split('\n')) {
@@ -15,7 +16,7 @@ fs.writeFileSync('design/tokens.json', JSON.stringify(groupes,null,2)+'\n');
 console.log('tokens écrits :', Object.entries(groupes).map(([k,v])=>`${k}=${Object.keys(v).length}`).join(' '));
 
 // Génère aussi design/TOKENS.md : la fiche lisible par une session de design.
-const titres = { couleur:'Couleurs', typographie:'Typographie', echelle:'Échelle typographique', rayon:'Rayons', ombre:'Ombres', autre:'Autres' };
+const titres = { couleur:'Couleurs', typographie:'Typographie', echelle:'Échelle typographique', filet:'Filets', rayon:'Rayons', ombre:'Ombres', autre:'Autres' };
 const lignes = ['# Tokens de Saint-Siège','',
  'Source de vérité : `design/tokens.json`. `src/theme.css` en découle (`npm run tokens:sync`).','',
  'Toute maquette doit être dessinée avec ces valeurs, et aucune autre. Une couleur qui',

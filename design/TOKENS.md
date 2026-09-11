@@ -55,6 +55,16 @@ n'est pas dans cette liste est une couleur qui n'existe pas dans le jeu.
 | `--oh-t-md` | `1.18rem` |
 | `--oh-t-lg` | `1.42rem` |
 | `--oh-t-xl` | `2rem` |
+| `--oh-t-2xl` | `clamp(1.9rem, 3.4vw, 2.83rem)` |
+| `--oh-t-3xl` | `clamp(2.3rem, 5.4vw, 4rem)` |
+
+## Filets
+
+| Token | Valeur |
+|---|---|
+| `--oh-filet` | `1px` |
+| `--oh-filet-fort` | `3px` |
+| `--oh-filet-manchette` | `6px` |
 
 ## Rayons
 
