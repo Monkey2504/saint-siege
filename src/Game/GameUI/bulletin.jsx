@@ -115,14 +115,18 @@ const Dateline = ({ children, tone = "alert" }) => (
 const Story = ({ event, lead = false, tone }) => (
     <article style={{ borderTop: "1px solid var(--oh-line)", padding: "0.95rem 0 1.15rem" }}>
     <Dateline tone={tone}>{fmtDate(event.date, "D MMM YYYY")}</Dateline>
+    {/* Le titre est en romain, comme la maquette : c'est ce qui fait lire un
+        article de journal plutôt qu'une carte d'application. La une est posée
+        plus grande et plus serrée que les brèves — une première page range ce
+        qu'elle croit important. */}
     <h3
     style={{
         color: "var(--oh-text-strong)",
-        fontFamily: "var(--oh-font-display)",
-        fontSize: lead ? "clamp(1.7rem, 2.6vw, 2.35rem)" : "var(--oh-t-lg)",
-        fontWeight: 800,
+        fontFamily: "var(--oh-font-serif)",
+        fontSize: lead ? "clamp(1.9rem, 3vw, 2.7rem)" : "var(--oh-t-md)",
+        fontWeight: 700,
         letterSpacing: "-0.02em",
-        lineHeight: 1.02,
+        lineHeight: lead ? 0.98 : 1.12,
         margin: "0 0 0.45rem",
         textWrap: "balance",
     }}
@@ -132,7 +136,7 @@ const Story = ({ event, lead = false, tone }) => (
     {event.description && (
         <div
         className="timeline-markdown"
-        style={{ color: "var(--oh-text)", fontSize: "var(--oh-t-base)", lineHeight: 1.55, maxWidth: "62ch" }}
+        style={{ color: "var(--oh-text)", fontSize: "var(--oh-t-sm)", lineHeight: 1.5, maxWidth: "46ch" }}
         >
         <ReactMarkdown>{event.description}</ReactMarkdown>
         </div>

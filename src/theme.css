@@ -159,20 +159,24 @@ button, input, textarea, select {
   border: 1px solid rgba(0, 0, 0, 0.28);
 }
 
+/* Les titres sont en romain — c'est ce qui fait lire un article de journal
+   plutôt qu'une carte d'application. */
 .oh-entry-title {
   margin: 0 0 0.3rem;
-  font-family: var(--oh-font-display);
-  font-weight: 600;
-  font-size: var(--oh-t-lg);
-  line-height: 1.14;
+  font-family: var(--oh-font-serif);
+  font-weight: 700;
+  font-size: var(--oh-t-md);
+  line-height: 1.12;
   color: var(--oh-text-strong);
   text-wrap: balance;
 }
+/* Une colonne de journal est étroite et serrée : au-delà d'une cinquantaine de
+   signes l'œil perd sa ligne en revenant à la marge. */
 .oh-entry-body {
   font-family: var(--oh-font-body);
-  font-size: var(--oh-t-base);
-  line-height: 1.55;
-  max-width: 62ch;
+  font-size: var(--oh-t-sm);
+  line-height: 1.5;
+  max-width: 46ch;
   color: var(--oh-text);
 }
 .oh-entry-body p { margin: 0 0 0.6rem; }

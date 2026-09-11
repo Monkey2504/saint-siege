@@ -1,6 +1,6 @@
 # Rendu réel — mobile (390×844)
 
-Capturé le 2026-09-11 07:33 · commit f997ad4 · source http://localhost:4173
+Capturé le 2026-09-11 07:38 · commit c221dc0 · source http://localhost:4173
 
 Ces images sont le rendu réel du jeu dans un navigateur, pas une maquette.
 Une session sans navigateur (Claude Design) doit les lire avant de juger le graphisme.
@@ -11,7 +11,7 @@ Une session sans navigateur (Claude Design) doit les lire avant de juger le grap
 - `02-cle-api.png` — capturé, 88 Ko
 - `03-accueil.png` — capturé, 473 Ko
 - `04-bibliotheque-parties.png` — capturé, 236 Ko
-- `05-bibliotheque-scenarios.png` — capturé, 232 Ko
+- `05-bibliotheque-scenarios.png` — capturé, 231 Ko
 - `06-habemus-papam.png` — capturé, 92 Ko
 - `07-edition-du-tour.png` — capturé, 78 Ko
 - `08-ordres.png` — capturé, 45 Ko
