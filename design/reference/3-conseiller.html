@@ -1,0 +1,50 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Le Conseiller — note de cabinet</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Archivo:wght@400;500;600;700;800&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400;1,6..72,500&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#e9e4d6;font-family:Archivo,system-ui,sans-serif;color:#2a2d33;padding:28px}
+.brief{max-width:1180px;margin:0 auto 22px;border-top:4px solid #14161a;padding-top:10px}
+.brief h1{font:800 26px/1.05 'Bricolage Grotesque',sans-serif;letter-spacing:-.03em;color:#14161a;margin:0 0 10px}
+.brief .row{display:grid;grid-template-columns:150px minmax(0,1fr);gap:6px 18px;font-size:13px;line-height:1.5;border-top:1px solid #14161a;padding:8px 0}
+.brief .k{font-weight:700;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:#4f535b;padding-top:2px}
+.brief code{font-family:'IBM Plex Mono',monospace;font-size:12.5px;background:#e0dac9;padding:1px 5px}
+.brief ul{margin:0;padding-left:18px}
+.brief li{margin-bottom:3px}
+.dv-olabel{display:none}
+.dv-card{border:1px solid #14161a;margin:0 auto;box-sizing:border-box}
+.dv-opt{max-width:1180px;margin:0 auto}
+</style>
+<div class="brief">
+  <h1>Le Conseiller — note de cabinet</h1>
+  <div class="row"><span class="k">Écran</span><span><code>3c</code> de la propal — maquette de référence, à reproduire en React</span></div>
+  <div class="row"><span class="k">Composant</span><span><code>src/Game/GameUI/advisor.jsx (page pleine, plus un tiroir)</code></span></div>
+  <div class="row"><span class="k">Données à brancher</span><ul><li>nom et charge du secrétaire particulier</li><li>situation en 3 points, chacun titré et chiffré</li><li>ordres proposés + action VERSER / OUVRIR</li><li>réponse à la question + liste des sources</li></ul></div>
+  <div class="row"><span class="k">Règle</span><span>Les valeurs de cette maquette sont écrites en dur : elles montrent le <b>format</b>, pas le contenu. Reprendre exactement les tailles, graisses, filets et couleurs ; brancher les données du moteur à la place des chiffres.</span></div>
+</div>
+<div class="dv-opt" id="3c">
+<div class="dv-olabel"><a class="dv-oid" href="#3c">3c</a>Le Conseiller — une note de cabinet : la situation en trois points, des ordres à verser, une question</div>
+<div class="dv-card" style="width:1180px;background:#f4f0e6;color:#2a2d33;font-family:Archivo,sans-serif">
+  <div style="display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:16px;padding:0 24px;height:56px;white-space:nowrap;border-bottom:1px solid #14161a">
+    <div style="display:flex;align-items:center;gap:12px"><img src="public/logo.png" alt="" style="width:26px;height:26px;object-fit:contain;mix-blend-mode:multiply"><span style="font:800 20px/1 'Bricolage Grotesque',sans-serif;letter-spacing:-.035em;color:#14161a">Saint-Siège</span><span style="font-size:11.5px;color:#4f535b;border-left:1px solid #14161a;padding-left:12px">14 mars 2027</span></div>
+    <div style="display:flex;gap:2px;font:700 11px/1 Archivo,sans-serif;letter-spacing:.03em;text-transform:uppercase;justify-content:center"><span style="padding:10px 11px;color:#14161a">Édition du jour</span><span style="padding:10px 11px;color:#14161a">Lettres <span style="display:inline-block;background:#b8291d;color:#fff;font-size:9.5px;padding:2px 5px;margin-left:4px;vertical-align:1px">3</span></span><span style="padding:10px 11px;color:#14161a">Collège</span><span style="background:#14161a;color:#f4f0e6;padding:10px 11px">Conseiller</span><span style="padding:10px 11px;color:#14161a">Finances</span></div>
+    <div style="display:flex;align-items:center;background:#1f3f86;color:#fff;height:40px"><div style="padding:0 16px;font:700 11.5px/1 Archivo,sans-serif;letter-spacing:.05em;text-transform:uppercase;border-right:1px solid rgba(255,255,255,.3);height:100%;display:flex;align-items:center">Tour suivant</div><div style="padding:0 14px;font-size:12px;font-weight:600">→ 14 avril 2027 <span style="font-weight:400;opacity:.8;font-size:11px">· 30 j</span></div></div>
+  </div>
+  <div style="display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:0 36px;padding:26px 36px 36px">
+    <div style="border-right:1px solid #14161a;padding-right:36px">
+      <div style="display:flex;justify-content:space-between;align-items:end;border-bottom:4px solid #14161a;padding-bottom:8px"><div><div style="font:700 11px/1 Archivo,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#4f535b">Note de cabinet · n° 14</div><div style="font:800 40px/.95 'Bricolage Grotesque',sans-serif;letter-spacing:-.04em;color:#14161a;margin-top:6px">Le Conseiller</div></div><div style="text-align:right;font-size:11.5px;color:#4f535b;line-height:1.5;white-space:nowrap">Mgr Aurelio Vance, secrétaire particulier<br>lit le même registre que vous</div></div>
+      <div style="font:700 10.5px/1 Archivo,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#1f3f86;margin-top:18px">La situation, en trois points</div>
+      <ol style="margin:10px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:12px">
+        <li style="display:grid;grid-template-columns:36px 1fr;gap:10px;border-top:1px solid #14161a;padding-top:10px"><span style="font:800 26px/1 'Bricolage Grotesque',sans-serif;color:#14161a;letter-spacing:-.03em">1</span><div><div style="font:700 17px/1.2 Newsreader,serif;color:#14161a">Vous n'avez pas les voix, mais vous savez où elles sont.</div><p style="font-size:14px;line-height:1.5;margin:6px 0 0">62 vous suivent, il en faut 81. Bertoni en apporte 19 — exactement le compte — à condition que la caisse curiale ne paie pas la session. Okoye ne s'assiéra pas ; inutile de le courtiser ce tour-ci.</p></div></li>
+        <li style="display:grid;grid-template-columns:36px 1fr;gap:10px;border-top:1px solid #14161a;padding-top:10px"><span style="font:800 26px/1 'Bricolage Grotesque',sans-serif;color:#14161a;letter-spacing:-.03em">2</span><div><div style="font:700 17px/1.2 Newsreader,serif;color:#14161a">La caisse curiale est à sec, le Denier ne l'est pas.</div><p style="font-size:14px;line-height:1.5;margin:6px 0 0">1,4 M$ en main contre 2,1 M$ de session. Le Denier a 47,1 M$ et recule : un virement de 2,1 M$ se justifie, un virement de 20 se remarquerait.</p></div></li>
+        <li style="display:grid;grid-template-columns:36px 1fr;gap:10px;border-top:1px solid #14161a;padding-top:10px"><span style="font:800 26px/1 'Bricolage Grotesque',sans-serif;color:#14161a;letter-spacing:-.03em">3</span><div><div style="font:700 17px/1.2 Newsreader,serif;color:#14161a">Manille a rapporté ; Kinshasa coûtera d'abord.</div><p style="font-size:14px;line-height:1.5;margin:6px 0 0">9,4 M$ budgétés pour le 2 mai, aucune recette avant le jour même. Si le consistoire passe, les deux dépenses tombent le même mois.</p></div></li>
+      </ol>
+      <div style="font:700 10.5px/1 Archivo,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#1f3f86;margin-top:24px;border-bottom:4px solid #14161a;padding-bottom:6px">Ordres proposés — à verser au dossier d'un geste</div>
+      <div style="display:flex;flex-direction:column">
+        <div style="display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center;border-bottom:1px solid #14161a;padding:12px 0"><div><div style="font:700 16px/1.2 Newsreader,serif;color:#14161a">Virer 2,1 M$ du Denier à la caisse curiale, affectés à la session</div><div style="font-size:12.5px;color:#4f535b;margin-top:4px">Lève la réserve « Budget » de l'ordre 14-03. Le registre portera une ligne.</div></div><span style="background:#1f3f86;color:#fff;font:700 10.5px/1 Archivo,sans-serif;letter-spacing:.04em;text-transform:uppercase;padding:10px 12px;white-space:nowrap">Verser</span></div>
+        <div style="display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center;border-bottom:1px solid #14161a;padding:12px 0"><div><div style="font:700 16px/1.2 Newsreader,serif;color:#14161a">Répondre à Bertoni : accepter sa condition par écrit</div><div style="font-size:12.5px;color:#4f535b;margin-top:4px">S'ouvre dans Lettres avec un brouillon. Ne coûte rien ; vaut 19 voix.</div></div><span style="border:1px solid #14161a;color:#14161a;font:700 10.5px/1 Archivo,sans-serif;letter-spacing:.04em;text-transform:uppercase;padding:9px 12px;white-space:nowrap">Ouvrir</span></div>
+        <div style="display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center;border-bottom:1px solid #14161a;padding:12px 0"><div><div style="font:700 16px/1.2 Newsreader,serif;color:#14161a">Reporter Kinshasa au 20 juin</div><div style="font-size:12.5px;color:#4f535b;margin-top:4px">Étale les deux dépenses. <span style="color:#7f4705">Le diocèse hôte le prendra mal (−3 estimé).</span></div></div><span style="background:#1f3f86;color:#fff;font:700 10.5px/1 Archivo,sans-serif;letter-spacing:.04em;text-transform:uppercase;padding:10px 12px;white-space:nowrap">Verser</span></div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:20px">

@@ -94,6 +94,124 @@ export const hasProviderKey = () => {
     }
 };
 
+/**
+ * Le champ où l'on donne une clé, partout ailleurs qu'à la porte d'entrée.
+ *
+ * Le bandeau de panne disait « Gemini returned 429. The free-tier quota for this
+ * model is used up », ce qui est exactement le renseignement qu'il faut — et il
+ * n'offrait rien à faire. La clé se change dans les Réglages, derrière un menu
+ * que personne n'ouvre en lisant une alerte. Le joueur l'a demandé ainsi :
+ * « laisse un endroit où mettre une nouvelle clé. »
+ *
+ * Une clé donnée ici n'est envoyée nulle part : elle reste sur cette machine,
+ * exactement comme celle de l'écran d'accueil, dont ce champ réutilise le code
+ * d'enregistrement plutôt que d'en tenir une seconde copie.
+ */
+export const ChampDeCle = ({ onDone = () => {} }) => {
+    const [cle, setCle] = useState("");
+    // "", "ok" ou "echec" : ce que l'écriture a RÉELLEMENT produit.
+    const [etat, setEtat] = useState("");
+
+    const enregistrer = () => {
+        const propre = cle.trim();
+        if (!propre) return;
+        // « Vérifie que la clé que je mets est bien entrée comme nouvelle clé. »
+        // Elle ne l'était pas toujours, et rien ne le disait. L'ancienne version
+        // annonçait « Clé enregistrée » sur le seul fait que setItem n'avait pas
+        // levé, et quand il levait — fenêtre privée, données de site bloquées,
+        // stockage plein — le catch avalait tout : ni succès, ni échec, un champ
+        // qui se vide et un bandeau qui continue de dire que le modèle est
+        // injoignable. Pire, une exception sur la première ligne sautait la
+        // seconde, donc la clé n'était jamais écrite du tout.
+        //
+        // On écrit, puis on relit par le même chemin que callGemini (il lit le
+        // stockage à chaque requête, sans cache : une clé relue est une clé qui
+        // servira au prochain envoi). Ce qu'on affiche est ce qu'on a relu.
+        try {
+            localStorage.setItem("api_provider", "gemini");
+            setProviderField("gemini", "apiKey", propre);
+        } catch {
+            // Pas de stockage : dit plus bas, jamais tu.
+        }
+        const relue = (() => {
+            try { return getProviderSettings("gemini").apiKey.trim(); } catch { return ""; }
+        })();
+        if (relue === propre) {
+            setEtat("ok");
+            setCle("");
+            onDone();
+            return;
+        }
+        setEtat("echec");
+    };
+
+    if (etat === "ok") {
+        return (
+        <div style={{ color: "var(--oh-grant)", fontSize: "var(--oh-t-xs)", marginTop: "0.6rem" }}>
+        Clé relue sur cette machine : c&apos;est bien elle que le prochain envoi utilisera.
+        Si le compteur du quota est encore plein, elle n&apos;y changera rien tant qu&apos;il
+        ne se sera pas rouvert — une clé de plus dans le même projet Google partage le même
+        compteur.
+        </div>
+        );
+    }
+
+    if (etat === "echec") {
+        return (
+        <div style={{ color: "var(--oh-alert)", fontSize: "var(--oh-t-xs)", marginTop: "0.6rem" }}>
+        Cette clé n&apos;a pas pu être gardée sur cette machine — le navigateur refuse le
+        stockage du site (fenêtre privée, données bloquées, ou espace plein). Le jeu
+        continuera d&apos;écrire ses éditions hors ligne. Ouvrez le jeu dans une fenêtre
+        ordinaire, ou autorisez les données de site, puis recollez-la.
+        </div>
+        );
+    }
+
+    return (
+    <div style={{ alignItems: "center", display: "flex", flexWrap: "wrap", gap: "0.5rem", marginTop: "0.7rem" }}>
+        <input
+        type="password"
+        value={cle}
+        onChange={(e) => setCle(e.target.value)}
+        onKeyDown={(e) => { if (e.key === "Enter") enregistrer(); }}
+        placeholder="Collez une nouvelle clé ici"
+        aria-label="Nouvelle clé d'API"
+        style={{
+            background: "transparent", border: "var(--oh-filet) solid var(--oh-line)",
+            borderRadius: "var(--oh-r-flat)", color: "var(--oh-text)", flex: "1 1 18rem",
+            fontFamily: "inherit", fontSize: "var(--oh-t-xs)", minWidth: 0,
+            outline: "none", padding: "0.45rem 0.6rem",
+        }}
+        />
+        <button
+        type="button"
+        onClick={enregistrer}
+        disabled={!cle.trim()}
+        style={{
+            background: cle.trim() ? "var(--oh-accent)" : "transparent",
+            border: `var(--oh-filet) solid ${cle.trim() ? "var(--oh-accent)" : "var(--oh-line)"}`,
+            borderRadius: "var(--oh-r-flat)",
+            color: cle.trim() ? "var(--oh-on-accent)" : "var(--oh-text-dim)",
+            cursor: cle.trim() ? "pointer" : "default",
+            fontFamily: "var(--oh-font-label)", fontSize: "var(--oh-t-2xs)",
+            letterSpacing: "var(--oh-label-track)", padding: "0.45rem 0.9rem",
+            textTransform: "uppercase",
+        }}
+        >
+        Enregistrer
+        </button>
+        <a
+        href={KEY_URL}
+        target="_blank"
+        rel="noreferrer"
+        style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)" }}
+        >
+        en obtenir une
+        </a>
+    </div>
+    );
+};
+
 const FirstRunKey = ({ onDone }) => {
     const [key, setKey] = useState("");
     const [busy, setBusy] = useState(false);
@@ -108,7 +226,9 @@ const FirstRunKey = ({ onDone }) => {
             localStorage.setItem("api_provider", "gemini");
             setProviderField("gemini", "apiKey", trimmed);
         } catch {
-            // Nothing to do: the same absent storage the guard above allows for.
+            // Pas de stockage. On ne retient personne à la porte pour ça — mais
+            // on ne le tait pas non plus : le bandeau de panne de la une le
+            // redira, avec le champ pour recoller la clé.
         }
         onDone();
     };
@@ -125,7 +245,7 @@ const FirstRunKey = ({ onDone }) => {
         <h1
         style={{
             color: "var(--oh-text-strong)", fontFamily: "var(--oh-font-display)",
-            fontSize: "clamp(1.8rem, 4vw, 2.8rem)", fontWeight: 800, letterSpacing: "-0.03em",
+            fontSize: "var(--oh-t-3xl)", fontWeight: 800, letterSpacing: "-0.03em",
             lineHeight: 1.05, margin: "0 0 0.4rem",
         }}
         >

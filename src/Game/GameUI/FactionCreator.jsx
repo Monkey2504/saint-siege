@@ -87,25 +87,25 @@ const FactionCreator = ({ regionsGeojson, onCreate, onCancel, busy }) => {
     <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
       <div style={{ ...field, display: "flex", alignItems: "center", justifyContent: "space-between", gap: "0.8rem", background: "var(--oh-accent-soft)", borderColor: "var(--oh-accent-soft)" }}>
         <div>
-          <div style={{ fontWeight: 700 }}>Play the reforming pope</div>
-          <div style={{ color: "var(--oh-text)", fontSize: "var(--oh-t-xs)" }}>The Holy See, from the real Vatican City (0.49 km² inside Rome) — reform the Church against its real counter-powers, with its real administrations and its real finances.</div>
+          <div style={{ fontWeight: 700 }}>Jouer le pape réformateur</div>
+          <div style={{ color: "var(--oh-text)", fontSize: "var(--oh-t-xs)" }}>Le Saint-Siège, depuis la vraie Cité du Vatican (0,49 km² dans Rome) — réformer l'Église contre ses vrais contre-pouvoirs, avec ses vraies administrations et ses vraies finances.</div>
         </div>
-        <button type="button" onClick={submitChurch} disabled={busy} style={pill(true)}>Begin</button>
+        <button type="button" onClick={submitChurch} disabled={busy} style={pill(true)}>Commencer</button>
       </div>
       <div>
-        <div style={label}>Name</div>
+        <div style={label}>Nom</div>
         <input
           autoFocus
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="e.g. Free Cascadia, the Provisional Government…"
+          placeholder="par exemple : Cascadia libre, le Gouvernement provisoire…"
           style={field}
         />
       </div>
 
       <div style={{ display: "flex", gap: "0.8rem", alignItems: "flex-end" }}>
         <div>
-          <div style={label}>Colour</div>
+          <div style={label}>Couleur</div>
           <input
             type="color"
             value={color}
@@ -114,7 +114,7 @@ const FactionCreator = ({ regionsGeojson, onCreate, onCancel, busy }) => {
           />
         </div>
         <div style={{ flex: 1 }}>
-          <div style={label}>Flag</div>
+          <div style={label}>Drapeau</div>
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
             {flag ? (
               <img src={flag} alt="" style={{ width: 34, height: 22, objectFit: "contain", borderRadius: 3, border: "1px solid var(--oh-line)" }} />
@@ -122,41 +122,41 @@ const FactionCreator = ({ regionsGeojson, onCreate, onCancel, busy }) => {
               <span aria-hidden="true" style={{ fontSize: "var(--oh-t-lg)" }}>🏳️</span>
             )}
             <button type="button" onClick={() => setFlagOpen(true)} style={pill(false)}>
-              {flag ? "Change flag" : "Choose flag"}
+              {flag ? "Changer de drapeau" : "Choisir un drapeau"}
             </button>
             {flag && (
-              <button type="button" onClick={() => setFlag(null)} style={pill(false)}>Remove</button>
+              <button type="button" onClick={() => setFlag(null)} style={pill(false)}>Retirer</button>
             )}
           </div>
         </div>
       </div>
 
       <div>
-        <div style={label}>Lore</div>
+        <div style={label}>Ce qu&apos;elle est</div>
         <textarea
           value={lore}
           onChange={(e) => setLore(e.target.value)}
-          placeholder="Who is this power? Its history, cause, and ambitions. This steers the story the AI tells."
+          placeholder="Qui est cette puissance ? Son histoire, sa cause, ses ambitions. C'est ce qui oriente le récit que le modèle en fera."
           rows={3}
           style={{ ...field, resize: "vertical", minHeight: "3.4rem" }}
         />
       </div>
 
       <div>
-        <div style={label}>Starting territory</div>
+        <div style={label}>Territoire de départ</div>
         <div style={{ display: "flex", gap: "0.4rem", marginBottom: "0.4rem" }}>
-          <button type="button" onClick={() => setLandless(true)} style={pill(landless)}>Start landless</button>
-          <button type="button" onClick={() => setLandless(false)} style={pill(!landless)}>Claim regions</button>
+          <button type="button" onClick={() => setLandless(true)} style={pill(landless)}>Commencer sans terre</button>
+          <button type="button" onClick={() => setLandless(false)} style={pill(!landless)}>Revendiquer des régions</button>
         </div>
         {landless ? (
           <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)" }}>
-            You begin with no territory — a stateless power. Your campaign is to gain
-            or retake land.
+            Vous commencez sans un pouce de terre — une puissance sans État. Votre campagne
+            consiste à en gagner, ou à en reprendre.
           </div>
         ) : (
           <>
             <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)", marginBottom: "0.3rem" }}>
-              {regionIds.size} region{regionIds.size === 1 ? "" : "s"} claimed
+              {regionIds.size} région{regionIds.size === 1 ? "" : "s"} revendiquée{regionIds.size === 1 ? "" : "s"}
             </div>
             <Suspense fallback={<div style={{ color: "var(--oh-text-dim)", padding: "2rem 0", textAlign: "center" }}>Loading map…</div>}>
               <CountryPickerMap
@@ -186,7 +186,7 @@ const FactionCreator = ({ regionsGeojson, onCreate, onCancel, busy }) => {
             padding: "0.55rem",
           }}
         >
-          {busy ? "Creating…" : "Create & play"}
+          {busy ? "Création…" : "Créer et jouer"}
         </button>
         <button type="button" onClick={onCancel} style={{ ...pill(false), padding: "0.55rem 1rem" }}>Annuler</button>
       </div>

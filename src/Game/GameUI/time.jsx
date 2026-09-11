@@ -73,7 +73,7 @@ const ensureTimelineStyles = () => {
     }
 
     .timeline-markdown blockquote {
-        border-left: 2px solid var(--oh-accent);
+        border-left: var(--oh-filet-fort) solid var(--oh-accent);
         color: var(--oh-text-dim);
         margin: 0.55rem 0;
         padding-left: 0.8rem;
@@ -581,10 +581,10 @@ const EventCard = ({ event, footer = null, lookups, index = 0 }) => {
     const mapChangeCount = getEventMapChangeCount(event);
     const notes = [];
     if (mapChangeCount > 0) {
-        notes.push(`${mapChangeCount} map change${mapChangeCount === 1 ? "" : "s"}`);
+        notes.push(`${mapChangeCount} changement${mapChangeCount === 1 ? "" : "s"} de carte`);
     }
     if (event.source === "fallback") {
-        notes.push("Fallback");
+        notes.push("Hors-ligne");
     }
 
     return (
@@ -817,7 +817,7 @@ const PlannedOrdersBrief = ({ orders }) => {
         Ordres que ce tour règle
         </span>
         <span style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)" }}>
-        {orders.length === 0 ? "none queued" : `${orders.length} standing`}
+        {orders.length === 0 ? "aucun en attente" : `${orders.length} standing`}
         </span>
         </div>
 
@@ -892,14 +892,14 @@ const TimelineSkipPanel = ({
         onJump(amount * (unitToDays[customUnit] ?? 1));
     };
     const jumpOptions = [
-        { label: "6 hours", sublabel: dayjs(currentDate).format("M/D/YYYY"), days: 0.25 },
-        { label: "1 day", sublabel: dayjs(currentDate).add(1, "day").format("M/D/YYYY"), days: 1 },
-        { label: "3 days", sublabel: dayjs(currentDate).add(3, "day").format("M/D/YYYY"), days: 3 },
-        { label: "1 week", sublabel: dayjs(currentDate).add(7, "day").format("M/D/YYYY"), days: 7 },
-        { label: "1 month", sublabel: dayjs(currentDate).add(1, "month").format("M/D/YYYY"), days: 30 },
-        { label: "3 months", sublabel: dayjs(currentDate).add(3, "month").format("M/D/YYYY"), days: 90 },
-        { label: "6 months", sublabel: dayjs(currentDate).add(6, "month").format("M/D/YYYY"), days: 180 },
-        { label: "1 year", sublabel: dayjs(currentDate).add(1, "year").format("M/D/YYYY"), days: 365 },
+        { label: "6 heures", sublabel: dayjs(currentDate).format("D/M/YYYY"), days: 0.25 },
+        { label: "1 jour", sublabel: dayjs(currentDate).add(1, "day").format("D/M/YYYY"), days: 1 },
+        { label: "3 jours", sublabel: dayjs(currentDate).add(3, "day").format("D/M/YYYY"), days: 3 },
+        { label: "1 semaine", sublabel: dayjs(currentDate).add(7, "day").format("D/M/YYYY"), days: 7 },
+        { label: "1 mois", sublabel: dayjs(currentDate).add(1, "month").format("D/M/YYYY"), days: 30 },
+        { label: "3 mois", sublabel: dayjs(currentDate).add(3, "month").format("D/M/YYYY"), days: 90 },
+        { label: "6 mois", sublabel: dayjs(currentDate).add(6, "month").format("D/M/YYYY"), days: 180 },
+        { label: "1 an", sublabel: dayjs(currentDate).add(1, "year").format("D/M/YYYY"), days: 365 },
     ];
 
     return (
@@ -907,7 +907,7 @@ const TimelineSkipPanel = ({
         eyebrow=""
         isOpen={isOpen}
         onClose={onClose}
-        title="Timeline"
+        title="La chronologie"
         topOffset={topOffset}
         >
         {orders && <PlannedOrdersBrief orders={orders} />}
@@ -948,7 +948,7 @@ const TimelineSkipPanel = ({
         <div
         style={{
             background: "var(--oh-accent-soft)",
-            border: "2px solid var(--oh-accent-soft)",
+            border: "var(--oh-filet-fort) solid var(--oh-accent-soft)",
             borderRadius: "999px",
             color: "var(--oh-accent)",
             fontSize: "var(--oh-t-2xs)",
@@ -991,7 +991,7 @@ const TimelineSkipPanel = ({
             width: "12.5rem",
         }}
         >
-        <div style={{ fontSize: "var(--oh-t-xs)", fontWeight: 700 }}>Auto-jump</div>
+        <div style={{ fontSize: "var(--oh-t-xs)", fontWeight: 700 }}>Saut automatique</div>
         </button>
 
         <div style={{ background: "var(--oh-accent-soft)", height: "1.25rem", width: "2px" }} />
@@ -1014,7 +1014,7 @@ const TimelineSkipPanel = ({
         value={customValue}
         onChange={(event) => setCustomValue(event.target.value)}
         onKeyDown={(event) => { if (event.key === "Enter") runCustomJump(); }}
-        placeholder="Custom"
+        placeholder="Au choix"
         disabled={isLoading}
         style={{
             background: "var(--oh-plate-2)",
@@ -1046,11 +1046,11 @@ const TimelineSkipPanel = ({
             padding: "0.3rem 0.2rem",
         }}
         >
-        <option value="hours" style={{ color: "var(--oh-text-strong)" }}>hours</option>
-        <option value="days" style={{ color: "var(--oh-text-strong)" }}>days</option>
-        <option value="weeks" style={{ color: "var(--oh-text-strong)" }}>weeks</option>
-        <option value="months" style={{ color: "var(--oh-text-strong)" }}>months</option>
-        <option value="years" style={{ color: "var(--oh-text-strong)" }}>years</option>
+        <option value="hours" style={{ color: "var(--oh-text-strong)" }}>heures</option>
+        <option value="days" style={{ color: "var(--oh-text-strong)" }}>jours</option>
+        <option value="weeks" style={{ color: "var(--oh-text-strong)" }}>semaines</option>
+        <option value="months" style={{ color: "var(--oh-text-strong)" }}>mois</option>
+        <option value="years" style={{ color: "var(--oh-text-strong)" }}>années</option>
         </select>
         <button
         type="button"
@@ -1068,7 +1068,7 @@ const TimelineSkipPanel = ({
             padding: "0.3rem 0.6rem",
         }}
         >
-        Go
+        Lancer
         </button>
         </div>
         </div>
@@ -1444,7 +1444,7 @@ const DateWidget = ({
             setActions(result.actions);
             setVisibleEventCount(1);
             if (result.generation?.source === "fallback") {
-                setFallbackWarning(`Turn generated by fallback: ${result.generation.fallbackReason || "structured AI output was unavailable"}`);
+                setFallbackWarning(`Tour écrit par le simulateur hors-ligne : ${result.generation.fallbackReason || "le modèle n'a rendu aucune sortie exploitable"}`);
             }
             setPanel("history");
         } catch (jumpError) {
@@ -1544,7 +1544,7 @@ const DateWidget = ({
 
     const latestTurnRecord = historyRecords[0] || null;
     const persistedFallbackWarning = latestTurnRecord?.source === "fallback"
-    ? `Turn generated by fallback: ${latestTurnRecord.fallbackReason || "structured AI output was unavailable"}`
+    ? `Tour écrit par le simulateur hors-ligne : ${latestTurnRecord.fallbackReason || "le modèle n'a rendu aucune sortie exploitable"}`
     : "";
     const totalVisibleEvents = latestTurnRecord?.events?.length || 0;
     const activeVisibleEvent =

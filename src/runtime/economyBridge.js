@@ -369,10 +369,10 @@ export const economyMovesFromOrder = (order, { player = "", economies = {}, date
 };
 
 const FINANCING_WORDS = {
-  borrow: "borrowing",
-  print: "creating new money",
-  austerity: "austerity, cutting spending to what is collected",
-  drawdown: "eating the patrimony",
+  borrow: "l'emprunt",
+  print: "la création de monnaie",
+  austerity: "l'austérité, en ramenant la dépense à ce qui est encaissé",
+  drawdown: "la ponction sur le patrimoine",
 };
 
 /**
@@ -409,7 +409,7 @@ export const applyEconomyMoves = (world, moves, { player = "" } = {}) => {
         refusals.push(`tax rate held at ${pct(next.taxRate)}: ${pct(finite(move.rate, before))} is past what any state can actually assess and collect.`);
       }
       const revenueAfter = economyIndicators(next).revenue;
-      rows.push({ date, polity: name, kind: "money", what: `tax rate moved from ${pct(before)} to ${pct(next.taxRate)}`, amount: revenueAfter - revenueBefore, unit: "SY", source: "order:taxRate", note: "what the state collects at the new rate, less what it collected at the old one — the reach of the state still decides how much of it arrives" });
+      rows.push({ date, polity: name, kind: "money", what: `taux d'imposition porté de ${pct(before)} à ${pct(next.taxRate)}`, amount: revenueAfter - revenueBefore, unit: "SY", source: "order:taxRate", note: "what the state collects at the new rate, less what it collected at the old one — the reach of the state still decides how much of it arrives" });
       economy = next;
       continue;
     }
@@ -447,12 +447,12 @@ export const applyEconomyMoves = (world, moves, { player = "" } = {}) => {
     if (move.kind === "financing") {
       const mode = str(move.mode);
       if (!FINANCING_WORDS[mode]) { refusals.push(`financing refused: "${mode}" is not one of borrow, print, austerity, drawdown.`); continue; }
-      if (economy.financing === mode) { refusals.push(`financing unchanged: ${name} already covers deficits by ${FINANCING_WORDS[mode]}.`); continue; }
+      if (economy.financing === mode) { refusals.push(`financement inchangé : ${name} couvre déjà ses déficits par ${FINANCING_WORDS[mode]}.`); continue; }
       const next = applyEconomyChange(economy, { set: { financing: mode } });
       const balance = economyIndicators(next).balance;
       // Nothing has moved yet — the switch decides what the NEXT step does with
       // the gap — so the row carries no sum and names the gap it will govern.
-      rows.push({ date, polity: name, kind: "money", what: `deficits are now covered by ${FINANCING_WORDS[mode]}`, amount: 0, unit: "SY", source: `order:financing:${mode}`, note: balance < 0 ? `${fmt(-balance)} SY a year runs through this route from the next period` : "the budget is covered, so nothing runs through it yet" });
+      rows.push({ date, polity: name, kind: "money", what: `les déficits sont désormais couverts par ${FINANCING_WORDS[mode]}`, amount: 0, unit: "SY", source: `order:financing:${mode}`, note: balance < 0 ? `${fmt(-balance)} SY a year runs through this route from the next period` : "the budget is covered, so nothing runs through it yet" });
       economy = next;
       continue;
     }

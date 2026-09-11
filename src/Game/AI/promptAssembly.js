@@ -56,20 +56,58 @@ export const ACTIONS_REFERENCE = "[Actions You Can Take]\nThis is the full menu 
 // Render a task's template with its variables and append every call-time rule
 // block that applies. `difficultyText` is the rendered difficulty directive
 // (runtime/difficulty.js) — empty when game data could not be read.
+// Les quatre paragraphes de la référence qui décrivent une guerre sur une carte.
+// Ils y pèsent 628 jetons sur 2 209 ; retirés, ils ne laissent aucun trou — la
+// liste est une suite de puces, chacune close sur elle-même.
+const PUCES_DE_CARTE = Object.freeze(["regionTransfers", "unitOps", "markerOps"]);
+
+/** La référence des actions, privée des leviers qu'un monde sans carte n'a pas. */
+export const referenceSansLaCarte = () => ACTIONS_REFERENCE
+  .split("\n\n")
+  .filter((bloc) => {
+    const puce = /^•\s*([A-Za-z.]+)/.exec(bloc);
+    return !puce || !PUCES_DE_CARTE.includes(puce[1]);
+  })
+  .join("\n\n");
+
 export const composeTaskSystemPrompt = (taskKey, {
   template,
   helpers = {},
   variables = {},
   difficultyText = "",
+  // Si ce monde se joue sur une carte. Par défaut OUI : un appelant qui ne
+  // renseigne rien garde l'invite entière, jamais une invite amputée.
+  carteEnJeu = true,
 } = {}) => {
+  // Le fonds : ce qui ne change pas d'un tour à l'autre d'une même partie — les
+  // règles, la table des actions, la consigne de langue. Il était jusqu'ici
+  // ajouté À LA FIN, derrière un gabarit où l'état du tour est interpolé : deux
+  // requêtes successives ne partageaient donc aucun préfixe, et le cache
+  // implicite de Gemini, qui est actif par défaut, ne pouvait jamais
+  // s'accrocher. Google le dit en une phrase : « Try putting large and common
+  // contents at the beginning of your prompt » — c'est tout ce que ce tableau
+  // fait. Le fonds passe devant, ce que le tour apporte reste derrière.
+  const fonds = [];
+
   const helperValues = resolveHelperValues(helpers, variables);
   let systemPrompt = renderTemplate(template, {
     ...variables,
     ...helperValues,
   });
 
+  // La langue du joueur. Tout ce que le modèle écrit finit à l'écran : les
+  // titres d'édition, les suggestions d'ordres, les lettres des cardinaux, les
+  // verdicts. L'interface a été traduite en dur, mais le modèle continuait de
+  // répondre en anglais faute qu'on le lui ait demandé — et le jeu s'ouvrait
+  // sur « Consult German Leadership » au milieu de phrases françaises.
+  //
+  // La consigne est posée ici, dans la composition commune, et non dans chaque
+  // gabarit : un gabarit gelé dans une partie déjà commencée ne l'aurait jamais
+  // reçue, et c'est précisément là que le mélange se voyait.
+  fonds.push(`[Langue]\nÉcris tout ce qui sera lu par le joueur en FRANÇAIS : titres, récits, lettres, suggestions d'ordres, verdicts, noms d'événements. Les identifiants, les clés JSON et les codes pays restent tels quels. Un nom propre garde sa forme française d'usage quand elle existe.`);
+
   // The chosen difficulty steers every simulation task (see runtime/difficulty.js).
-  if (difficultyText) systemPrompt = `${systemPrompt}\n\n${difficultyText}`;
+  fonds.push(`${difficultyText}`);
 
   // Player agency: jumps must never sign the player up for landmark decisions.
   // The current template states this rule itself (defaultPrompts.json
@@ -81,7 +119,7 @@ export const composeTaskSystemPrompt = (taskKey, {
   if (["jumpForward", "autoJumpForward"].includes(taskKey)) {
     const playerName = normalizeString(variables.playerPolity) || "the player's polity";
     if (!templateStates(template, TEMPLATE_MARKERS.playerAgency)) {
-      systemPrompt = `${systemPrompt}\n\n[Player Agency]\n${playerName} is controlled by a human player. Never commit ${playerName} to a major decision the player did not actually make: do not sign treaties, alliances, ceasefires, surrenders, trade pacts, unions, or other binding agreements on the player's behalf, do not accept or reject offers for them, and do not have ${playerName} take landmark unilateral action (declaring war, ceding territory, changing government) unless it directly executes one of the player's planned actions, chat replies, or explicit requests. When another polity seeks such an agreement or decision from the player, present it as something the player can answer: a diplomaticOutreach entry or an impacts.createdChats chat where the counterpart speaks first and makes the proposal, or an event describing the offer as OPEN and awaiting the player's response. Events remain free to narrate what other polities do among themselves and to resolve the player's own queued actions exactly as ordered.`;
+      fonds.push(`[Player Agency]\n${playerName} is controlled by a human player. Never commit ${playerName} to a major decision the player did not actually make: do not sign treaties, alliances, ceasefires, surrenders, trade pacts, unions, or other binding agreements on the player's behalf, do not accept or reject offers for them, and do not have ${playerName} take landmark unilateral action (declaring war, ceding territory, changing government) unless it directly executes one of the player's planned actions, chat replies, or explicit requests. When another polity seeks such an agreement or decision from the player, present it as something the player can answer: a diplomaticOutreach entry or an impacts.createdChats chat where the counterpart speaks first and makes the proposal, or an event describing the offer as OPEN and awaiting the player's response. Events remain free to narrate what other polities do among themselves and to resolve the player's own queued actions exactly as ordered.`);
     }
     // No restating: the model is shown the recent timeline as context and, left
     // unchecked, re-narrates events it already reported — each restatement gets a
@@ -90,17 +128,17 @@ export const composeTaskSystemPrompt = (taskKey, {
     // restatements; this directive stops the "rolling-date" ones (the same situation
     // re-narrated under each new turn's date) that a de-dup can't catch. Appended at
     // call time so existing frozen-prompt campaigns get it too.
-    systemPrompt = `${systemPrompt}\n\n[New Developments Only]\nThe events shown to you above have ALREADY happened and appear only as context. Do NOT restate, rephrase, re-report, or re-narrate them. Emit ONLY genuinely NEW developments that occur during THIS period. If an ongoing situation (a war, a crisis, an occupation) has no new development this period, do not emit an event for it.`;
+    fonds.push(`[New Developments Only]\nThe events shown to you above have ALREADY happened and appear only as context. Do NOT restate, rephrase, re-report, or re-narrate them. Emit ONLY genuinely NEW developments that occur during THIS period. If an ongoing situation (a war, a crisis, an occupation) has no new development this period, do not emit an event for it.`);
     // Place renaming: appended at call time so existing frozen-prompt campaigns get it
     // too; the markerOps rename op ships via the LIVE tool schema either way.
-    systemPrompt = `${systemPrompt}\n\n[Place Renaming]\nYou may rename places when the story warrants it (a city renamed after a leader or ideology, a capital re-designated, a colonial name replaced, a conquered city given the conqueror's name). Emit an impacts.markerOps entry {"op":"rename","name":"<current name>","newName":"<new name>","note":"<why>"}. This works on structures you built AND on existing map cities. Do it sparingly and only when a real event motivates it.`;
+    fonds.push(`[Place Renaming]\nYou may rename places when the story warrants it (a city renamed after a leader or ideology, a capital re-designated, a colonial name replaced, a conquered city given the conqueror's name). Emit an impacts.markerOps entry {"op":"rename","name":"<current name>","newName":"<new name>","note":"<why>"}. This works on structures you built AND on existing map cities. Do it sparingly and only when a real event motivates it.`);
   }
 
   // The consolidator's summary REPLACES what it covers, so anything it leaves out
   // is gone from the campaign for good. Existing games carry frozen prompts, so
   // both the instruction and the order list have to arrive at call time.
   if (taskKey === "eventConsolidator") {
-    systemPrompt = `${systemPrompt}\n\n[Durable Canon]\nThis summary REPLACES the material it covers: once consolidated, those events, conversations and player orders are never sent to the simulation again, so whatever you omit is lost permanently. Carry forward explicitly, as standing facts rather than narration:\n1. How this world has DIVERGED from real history — states that never formed, wars that never happened, rulers who never fell, borders that never moved. Name them. A later model that sees only a gap fills it from real history and invents powers this campaign does not contain.\n2. The lasting CONSEQUENCES of the player's own orders, not the orders themselves.\n3. Commitments still in force: treaties, alliances, occupations, debts, standing grievances.\nBrevity matters, but never at the cost of a divergence or a commitment that is still true.`;
+    fonds.push(`[Durable Canon]\nThis summary REPLACES the material it covers: once consolidated, those events, conversations and player orders are never sent to the simulation again, so whatever you omit is lost permanently. Carry forward explicitly, as standing facts rather than narration:\n1. How this world has DIVERGED from real history — states that never formed, wars that never happened, rulers who never fell, borders that never moved. Name them. A later model that sees only a gap fills it from real history and invents powers this campaign does not contain.\n2. The lasting CONSEQUENCES of the player's own orders, not the orders themselves.\n3. Commitments still in force: treaties, alliances, occupations, debts, standing grievances.\nBrevity matters, but never at the cost of a divergence or a commitment that is still true.`);
     const resolvedOrders = normalizeString(variables?.actionsToConsolidate);
     if (resolvedOrders && !resolvedOrders.startsWith("No ")) {
       systemPrompt = `${systemPrompt}\n\n[Player Orders Being Consolidated]\nThese are the player's own resolved orders for the period covered by this summary. Record what they CHANGED about the world; the order text itself is being discarded.\n${resolvedOrders}`;
@@ -120,7 +158,21 @@ export const composeTaskSystemPrompt = (taskKey, {
   // Appended at call time so existing frozen-prompt campaigns get it too.
   if (["jumpForward", "autoJumpForward"].includes(taskKey)) {
     const playerName = normalizeString(variables.playerPolity) || "the player's polity";
-    systemPrompt = `${systemPrompt}\n\n[Region and City Capture — Map Truth]\nTerritorial narration and the map must never disagree. If an event's title or description says territory was captured, seized, occupied, annexed, ceded, liberated, retaken, or otherwise changed hands, that SAME event MUST carry impacts.regionTransfers entries covering every region it names or implies — a capture claim with no regionTransfers is invalid output that breaks the map. Emit one entry per affected region; when you do not know a region's exact id, put its plain name in regionId and the engine will resolve it. Resolving ${playerName}'s own ordered military operations into their territorial outcomes is REQUIRED and is never a player-agency violation: the agency rule restricts unprompted decisions, not the map consequences of offensives the player actually ordered. In an active war, sustained successful offensives normally transfer regions every jump. If nothing genuinely changed hands this period, keep capture language out of the event text.\nOn this map, territory is owned by REGIONS, and impacts.regionTransfers MUST name a region exactly as it appears in the [Game Map Description] above — never a city, town, port, or landmark. Cities such as Toulouse or Narbonne are only markers that sit INSIDE a region; a regionTransfer whose regionId is a city name matches no region and is silently discarded, so the border never moves even though the event says it did. To capture a place and the ground around it, transfer the REGION that contains it, and set fromCode to that region\u2019s current owner.\nTaking a region takes everything inside it, cities included — that is the normal case, so a city changing hands usually means transferring its whole region. To capture ONLY a city while its region stays with its current owner (a besieged holdout, an occupied port, an enclave), do NOT name it in regionTransfers; instead emit an impacts.markerOps build for it — {\"op\":\"build\",\"marker\":{\"name\":\"<city>\",\"kind\":\"city\",\"ownerCode\":\"<new holder>\",\"lng\":<lng>,\"lat\":<lat>}} — using that city\u2019s coordinates from [City Coordinates]. That places the city under the new owner without moving the region border.\nWhen a polity is conquered, annexed, partitioned, or unified OUTRIGHT — every region it still holds changing hands at once — you do not need one entry per region. Emit a SINGLE regionTransfer with "wholeCountry": true, put the losing polity's name in regionId instead of a region name, and set toCode to whoever takes it; the engine expands that into every region that polity currently owns. Use this ONLY for a total takeover of everything it holds. Any partial gain — a province, a border strip, a few regions — stays as ordinary per-region transfers, which remain the normal case.`;
+    fonds.push(`[Region and City Capture — Map Truth]\nTerritorial narration and the map must never disagree. If an event's title or description says territory was captured, seized, occupied, annexed, ceded, liberated, retaken, or otherwise changed hands, that SAME event MUST carry impacts.regionTransfers entries covering every region it names or implies — a capture claim with no regionTransfers is invalid output that breaks the map. Emit one entry per affected region; when you do not know a region's exact id, put its plain name in regionId and the engine will resolve it. Resolving ${playerName}'s own ordered military operations into their territorial outcomes is REQUIRED and is never a player-agency violation: the agency rule restricts unprompted decisions, not the map consequences of offensives the player actually ordered. In an active war, sustained successful offensives normally transfer regions every jump. If nothing genuinely changed hands this period, keep capture language out of the event text.\nOn this map, territory is owned by REGIONS, and impacts.regionTransfers MUST name a region exactly as it appears in the [Game Map Description] above — never a city, town, port, or landmark. Cities such as Toulouse or Narbonne are only markers that sit INSIDE a region; a regionTransfer whose regionId is a city name matches no region and is silently discarded, so the border never moves even though the event says it did. To capture a place and the ground around it, transfer the REGION that contains it, and set fromCode to that region\u2019s current owner.\nTaking a region takes everything inside it, cities included — that is the normal case, so a city changing hands usually means transferring its whole region. To capture ONLY a city while its region stays with its current owner (a besieged holdout, an occupied port, an enclave), do NOT name it in regionTransfers; instead emit an impacts.markerOps build for it — {\"op\":\"build\",\"marker\":{\"name\":\"<city>\",\"kind\":\"city\",\"ownerCode\":\"<new holder>\",\"lng\":<lng>,\"lat\":<lat>}} — using that city\u2019s coordinates from [City Coordinates]. That places the city under the new owner without moving the region border.\nWhen a polity is conquered, annexed, partitioned, or unified OUTRIGHT — every region it still holds changing hands at once — you do not need one entry per region. Emit a SINGLE regionTransfer with "wholeCountry": true, put the losing polity's name in regionId instead of a region name, and set toCode to whoever takes it; the engine expands that into every region that polity currently owns. Use this ONLY for a total takeover of everything it holds. Any partial gain — a province, a border strip, a few regions — stays as ordinary per-region transfers, which remain the normal case.`);
+  }
+
+  // Les règles de simulation, pour les tâches dont le gabarit ne les demande pas
+  // lui-même. Elles vivaient recopiées dans le résumé de la carte, d'où six
+  // gabarits sur douze les recevaient une SECONDE fois — deux mille cent jetons
+  // en double à chaque appel. Retirées de là, elles doivent atteindre par ici
+  // celles qui n'avaient que cette copie : `actions`, et toute tâche à venir
+  // dont le gabarit gelé ne porte pas la substitution.
+  {
+    const regles = normalizeString(variables.simulationRules);
+    const gabaritLesDemande = templateStates(template, "${HISTORICAL_PRESET_SIMULATION_RULES}");
+    if (regles && !gabaritLesDemande && ["actions", "jumpForward", "autoJumpForward", "catalystCreation", "catalystExecutor", "descriptionToAction", "gameMaster"].includes(taskKey)) {
+      fonds.push(`[Règles de simulation]\n${regles}`);
+    }
   }
 
   // Polities are identified by their full country name EVERYWHERE. A model that
@@ -128,13 +180,13 @@ export const composeTaskSystemPrompt = (taskKey, {
   // and "Spain" as if they were two powers, so state the rule rather than only
   // repairing the output.
   if (["actions", "jumpForward", "autoJumpForward", "catalystCreation", "catalystExecutor"].includes(taskKey)) {
-    systemPrompt = `${systemPrompt}\n\n[Polity Names]\nEvery polity is identified ONLY by its full country name, exactly as written in the map description — "Spain", "United States", "Soviet Union". NEVER use a country code or abbreviation such as "ESP", "USA" or "SOV", anywhere, in any field. This applies to every owner field despite their names: toCode, fromCode, ownerCode and a polity's code all take the FULL NAME. A code is not a shorter way of writing a country here; it is a different, non-existent polity, and using one creates a phantom country on the map beside the real one.`;
+    fonds.push(`[Polity Names]\nEvery polity is identified ONLY by its full country name, exactly as written in the map description — "Spain", "United States", "Soviet Union". NEVER use a country code or abbreviation such as "ESP", "USA" or "SOV", anywhere, in any field. This applies to every owner field despite their names: toCode, fromCode, ownerCode and a polity's code all take the FULL NAME. A code is not a shorter way of writing a country here; it is a different, non-existent polity, and using one creates a phantom country on the map beside the real one.`);
   }
 
   // Units kept landing at 0,0 (null island) because the model copied the lng:0,lat:0
   // placeholder from the output template; guide it to real coordinates.
   if (["jumpForward", "autoJumpForward"].includes(taskKey)) {
-    systemPrompt = `${systemPrompt}\n\n[Unit Coordinates]\nWhenever an event says a force is raised, mobilised, garrisoned, landed, reinforced, redeployed or moved, that event MUST carry the matching impacts.unitOps — a spawn for a force that now exists, a move for one that relocated. An event that describes troops without unitOps produces a story about an army the map never shows.\nWrite every coordinate as a plain decimal number, using a POINT for the decimal mark and no other characters: lng 37.06, not "37,06", not "37.06°E". Every unitOps spawn and move MUST use the real-world longitude and latitude of where the unit actually is or is going. The lng 0 / lat 0 shown in the output template is ONLY a placeholder \u2014 0,0 is open ocean off West Africa, never a valid position, and a unit placed there is discarded. Set lng and lat to the actual coordinates: use the values from [City Coordinates] for a unit at or near one of those cities, or the real coordinates of the region or front where the action happens.`;
+    fonds.push(`[Unit Coordinates]\nWhenever an event says a force is raised, mobilised, garrisoned, landed, reinforced, redeployed or moved, that event MUST carry the matching impacts.unitOps — a spawn for a force that now exists, a move for one that relocated. An event that describes troops without unitOps produces a story about an army the map never shows.\nWrite every coordinate as a plain decimal number, using a POINT for the decimal mark and no other characters: lng 37.06, not "37,06", not "37.06°E". Every unitOps spawn and move MUST use the real-world longitude and latitude of where the unit actually is or is going. The lng 0 / lat 0 shown in the output template is ONLY a placeholder \u2014 0,0 is open ocean off West Africa, never a valid position, and a unit placed there is discarded. Set lng and lat to the actual coordinates: use the values from [City Coordinates] for a unit at or near one of those cities, or the real coordinates of the region or front where the action happens.`);
   }
 
   if (["actions", "jumpForward", "autoJumpForward", "catalystCreation", "catalystExecutor"].includes(taskKey)) {
@@ -151,7 +203,7 @@ export const composeTaskSystemPrompt = (taskKey, {
     if (brief) systemPrompt = `${systemPrompt}\n\n${ECONOMY_RULES_FOR_SIMULATION}\n\n[Computed Economies as of ${variables.date || "now"}]\n${brief}`;
   }
   if (taskKey === "countryStatSheet" && normalizeString(variables.economyBrief)) {
-    systemPrompt = `${systemPrompt}\n\n[Definitions]\nUse these definitions exactly, so the same country gives the same figures every time: unemployment is the ILO rate (job-seekers as a share of the labour force, as national statistics or the ILO report it for this date - NOT the share in informal work); GDP per head is in international (PPP) US dollars of today; public debt is gross general-government debt; the GDP breakdown is agriculture / industry / services shares of value added. Also fill gdpPerCapitaUsd: GDP per head in international (PPP) US dollars of today, as a plain number (a subsistence economy ~600, Rome ~900, Holland in 1700 ~2500, a rich country today ~45000). It is used once to convert the engine's figures into currency; the engine's growth, inflation, debt and balance figures above are authoritative and will overwrite yours.`;
+    fonds.push(`[Definitions]\nUse these definitions exactly, so the same country gives the same figures every time: unemployment is the ILO rate (job-seekers as a share of the labour force, as national statistics or the ILO report it for this date - NOT the share in informal work); GDP per head is in international (PPP) US dollars of today; public debt is gross general-government debt; the GDP breakdown is agriculture / industry / services shares of value added. Also fill gdpPerCapitaUsd: GDP per head in international (PPP) US dollars of today, as a plain number (a subsistence economy ~600, Rome ~900, Holland in 1700 ~2500, a rich country today ~45000). It is used once to convert the engine's figures into currency; the engine's growth, inflation, debt and balance figures above are authoritative and will overwrite yours.`);
   }
   // Field report: a country with a thin or empty target dossier got the
   // PLAYER's own capital, leader and currency copied onto it — the only vivid
@@ -159,7 +211,7 @@ export const composeTaskSystemPrompt = (taskKey, {
   // to it. The target is almost never the player; say so explicitly.
   if (taskKey === "countryStatSheet") {
     const player = normalizeString(variables.playerPolity);
-    systemPrompt = `${systemPrompt}\n\n[Not The Player]\nThe polity in "Compile the national stat sheet for ..." is the TARGET of this sheet. Unless that name IS ${player || "the player's own polity"}, this is a DIFFERENT country: it must never receive ${player || "the player"}'s capital, leader, government type, or currency. A thin or empty target dossier means invent a plausible, ERA-APPROPRIATE capital, leader and currency for THAT country from your own knowledge of it — never copy them from ${player || "the player's polity"} just because it is the most detailed thing you were shown.`;
+    fonds.push(`[Not The Player]\nThe polity in "Compile the national stat sheet for ..." is the TARGET of this sheet. Unless that name IS ${player || "the player's own polity"}, this is a DIFFERENT country: it must never receive ${player || "the player"}'s capital, leader, government type, or currency. A thin or empty target dossier means invent a plausible, ERA-APPROPRIATE capital, leader and currency for THAT country from your own knowledge of it — never copy them from ${player || "the player's polity"} just because it is the most detailed thing you were shown.`);
   }
   // The bodies polities act through, and the rules for moving them.
   if (["actions", "jumpForward", "autoJumpForward", "catalystCreation", "catalystExecutor"].includes(taskKey)) {
@@ -171,7 +223,7 @@ export const composeTaskSystemPrompt = (taskKey, {
     systemPrompt = `${systemPrompt}\n\n${purses || `[Bodies With a Purse — engine state]\nNo body holds money of its own yet.\n\n${TREASURY_RULES}`}`;
     // A body named in a story must be a body the world holds, or it is scenery
     // the engine refuses in front of the player (runtime/bodyCheck.js).
-    systemPrompt = `${systemPrompt}\n\n${BODIES_RULE}`;
+    fonds.push(`${BODIES_RULE}`);
     // What is promised and unfunded, and the only three things that can honestly
     // be done to it. Stated even when nothing is owed, so an edition never again
     // ratifies a ring-fencing calendar that moves nothing
@@ -204,11 +256,11 @@ export const composeTaskSystemPrompt = (taskKey, {
   // player's own plans instead. State-derived (read straight from world
   // state, not a keyword), so it fires every relevant turn.
   if (["jumpForward", "autoJumpForward"].includes(taskKey) && variables.intentsAllPlayerOwned) {
-    systemPrompt = `${systemPrompt}\n\n[Standing Intents — Missing Other Powers]\nEvery standing intent that exists right now belongs to the player's own polity. That is backwards: this mechanism exists so OTHER powers and organizations can scheme independently, not so the player's own plans get a memory. In THIS jump, give at least one OTHER polity or organization — one with a real reason to, given its tags, economy, and recent history — a standing intent of its own via impacts.intentOps {"op":"create",...}. A power whose interests the player has displaced, undercut, or threatened is the natural candidate: it does not simply accept that quietly.`;
+    fonds.push(`[Standing Intents — Missing Other Powers]\nEvery standing intent that exists right now belongs to the player's own polity. That is backwards: this mechanism exists so OTHER powers and organizations can scheme independently, not so the player's own plans get a memory. In THIS jump, give at least one OTHER polity or organization — one with a real reason to, given its tags, economy, and recent history — a standing intent of its own via impacts.intentOps {"op":"create",...}. A power whose interests the player has displaced, undercut, or threatened is the natural candidate: it does not simply accept that quietly.`);
   }
   // Tokenised-infrastructure programmes: the lever and the rules the engine enforces.
   if (["actions", "jumpForward", "autoJumpForward", "catalystCreation", "catalystExecutor"].includes(taskKey)) {
-    systemPrompt = `${systemPrompt}\n\n${PROJECT_FINANCE_RULES}`;
+    fonds.push(`${PROJECT_FINANCE_RULES}`);
   }
   // Every planned order tested against the world's real numbers (budget,
   // reach, legitimacy, credibility, the bodies that must vote and who inside
@@ -263,13 +315,13 @@ ${normalizeString(variables.declarationReactionsText)}`;
   }
   // The world lives without the player: every power pursues its own intent.
   if (["jumpForward", "autoJumpForward"].includes(taskKey)) {
-    systemPrompt = `${systemPrompt}\n\n${AUTONOMOUS_POWERS_RULES}`;
+    fonds.push(`${AUTONOMOUS_POWERS_RULES}`);
   }
   // Suggested orders must sometimes force a real choice: philosophies in
   // conflict, not variants of one line. State-independent, so it holds for
   // every polity and every era; the schema validation enforces the shape.
   if (taskKey === "actions") {
-    systemPrompt = `${systemPrompt}\n\n[Suggestions — philosophies in conflict]\nAt least one topic, and ideally half of them, must set genuinely different philosophies of government against each other rather than offer variants of one line: for such a topic, write its \`dilemma\` (one sentence: what the options disagree on and what choosing one costs) and give EACH option a distinct \`stance\` of two or three words naming the school it embodies — tradition against reform, austerity against expansion, concession against confrontation, centralisation against devolution, the schools that actually exist in this polity's world. The options under a dilemma are mutually exclusive or in real tension: taking one forecloses or weakens another, so the choice costs something. Every option must be defensible by a real school of thought; never strawman one to sell another, never rank them, never hint at the right answer. A topic whose options are merely complementary leaves \`dilemma\` empty and may omit stances.`;
+    fonds.push(`[Suggestions — philosophies in conflict]\nAt least one topic, and ideally half of them, must set genuinely different philosophies of government against each other rather than offer variants of one line: for such a topic, write its \`dilemma\` (one sentence: what the options disagree on and what choosing one costs) and give EACH option a distinct \`stance\` of two or three words naming the school it embodies — tradition against reform, austerity against expansion, concession against confrontation, centralisation against devolution, the schools that actually exist in this polity's world. The options under a dilemma are mutually exclusive or in real tension: taking one forecloses or weakens another, so the choice costs something. Every option must be defensible by a real school of thought; never strawman one to sell another, never rank them, never hint at the right answer. A topic whose options are merely complementary leaves \`dilemma\` empty and may omit stances.`);
   }
   // The record: every stock the engine actually moved, turn by turn, with the
   // rule that narration writes nothing here (runtime/record.js). The frame is
@@ -289,7 +341,7 @@ ${normalizeString(variables.declarationReactionsText)}`;
   // between rounds — is held to the same correspondence rules as a reply in a
   // thread (runtime/letterReading.js, also applied by main.jsx at reply time).
   if (["jumpForward", "autoJumpForward", "idleDiplomacy", "catalystExecutor"].includes(taskKey)) {
-    systemPrompt = `${systemPrompt}\n\n${CORRESPONDENCE_RULES}`;
+    fonds.push(`${CORRESPONDENCE_RULES}`);
   }
 
   // Appended only for a game whose frozen copy of the task prompt predates the
@@ -306,8 +358,13 @@ This supersedes any earlier instruction asking for a scene or for atmosphere. Wr
 
   // The actions menu goes last so the system prompt for every jump ends with the full
   // list of levers the model can pull (reaches existing games too — see ACTIONS_REFERENCE).
+  //
+  // Les quatre leviers de carte en occupent 628 jetons sur 2 209 : les décrire à
+  // un modèle dont le schéma ne les porte plus, c'est lui promettre ce qu'il ne
+  // peut pas tenir — et payer deux fois pour cette promesse. Ils sortent avec
+  // eux, sur le même signal (voir gameplaySchemas.laCarteEstEnJeu).
   if (["jumpForward", "autoJumpForward"].includes(taskKey)) {
-    systemPrompt = `${systemPrompt}\n\n${ACTIONS_REFERENCE}`;
+    fonds.push(carteEnJeu ? ACTIONS_REFERENCE : referenceSansLaCarte());
   }
 
   // Mechanical escalation, placed last (closest to output): if what the
@@ -335,5 +392,5 @@ This supersedes any earlier instruction asking for a scene or for atmosphere. Wr
     systemPrompt = `${systemPrompt}\n\n[Project Finance — Programme Already Active]\nThis polity already runs a tokenised-infrastructure programme (see [Computed Economies] above). From here on, "create" is never needed again — but EVERY newly named asset the narration commits capital to, under any label (a "palier"/tier, a tranche, an RWA, an actif réel, a mégaprojet, or simply a named project), MUST get its own {"op":"propose","project":{...}} in the SAME event that first names it. A named asset that appears in the story with no matching propose op is invalid output: the programme's project list must never silently fall behind what is narrated, however many turns have already gone by without one.`;
   }
 
-  return systemPrompt;
+  return [...fonds, systemPrompt].join("\n\n");
 };

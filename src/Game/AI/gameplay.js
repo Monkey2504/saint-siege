@@ -1,7 +1,7 @@
 /*! Open Historia — portions (briefing dossiers + timeout/fallback hardening) © 2026 Nicholas Krol, MIT (see src/Editor/LICENSE). */
 import { callAI } from "./main.jsx";
 import { normalizePromptPack } from "./gameplayPrompts.js";
-import { getGameplayTool, validateGameplayPayload } from "./gameplaySchemas.js";
+import { LEVIERS_DE_CARTE, getGameplayTool, laCarteEstEnJeu, outilSansLeviers, validateGameplayPayload } from "./gameplaySchemas.js";
 import { toCountryName } from "../../runtime/ownerNames.js";
 import { describesOrganizationalPower } from "../../runtime/organizations.js";
 import { applyFaithfulOps, stepFaithful } from "../../runtime/churchFaithful.js";
@@ -27,7 +27,7 @@ import { ensureGatheringsFromOrders, holdDueGatherings, realizedMargin, runNatio
 import { reconcileBodies } from "../../runtime/bodyCheck.js";
 import { markDeclarationAnswered } from "../../runtime/inauguration.js";
 import { buildRealityAssessments } from "./promptContext.js";
-import { HOLY_SEE } from "../../runtime/churchPreset.js";
+import { EUR_USD_2024, HOLY_SEE, transfersForChurchEur } from "../../runtime/churchPreset.js";
 import { applyEconomyChange, daysBetween, describeEconomy, anchorUnitValue, describeSeedForRefinement, ensureEconomyMovesFromOrders, pinStatSheetToEngine, refineSeed, repinCountryStats, stepWorldEconomies } from "../../runtime/economyBridge.js";
 import { composeTaskSystemPrompt } from "./promptAssembly.js";
 import { echoesExistingMessage, renderOpenChatsForPrompt } from "../../runtime/chatEcho.js";
@@ -476,7 +476,18 @@ const runJsonTask = async (taskKey, {
   } catch {
     // Without game data the task still runs at its default temperament.
   }
+  // Lu une seule fois : il décide des DEUX coupes, le schéma et la prose qui le
+  // décrit. Les laisser diverger promettrait au modèle des leviers que son
+  // schéma ne porte plus — et ferait payer deux fois la promesse.
+  let carteEnJeu = true;
+  try {
+    carteEnJeu = laCarteEstEnJeu(await readWorldState());
+  } catch {
+    // Un monde illisible garde l'invite entière.
+  }
+
   const systemPrompt = composeTaskSystemPrompt(taskKey, {
+    carteEnJeu,
     difficultyText,
     helpers: prompts.helpers,
     template: prompts.tasks[taskKey],
@@ -495,7 +506,15 @@ const runJsonTask = async (taskKey, {
   const deadline = Date.now() + effectiveTimeoutMs;
   const timeoutError = new Error(`AI task "${taskKey}" timed out.`);
   const timeoutId = setTimeout(() => controller.abort(timeoutError), effectiveTimeoutMs);
-  const tool = getGameplayTool(taskKey);
+  // Le schéma du tour pèse 11 462 jetons, envoyés avant le moindre mot de
+  // contenu. Quatre de ses leviers décrivent une guerre sur une carte — des
+  // bataillons, des bases au sol, des régions qui changent de maître, des
+  // guerres livrées — et ce jeu se lit dans un journal : le pape n'a pas
+  // d'armée, la carte ne paraît que dans l'éditeur. Ils sortent du schéma quand
+  // le monde n'en tient pas, et 2 266 jetons avec eux. Un monde qui tient des
+  // unités reçoit le schéma entier, comme avant.
+  const brut = getGameplayTool(taskKey);
+  const tool = carteEnJeu ? brut : outilSansLeviers(brut, LEVIERS_DE_CARTE);
   const history = [{ role: "user", parts: [{ text: userMessage }] }];
   let failureReason = "The model did not return valid structured output.";
 
@@ -2145,7 +2164,7 @@ const applySimulationResult = async ({
           ...worldWithImpacts.economies,
           [who]: { ...economy, treasury: (Number.isFinite(Number(economy?.treasury)) ? Number(economy.treasury) : 0) + left },
         };
-        rows.push({ date: nextGame.gameDate, polity: who, kind: "money", what: "legacies and unsolicited gifts", amount: left, unit: "SY", source: "step:bequests" });
+        rows.push({ date: nextGame.gameDate, polity: who, kind: "money", what: "legs et dons non sollicités", amount: left, unit: "SY", source: "step:bequests" });
         const entry = bequestEvent({ amount: left, player: who, date: nextGame.gameDate, economy });
         if (entry) {
           const normalized = normalizeEventEntry({ ...entry, id: `bequest-${nextGame.round}` }, turnEvents.length + battleEvents.length);
@@ -2156,13 +2175,13 @@ const applySimulationResult = async ({
 
     if (flow && Number(flow.years) > 0) {
       if (Math.round(Number(flow.balance) || 0) !== 0) {
-        rows.push({ date: nextGame.gameDate, polity: who, kind: "money", what: Number(flow.balance) < 0 ? "budget shortfall over the period" : "budget surplus over the period", amount: Number(flow.balance), unit: "SY", source: "step:balance" });
+        rows.push({ date: nextGame.gameDate, polity: who, kind: "money", what: Number(flow.balance) < 0 ? "déficit du budget sur la période" : "excédent du budget sur la période", amount: Number(flow.balance), unit: "SY", source: "step:balance" });
       }
       if (Number(flow.drawn) > 0) {
-        rows.push({ date: nextGame.gameDate, polity: who, kind: "patrimony", what: "patrimony sold to pay the bills", amount: -Number(flow.drawn), unit: "SY", source: "step:drawdown" });
+        rows.push({ date: nextGame.gameDate, polity: who, kind: "patrimony", what: "patrimoine vendu pour payer les factures", amount: -Number(flow.drawn), unit: "SY", source: "step:drawdown" });
       }
       if (Number(flow.borrowed) > 0) {
-        rows.push({ date: nextGame.gameDate, polity: who, kind: "money", what: "borrowed", amount: Number(flow.borrowed), unit: "SY", source: "step:borrowing" });
+        rows.push({ date: nextGame.gameDate, polity: who, kind: "money", what: "emprunté", amount: Number(flow.borrowed), unit: "SY", source: "step:borrowing" });
       }
     }
     if (rows.length) worldWithImpacts.record = appendRecord(worldWithImpacts.record, rows);
@@ -2171,6 +2190,36 @@ const applySimulationResult = async ({
   // Holy See's standing over the same elapsed time (null ledger → untouched).
   if (normalizeWorldState(worldAfterImpacts).church) {
     worldWithImpacts.church = stepFaithful(normalizeWorldState(worldAfterImpacts).church, { years: elapsed / 365.25, legitimacy: advanced.economies?.[HOLY_SEE]?.legitimacy, date: nextGame.gameDate });
+
+    // Et les dons suivent les fidèles.
+    //
+    // `transfers` était posé une fois au préréglage et ne bougeait plus. Les
+    // fidèles, eux, bougent à chaque tour — la démographie réelle, la
+    // légitimité du pontificat, et les exodes que le modèle enregistre par
+    // faithfulOps. Une Église pouvait donc perdre cent millions de baptisés
+    // sans qu'un euro manque aux comptes, ce qui est l'inverse de ce que ce
+    // jeu promet : ce que le pape dit et fait doit se voir dans la caisse.
+    //
+    // Recalculé ICI, après le pas ET après les faithfulOps déjà appliqués aux
+    // événements, pour que la ligne du registre du tour suivant porte la
+    // conséquence. Le Gouvernorat et les revenus propres ne suivent pas : ils
+    // viennent de visiteurs et de locataires, pas de baptisés.
+    const economieDuPape = worldWithImpacts.economies?.[HOLY_SEE] ?? advanced.economies?.[HOLY_SEE];
+    if (economieDuPape && Number(economieDuPape.usdPerSY) > 0) {
+      const transfersAS = (transfersForChurchEur(worldWithImpacts.church) * EUR_USD_2024) / Number(economieDuPape.usdPerSY);
+      const avant = Number(economieDuPape.transfers) || 0;
+      if (Math.abs(transfersAS - avant) > 1) {
+        worldWithImpacts.economies = {
+          ...worldWithImpacts.economies,
+          [HOLY_SEE]: { ...economieDuPape, transfers: transfersAS },
+        };
+        worldWithImpacts.record = appendRecord(worldWithImpacts.record, [{
+          date: nextGame.gameDate, polity: HOLY_SEE, kind: "money",
+          what: transfersAS < avant ? "dons perdus avec les fidèles" : "dons gagnés avec les fidèles",
+          amount: transfersAS - avant, unit: "SY", source: "step:fideles",
+        }]);
+      }
+    }
 
     // The other five fronts (runtime/fronts.js). The clergy ages at its real
     // rate, the abuse files move at whatever pace the curia has been set, and

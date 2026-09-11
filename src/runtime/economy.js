@@ -912,13 +912,13 @@ export const explainShortfall = (economy, requiredAnnualSpend) => {
     constraints.push({
       factor: "administrativeReach", value: Math.round(e.administrativeReach),
       headroom: output * (IN_KIND_TAX_FLOOR + (1 - IN_KIND_TAX_FLOOR) * monetized) * e.taxRate - revenue,
-      detail: `Only ${Math.round(reach * 100)}% of the country is close enough to the state to be assessed at all; the rest pays nothing whatever the rate says.`,
+      detail: `Seuls ${Math.round(reach * 100)} % du pays sont assez proches de l'État pour être imposés ; le reste ne paie rien, quel que soit le taux.`,
     });
   }
   if (monetized < 0.95) {
     constraints.push({
       factor: "monetization", value: Math.round(e.monetization), headroom: output * reach * e.taxRate - revenue,
-      detail: `Most of what the state reaches is consumed where it is grown, not sold; only a share can be taken as anything but grain and labour.`,
+      detail: `L'essentiel de ce que l'État atteint est consommé là où il pousse, non vendu ; une part seulement peut être prise autrement qu'en grain et en travail.`,
     });
   }
   const effort = maxTaxEffort(e);
@@ -926,8 +926,8 @@ export const explainShortfall = (economy, requiredAnnualSpend) => {
   constraints.push({
     factor: "taxRate", value: Number(e.taxRate.toFixed(3)), headroom: rateHeadroom,
     detail: rateHeadroom > 0
-      ? `The rate could rise to about ${Math.round(effort * 100)}% of the assessed base${e.atWar ? " under wartime mobilisation" : ""} before collection turns coercive and legitimacy bleeds.`
-      : `The rate already stands at what this society will bear${e.atWar ? ", even at war" : ""}; pushing it costs legitimacy directly.`,
+      ? `Le taux pourrait monter à environ ${Math.round(effort * 100)} % de la base imposable${e.atWar ? " sous mobilisation de guerre" : ""} avant que la collecte ne devienne coercitive et que la légitimité ne saigne.`
+      : `Le taux est déjà à ce que cette société supporte${e.atWar ? ", même en guerre" : ""} ; le pousser coûte directement de la légitimité.`,
   });
   const room = Math.max(0, debtCeiling(e) - e.debt);
   const rReal = realBorrowingRate(e);
@@ -935,24 +935,24 @@ export const explainShortfall = (economy, requiredAnnualSpend) => {
   constraints.push({
     factor: "credit", value: Math.round(room), headroom: room,
     detail: room <= 0
-      ? `No lender will advance more: the debt already stands at what this base can service.`
-      : `Lenders would advance about ${Math.round(room)} SY at ${(interestRate(e) * 100).toFixed(1)}% — once. `
-        + (g > rReal ? `The economy outgrows its interest (r < g), so a stable debt share is sustainable.`
-          : `Interest outruns growth (r > g): every SY borrowed compounds unless the primary balance covers it.`),
+      ? `Aucun prêteur n'avancera davantage : la dette est déjà à ce que cette base peut servir.`
+      : `Les prêteurs avanceraient environ ${Math.round(room)} AS à ${(interestRate(e) * 100).toFixed(1)} % — une seule fois. `
+        + (g > rReal ? `L'économie croît plus vite que ses intérêts (r < g) : une part de dette stable est soutenable.`
+          : `Les intérêts dépassent la croissance (r > g) : chaque AS empruntée s'accumule tant que le solde primaire ne la couvre pas.`),
   });
   const pledge = Math.max(0, pledgeableValue(e) - e.claimsOutstanding);
   constraints.push({
     factor: "futureClaims", value: Math.round(pledge), headroom: pledge * claimMoneyness(e),
     detail: pledge <= 0
-      ? `Future revenue is already pledged to the hilt: any further claim would trade below par from the day it is issued.`
-      : `About ${Math.round(pledge)} SY of the next ${e.monetarySystem.claimsHorizon} years' collectable revenue could still be pledged at par; `
-        + `with financial depth at ${Math.round(e.financialDepth)}, such paper circulates at ${Math.round(claimMoneyness(e) * 100)}% of face.`,
+      ? `Les recettes à venir sont déjà gagées jusqu'à la garde : toute créance de plus s'échangerait sous le pair dès son émission.`
+      : `Environ ${Math.round(pledge)} AS des recettes encaissables des ${e.monetarySystem.claimsHorizon} prochaines années pourraient encore être gagées au pair ; `
+        + `avec une profondeur financière de ${Math.round(e.financialDepth)}, un tel papier circule à ${Math.round(claimMoneyness(e) * 100)} % du nominal.`,
   });
   constraints.push({
     factor: "monetaryFinancing", value: Math.round(gap), headroom: Infinity,
-    detail: `The issuer could simply create the shortfall; at ${Math.round(100 * gap / output)}% of output a year that is `
-      + `${gap / output > 0.1 ? "the road to hyperinflation" : gap / output > 0.03 ? "several points of inflation" : "tolerable for a while"}`
-      + (e.monetarySystem.rule === "fixed" || e.monetarySystem.rule === "peg" ? `, and it breaks the ${e.monetarySystem.rule === "peg" ? "peg" : "issuance rule"}.` : "."),
+    detail: `L'émetteur pourrait simplement créer le manque ; à ${Math.round(100 * gap / output)} % de la production par an, c'est `
+      + `${gap / output > 0.1 ? "la route de l'hyperinflation" : gap / output > 0.03 ? "plusieurs points d'inflation" : "tolérable un temps"}`
+      + (e.monetarySystem.rule === "fixed" || e.monetarySystem.rule === "peg" ? `, et cela rompt ${e.monetarySystem.rule === "peg" ? "l'ancrage" : "la règle d'émission"}.` : "."),
   });
 
   constraints.sort((a, b) => a.headroom - b.headroom);

@@ -101,11 +101,22 @@ export const openLibraryTab = (tab) => {
   _openLibraryTab?.(tab);
 };
 
+// Set by the mounted LibraryTopBar: start a fresh game on the default scenario
+// and enter it. Returns false when the catalogue has not loaded yet, so the
+// caller can fall back rather than swallow the click.
+let _startNewGame = null;
+export const startNewGame = async () => (_startNewGame ? _startNewGame() : false);
+
 // Whether the main menu is showing. Lives at module scope because the whole UI
 // tree (this component included) remounts whenever the active game changes —
 // per-component state would reset to "open" mid game-start and the menu would
-// pop back over the freshly activated game. The app boots into the menu.
-let menuOpenDefault = true;
+// pop back over the freshly activated game.
+//
+// L'application ne démarre PLUS dessus. Un joueur qui ouvre le jeu veut
+// commencer ou reprendre, pas gérer une bibliothèque : la porte d'entrée est
+// l'écran de bienvenue et ses deux boutons (runtime/Welcome.jsx). La
+// bibliothèque reste atteignable par le ⋮, pour qui vient justement la gérer.
+let menuOpenDefault = false;
 // For background work that should not run for a game the player hasn't
 // actually entered (e.g. pre-game history generation while browsing the menu).
 export const isMainMenuOpen = () => menuOpenDefault;
@@ -380,7 +391,7 @@ const ScenarioCard = ({ onClone, onEdit, onPlay, onSelect, onUpdate, scenario, s
         ...surfaceStyle,
         borderColor: selected ? scenario.accentColor : "var(--oh-line)",
         borderRadius: 0,
-        borderTop: `4px solid ${selected ? scenario.accentColor : "var(--oh-text-strong)"}`,
+        borderTop: `var(--oh-filet-fort) solid ${selected ? scenario.accentColor : "var(--oh-text-strong)"}`,
         display: "flex",
         flex: "0 0 21rem",
         flexDirection: "column",
@@ -459,12 +470,12 @@ const ScenarioCard = ({ onClone, onEdit, onPlay, onSelect, onUpdate, scenario, s
                     textTransform: "var(--oh-label-case)",
                   }}
                 >
-                  Built-In
+                  Intégré
                 </span>
               )}
             </div>
             <span style={{ color: "var(--oh-text)", fontSize: "var(--oh-t-xs)" }}>
-              {scenario.gameCount} game{scenario.gameCount === 1 ? "" : "s"}
+              {scenario.gameCount} partie{scenario.gameCount === 1 ? "" : "s"}
             </span>
           </div>
           <div style={{ marginTop: "4rem" }}>
@@ -511,17 +522,17 @@ const ScenarioCard = ({ onClone, onEdit, onPlay, onSelect, onUpdate, scenario, s
                 flex: 1,
               }}
               title={updateAvailable
-                ? "A newer version of this scenario is on the community hub. Updating replaces this copy (existing games keep working)."
+                ? "Une version plus récente de ce scénario est sur le pôle communautaire. La mise à jour remplace cette copie (les parties existantes continuent de fonctionner)."
                 : undefined}
               type="button"
             >
-              {updateAvailable ? "⬆ Update" : "New Game"}
+              {updateAvailable ? "⬆ Mettre à jour" : "Nouvelle partie"}
             </button>
             <button onClick={() => onEdit(scenario.id)} style={{ ...actionButtonStyle, flex: 1 }} type="button">
-              Edit
+              Modifier
             </button>
             <button onClick={() => onClone(scenario)} style={{ ...actionButtonStyle, flexBasis: "100%" }} type="button">
-              Clone Scenario
+              Cloner le scénario
             </button>
           </div>
         </div>
@@ -539,7 +550,7 @@ const GameCard = ({ active, game, onActivate, onArchive, onClone, onEdit }) => {
         ...surfaceStyle,
         borderColor: active ? game.accentColor : "var(--oh-line)",
         borderRadius: 0,
-        borderTop: `4px solid ${active ? game.accentColor : "var(--oh-text-strong)"}`,
+        borderTop: `var(--oh-filet-fort) solid ${active ? game.accentColor : "var(--oh-text-strong)"}`,
         display: "flex",
         flex: "0 0 21rem",
         flexDirection: "column",
@@ -586,7 +597,7 @@ const GameCard = ({ active, game, onActivate, onArchive, onClone, onEdit }) => {
                 textTransform: "var(--oh-label-case)",
               }}
             >
-              {active ? "Current Game" : game.eyebrow || "Game"}
+              {active ? "Partie en cours" : game.eyebrow || "Partie"}
             </span>
             <span style={{ color: "var(--oh-text)", fontSize: "var(--oh-t-xs)" }}>
               {game.scenarioName}
@@ -598,7 +609,7 @@ const GameCard = ({ active, game, onActivate, onArchive, onClone, onEdit }) => {
               {game.name}
             </div>
             <div style={{ color: "var(--oh-text)", fontSize: "var(--oh-t-sm)", marginTop: "0.45rem" }}>
-              {game.country || "No player country"} / {game.currentDate || "No date"} / Round {game.round || 1}
+              {game.country || "Aucun pays joueur"} / {game.currentDate || "Sans date"} / Tour {game.round || 1}
             </div>
             <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)", marginTop: "0.5rem", lineHeight: 1.45 }}>
               {game.description || "Playable campaign session."}
@@ -608,7 +619,7 @@ const GameCard = ({ active, game, onActivate, onArchive, onClone, onEdit }) => {
 
         <div>
           <div style={{ color: "var(--oh-text)", fontSize: "var(--oh-t-xs)", marginBottom: "0.75rem" }}>
-            {game.pendingActions} pending action{game.pendingActions === 1 ? "" : "s"} / {game.eventCount} event{game.eventCount === 1 ? "" : "s"}
+            {game.pendingActions} ordre{game.pendingActions === 1 ? "" : "s"} en attente / {game.eventCount} événement{game.eventCount === 1 ? "" : "s"}
           </div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: "0.55rem" }}>
             <button
@@ -622,13 +633,13 @@ const GameCard = ({ active, game, onActivate, onArchive, onClone, onEdit }) => {
               }}
               type="button"
             >
-              {active ? "Current" : "Play"}
+              {active ? "En cours" : "Jouer"}
             </button>
             <button onClick={() => onEdit(game.id)} style={{ ...actionButtonStyle, flex: 1 }} type="button">
-              Edit
+              Modifier
             </button>
             <button onClick={() => onClone(game)} style={{ ...actionButtonStyle, flex: 1 }} type="button">
-              Clone
+              Cloner
             </button>
             {/* Hide a finished or abandoned run without destroying it — the case
                 Delete cannot serve. Archiving the ACTIVE game is allowed: the
@@ -636,10 +647,10 @@ const GameCard = ({ active, game, onActivate, onArchive, onClone, onEdit }) => {
             <button
               onClick={() => onArchive(game)}
               style={{ ...actionButtonStyle, flexBasis: "100%" }}
-              title={game.archived ? "Move back into your library" : "Hide from the library without deleting"}
+              title={game.archived ? "Remettre dans votre bibliothèque" : "Masquer de la bibliothèque sans supprimer"}
               type="button"
             >
-              {game.archived ? "Unarchive" : "Archive"}
+              {game.archived ? "Désarchiver" : "Archiver"}
             </button>
           </div>
         </div>
@@ -870,7 +881,7 @@ const EditorDrawer = ({
                   })}
                 </div>
                 <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)", marginTop: "0.4rem" }}>
-                  Uncheck types that don't fit the era — e.g. no Air Force in 1200. Players can only deploy the checked types.
+                  Décochez les types qui ne collent pas à l'époque — pas d'aviation en 1200, par exemple. Les joueurs ne peuvent déployer que les types cochés.
                 </div>
               </div>
             )}
@@ -1017,7 +1028,7 @@ const EditorDrawer = ({
       {editorSection === "bundles" && kind === "scenario" && (
         <div style={{ background: "var(--oh-plate-2)", border: "1px solid var(--oh-line)", borderRadius: "18px", marginBottom: "0.95rem", padding: "0.9rem" }}>
           <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)", lineHeight: 1.5, marginBottom: "0.85rem" }}>
-            Download the scenario as one self-contained file — custom map geometry, cities and basemap all travel with it, ready to share or re-import. The <strong>.zip</strong> carries a custom basemap as a real image file (smaller, and the form the community hub expects); the <strong>JSON</strong> packs everything into one text file.
+            Téléchargez le scénario en un seul fichier autonome — sa géométrie propre, ses villes et son fond de carte voyagent avec lui, prêts à être partagés ou réimportés. Le <strong>.zip</strong> porte un fond de carte comme vraie image (plus léger, et c'est la forme qu'attend le hub) ; le <strong>JSON</strong> empaquette tout dans un seul fichier texte.
           </div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: "0.55rem" }}>
             <button onClick={() => onExportBundle("light", "zip")} style={actionButtonStyle} type="button">
@@ -1093,6 +1104,19 @@ const LibraryTopBar = () => {
   _openLibraryTab = (tab) => {
     setActiveTab(tab);
     setMenuOpen(true);
+  };
+  // « Commencer », depuis l'écran de bienvenue : une partie neuve sur le
+  // scénario du jeu, et on y entre. Pas de bibliothèque, pas de liste de
+  // scénarios, pas de choix de pays — le scénario nomme déjà le sien.
+  _startNewGame = async () => {
+    // « default » est l'identifiant du scénario livré avec le jeu, des deux
+    // côtés (serveur et web). Écrit en clair plutôt qu'importé de
+    // runtime/web/models.js, qui n'appartient qu'au build web : ce fichier-ci
+    // sert aussi l'application de bureau.
+    const scenario = scenarios.find((sc) => sc.id === "default") ?? scenarios[0];
+    if (!scenario) return false;
+    await startGameForCountry(scenario, "", "");
+    return true;
   };
   const [editorKind, setEditorKind] = useState(null);
   const [editorDetails, setEditorDetails] = useState(null);
@@ -1314,34 +1338,39 @@ const LibraryTopBar = () => {
   const getBaseCountryOptions = () =>
     Object.entries(countryNames ?? {}).map(([code, name]) => ({ code, name }));
 
-  // "New Game" now opens a country picker first (the player chooses who to play).
-  const handleScenarioPlay = (scenario) => {
+  // "New Game" opens a country picker first — sauf quand le scénario nomme déjà
+  // le pays que tient le joueur. Saint-Siège le nomme : on y est le pape, et la
+  // liste des pays s'ouvrait sur l'Afghanistan. Un tel scénario va droit au choix
+  // de difficulté, avec son propre pays.
+  const handleScenarioPlay = async (scenario) => {
     setCountryQuery("");
     setCountryOptions([]);
     setCustomRegionData(null); setPickerOwnerOverrides(null);
     setPlayGameId(null);
     setPickerTab("country");
     setCountryPicker(scenario);
-    Promise.all([loadCountryNames().catch(() => []), loadScenarioDetails(scenario.id).catch(() => null)])
-      .then(([allCountries, details]) => {
-        setCountryOptions(buildScenarioCountryOptions(
-          details?.data?.world,
-          [...getBaseCountryOptions(), ...allCountries],
-          scenario.countryNameOverrides,
-        ));
-        // Needed whether or not the scenario has geometry of its own: with it the
-        // stock seed is repainted in this scenario's owners, without it the picker
-        // shows modern countries the scenario does not contain.
-        setPickerOwnerOverrides(details?.data?.world?.regionOwnershipOverrides ?? null);
-        // Load custom region geometry so the map renders the scenario's actual
-        // boundaries instead of the stock world seed.
-        if (details?.data?.world?.customRegions) {
-          downloadScenarioJsonAsset(scenario.id, "regionsGeojson")
-            .then((geojson) => { if (geojson) setCustomRegionData(geojson); })
-            .catch(() => {});
-        }
-      })
-      .catch(() => setCountryOptions([]));
+
+    const details = await loadScenarioDetails(scenario.id).catch(() => null);
+    const paysImpose = details?.data?.game?.country;
+    if (paysImpose) { setDifficultyPick({ countryCode: paysImpose }); return; }
+
+    const allCountries = await loadCountryNames().catch(() => []);
+    setCountryOptions(buildScenarioCountryOptions(
+      details?.data?.world,
+      [...getBaseCountryOptions(), ...allCountries],
+      scenario.countryNameOverrides,
+    ));
+    // Needed whether or not the scenario has geometry of its own: with it the
+    // stock seed is repainted in this scenario's owners, without it the picker
+    // shows modern countries the scenario does not contain.
+    setPickerOwnerOverrides(details?.data?.world?.regionOwnershipOverrides ?? null);
+    // Load custom region geometry so the map renders the scenario's actual
+    // boundaries instead of the stock world seed.
+    if (details?.data?.world?.customRegions) {
+      downloadScenarioJsonAsset(scenario.id, "regionsGeojson")
+        .then((geojson) => { if (geojson) setCustomRegionData(geojson); })
+        .catch(() => {});
+    }
   };
 
   // Hub update detection: scenarios imported straight from the community tab
@@ -2051,318 +2080,12 @@ const LibraryTopBar = () => {
 
   return (
     <>
-      {/* In-game the full-width top bar is gone — the map gets the space. What
-          remains is a compact floating cluster beside the ⋮ settings button: a
-          small sleek pill with the session summary, plus Exit Game and ⏻.
-          Below the settings menu and date widget (z 9998/9999) so opening
-          either covers it instead of the other way around. */}
-      {!menuOpen && !isMobile && (
-        <div
-          style={{
-            alignItems: "center",
-            display: "flex",
-            fontFamily: "inherit",
-            gap: "0.45rem",
-            left: "5rem",
-            position: "fixed",
-            top: "0.5rem",
-            zIndex: 9997,
-          }}
-        >
-          <div
-            style={{
-              ...surfaceStyle,
-              borderRadius: "999px",
-              color: "var(--oh-text)",
-              fontSize: "var(--oh-t-xs)",
-              fontWeight: 600,
-              // Shrinks to nothing before it can reach under the date widget
-              // on narrow desktop windows (the widget owns the top right).
-              maxWidth: "min(34rem, max(0rem, calc(100vw - 44rem)))",
-              overflow: "hidden",
-              padding: "0.5rem 0.85rem",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {summaryText}
-          </div>
-          <button
-            onClick={() => setMenuOpen(true)}
-            title="Leave this game and return to the main menu"
-            type="button"
-            style={{ ...actionButtonStyle, ...surfaceStyle, borderRadius: "999px", fontSize: "var(--oh-t-xs)", minHeight: "0", padding: "0.5rem 0.85rem" }}
-          >
-            ⌂ Exit Game
-          </button>
-          {/* Shut the server down (phones/Termux have no terminal handy). Hidden
-              on the hosted website (web build) — there's no local server to stop
-              there, and the compile-time flag strips this from that bundle. */}
-          {!import.meta.env.VITE_OH_WEB && (
-            <button
-              onClick={handleShutdownServer}
-              title="Exit: shut down the Open Historia server"
-              type="button"
-              style={{
-                ...actionButtonStyle,
-                ...surfaceStyle,
-                background: "var(--oh-alert-soft)",
-                borderColor: "var(--oh-alert-soft)",
-                borderRadius: "999px",
-                color: "var(--oh-text-strong)",
-                fontSize: "var(--oh-t-xs)",
-                minHeight: "0",
-                minWidth: "0",
-                padding: "0.5rem 0.7rem",
-              }}
-            >
-              ⏻
-            </button>
-          )}
-        </div>
-      )}
+      {/* Le résumé de session, la sortie et l'arrêt du serveur vivaient dans
+          un bandeau flottant en haut à gauche. La maquette journal commence par
+          le bandeau du journal : rien ne doit se poser dessus. Ils sont passés
+          dans le menu ⋮, qui est déjà la porte de la bibliothèque — et « quitter
+          la partie » n'y a plus d'objet, puisque l'ouvrir revient au même. */}
 
-      {/* Phones: the date widget spans the whole top row, so Exit Game and ⏻
-          stack in the left gutter under the ⋮ settings button instead. */}
-      {!menuOpen && isMobile && (
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            fontFamily: "inherit",
-            gap: "0.45rem",
-            left: "0.5rem",
-            position: "fixed",
-            top: "5rem",
-            zIndex: 9997,
-          }}
-        >
-          <button
-            onClick={() => setMenuOpen(true)}
-            title="Leave this game and return to the main menu"
-            type="button"
-            style={{ ...actionButtonStyle, ...surfaceStyle, borderRadius: "12px", fontSize: "var(--oh-t-base)", height: "2.6rem", minHeight: "0", minWidth: "0", padding: 0, width: "2.6rem" }}
-          >
-            ⌂
-          </button>
-          {!import.meta.env.VITE_OH_WEB && (
-            <button
-              onClick={handleShutdownServer}
-              title="Exit: shut down the Open Historia server"
-              type="button"
-              style={{
-                ...actionButtonStyle,
-                ...surfaceStyle,
-                background: "var(--oh-alert-soft)",
-                borderColor: "var(--oh-alert-soft)",
-                borderRadius: "12px",
-                color: "var(--oh-text-strong)",
-                fontSize: "var(--oh-t-base)",
-                height: "2.6rem",
-                minHeight: "0",
-                minWidth: "0",
-                padding: 0,
-                width: "2.6rem",
-              }}
-            >
-              ⏻
-            </button>
-          )}
-        </div>
-      )}
-
-      {serverDown && (
-        <div
-          style={{
-            alignItems: "center",
-            background: "var(--oh-plate)",
-            color: "var(--oh-text-strong)",
-            display: "flex",
-            flexDirection: "column",
-            fontFamily: "inherit",
-            gap: "0.8rem",
-            inset: 0,
-            justifyContent: "center",
-            padding: "1rem",
-            position: "fixed",
-            textAlign: "center",
-            zIndex: 20000,
-          }}
-        >
-          <div style={{ fontSize: "var(--oh-t-xl)" }}>⏻</div>
-          <div style={{ fontSize: "var(--oh-t-md)", fontWeight: 800 }}>Server stopped</div>
-          <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)", maxWidth: "22rem" }}>
-            You can close this tab now. Run the launcher (or <code>node server/server.js</code>) to start it again.
-          </div>
-        </div>
-      )}
-
-      {isMapEditorOpen && (
-        <div style={{ position: "fixed", inset: 0, zIndex: 10050 }}>
-          <Suspense
-            fallback={
-              <div style={{ position: "fixed", inset: 0, background: "var(--oh-plate)", color: "var(--oh-text)", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "inherit" }}>
-                Loading map editor…
-              </div>
-            }
-          >
-            <MapEditor
-              onClose={() => {
-                setIsMapEditorOpen(false);
-                setMapEditorScenario(null);
-                setMapEditorSeed(null);
-              }}
-              scenarioName={mapEditorScenario?.name}
-              initialMap={mapEditorSeed}
-              onApplyToScenario={
-                mapEditorScenario ? (seed) => applyMapToScenario(mapEditorScenario, seed) : undefined
-              }
-            />
-          </Suspense>
-        </div>
-      )}
-
-      {countryPicker && (
-        <div
-          onClick={() => { setCountryPicker(null); setPlayGameId(null); setDifficultyPick(null); setCustomRegionData(null); setPickerOwnerOverrides(null); }}
-          style={{ position: "fixed", inset: 0, zIndex: 10060, background: "rgba(0,0,0,0.55)", display: "flex", alignItems: "center", justifyContent: "center" }}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            style={{ ...surfaceStyle, borderRadius: 16, width: difficultyPick ? "min(440px, 92vw)" : "min(640px, 92vw)", maxHeight: "80vh", display: "flex", flexDirection: "column", padding: "1rem", color: "var(--oh-text-strong)", fontFamily: "inherit", overflow: difficultyPick ? "visible" : "auto" }}
-          >
-            {difficultyPick ? (
-              <>
-                <div style={{ fontWeight: 800, fontSize: "var(--oh-t-base)" }}>Choose your difficulty</div>
-                <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)", margin: "0.15rem 0 0.7rem" }}>
-                  How hard should the world fight back?
-                </div>
-                {selectedCountryOption && (
-                  <div style={{ alignItems: "center", display: "flex", fontSize: "var(--oh-t-sm)", fontWeight: 700, gap: "0.5rem", marginBottom: "0.7rem" }}>
-                    <span aria-hidden="true" style={{ fontSize: "var(--oh-t-lg)" }}>
-                      {flagEmojiFromGid(selectedCountryOption.code) || "🏳️"}
-                    </span>
-                    <span>{selectedCountryOption.name}</span>
-                  </div>
-                )}
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.5rem", overflowY: "auto" }}>
-                  {DIFFICULTY_LEVELS.map((level) => (
-                    <button
-                      key={level.id}
-                      type="button"
-                      onClick={() => pickDifficulty(level.id)}
-                      style={{
-                        ...actionButtonStyle,
-                        alignItems: "center",
-                        background: "var(--oh-plate-2)",
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "0.2rem",
-                        padding: "0.75rem 0.5rem",
-                      }}
-                    >
-                      <span style={{ fontSize: "var(--oh-t-lg)", lineHeight: 1 }}>{level.emoji}</span>
-                      <span style={{ fontWeight: 700 }}>{level.label}</span>
-                      <span style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)", textAlign: "center" }}>{level.blurb}</span>
-                    </button>
-                  ))}
-                </div>
-                <button type="button" onClick={() => setDifficultyPick(null)} style={{ ...actionButtonStyle, marginTop: "0.6rem" }}>
-                  Back
-                </button>
-              </>
-            ) : (
-              <>
-                <div style={{ fontWeight: 800, fontSize: "var(--oh-t-base)" }}>
-                  {pickerTab === "faction" ? "Create your faction" : "Choose your country"}
-                </div>
-                <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)", margin: "0.15rem 0 0.6rem" }}>
-                  Starting “{countryPicker.name}”
-                </div>
-                {/* Refining an existing game (Apply-&-Play) only swaps the country;
-                    inventing a faction is a fresh-game concern, so the tabs show
-                    only for a true new game. */}
-                {!playGameId && (
-                  <div style={{ display: "flex", gap: "0.4rem", marginBottom: "0.7rem" }}>
-                    <button
-                      type="button"
-                      onClick={() => setPickerTab("country")}
-                      style={{
-                        ...actionButtonStyle,
-                        flex: 1,
-                        fontWeight: 700,
-                        background: pickerTab === "country" ? "var(--oh-accent-soft)" : "var(--oh-plate-2)",
-                        borderColor: pickerTab === "country" ? "var(--oh-accent-soft)" : undefined,
-                      }}
-                    >
-                      Pick a country
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setPickerTab("faction")}
-                      style={{
-                        ...actionButtonStyle,
-                        flex: 1,
-                        fontWeight: 700,
-                        background: pickerTab === "faction" ? "var(--oh-accent-soft)" : "var(--oh-plate-2)",
-                        borderColor: pickerTab === "faction" ? "var(--oh-accent-soft)" : undefined,
-                      }}
-                    >
-                      Create a faction
-                    </button>
-                  </div>
-                )}
-                {pickerTab === "faction" && !playGameId ? (
-                  <FactionCreator
-                    regionsGeojson={customRegionData}
-                    busy={isBusy}
-                    onCreate={(faction) => pickFaction(faction)}
-                    onCancel={() => { setCountryPicker(null); setPickerTab("country"); setCustomRegionData(null); setPickerOwnerOverrides(null); }}
-                  />
-                ) : (
-                  <>
-                    <button
-                      type="button"
-                      onClick={() => pickCountry("")}
-                      style={{ ...actionButtonStyle, justifyContent: "flex-start", background: "var(--oh-accent-soft)", marginBottom: "0.4rem" }}
-                    >
-                      {playGameId ? "Keep scenario default" : "Scenario default"}
-                    </button>
-                    <Suspense
-                      fallback={
-                        <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)", padding: "3rem 0", textAlign: "center" }}>
-                          Loading map…
-                        </div>
-                      }
-                    >
-                      <CountryPickerMap
-                        countryOptions={countryOptions}
-                        regionsGeojson={customRegionData}
-                        ownerOverrides={pickerOwnerOverrides}
-                        onPickCountry={(code) => pickCountry(code)}
-                      />
-                    </Suspense>
-                    <button type="button" onClick={() => { setCountryPicker(null); setPlayGameId(null); setCustomRegionData(null); setPickerOwnerOverrides(null); }} style={{ ...actionButtonStyle, marginTop: "0.6rem" }}>
-                      {playGameId ? "Terminé" : "Annuler"}
-                    </button>
-                  </>
-                )}
-              </>
-            )}
-          </div>
-        </div>
-      )}
-
-      <input
-        ref={importScenarioInputRef}
-        accept=".json,application/json,.zip,application/zip"
-        onChange={handleImportScenarioFile}
-        style={{ display: "none" }}
-        type="file"
-      />
-
-      {/* The Main Menu: a full page over everything in-game. Opens on app start
-          (module default) and via Exit Game; closes only by entering a game. */}
       {menuOpen && (
         <div
           style={{
@@ -2435,14 +2158,43 @@ const LibraryTopBar = () => {
             </div>
 
             <div style={{ alignItems: "center", display: "flex", gap: "0.55rem", justifyContent: "flex-end" }}>
+              {/* Ce qu'on jouait, dit là où l'on vient le quitter. */}
+              {summaryText && !isMobile && (
+                <span
+                  style={{
+                    color: "var(--oh-text-dim)",
+                    fontSize: "var(--oh-t-xs)",
+                    marginRight: "auto",
+                    maxWidth: "28rem",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {summaryText}
+                </span>
+              )}
+              {/* Arrêter le serveur (un téléphone ou Termux n'a pas de terminal
+                  sous la main). Absent du site hébergé : il n'y a pas de serveur
+                  local à arrêter, et le drapeau de compilation le retire. */}
+              {!import.meta.env.VITE_OH_WEB && (
+                <button
+                  onClick={handleShutdownServer}
+                  title="Arrêter le serveur Open Historia"
+                  type="button"
+                  style={{ ...actionButtonStyle, background: "var(--oh-alert-soft)", borderColor: "var(--oh-alert-soft)", color: "var(--oh-text-strong)" }}
+                >
+                  ⏻
+                </button>
+              )}
               {activeTab !== "community" && (
                 <button onClick={() => refreshLibraryCatalog({ force: true }).catch(() => {})} style={actionButtonStyle} type="button">
-                  {isMobile ? "⟳" : "Refresh"}
+                  {isMobile ? "⟳" : "Rafraîchir"}
                 </button>
               )}
               {activeTab === "scenarios" && (
                 <button onClick={() => importScenarioInputRef.current?.click()} style={actionButtonStyle} type="button">
-                  {isMobile ? "⬆" : "Import JSON"}
+                  {isMobile ? "⬆" : "Importer du JSON"}
                 </button>
               )}
               {!import.meta.env.VITE_OH_WEB && (
@@ -2507,7 +2259,7 @@ const LibraryTopBar = () => {
                 </div>
               ) : (
                 <>
-                  <MenuRow title="🕐 Last Played">
+                  <MenuRow title="🕐 Dernière jouée">
                     {lastPlayedGames.map((game) => (
                       <GameCard
                         key={game.id}
@@ -2520,7 +2272,7 @@ const LibraryTopBar = () => {
                       />
                     ))}
                   </MenuRow>
-                  <MenuRow title="🔥 Most Played">
+                  <MenuRow title="🔥 Les plus jouées">
                     {mostPlayedGames.map((game) => (
                       <GameCard
                         key={game.id}
@@ -2552,7 +2304,7 @@ const LibraryTopBar = () => {
               )
             ) : (
               <>
-                <MenuRow title="🔥 Most Played" emptyText="No scenarios yet.">
+                <MenuRow title="🔥 Les plus joués" emptyText="Aucun scénario pour l'instant.">
                   {mostPlayedScenarios.map((scenario) => (
                     <ScenarioCard
                       key={scenario.id}
@@ -2567,7 +2319,7 @@ const LibraryTopBar = () => {
                     />
                   ))}
                 </MenuRow>
-                <MenuRow title="🕐 Last Updated" emptyText="No scenarios yet.">
+                <MenuRow title="🕐 Mis à jour en dernier" emptyText="Aucun scénario pour l'instant.">
                   {lastUpdatedScenarios.map((scenario) => (
                     <ScenarioCard
                       key={scenario.id}

@@ -410,7 +410,7 @@ export const judgeGovernance = (assembly, { movements = {}, upheaval = 0, date =
       rows.push({
         date, axis, group: g.name, seats: g.seats,
         approval: Math.round(g.approval * 10) / 10, step: Math.round(moved * 10) / 10,
-        reason: moved > 0 ? "approves of how you are governing" : "disapproves of how you are governing",
+        reason: moved > 0 ? "approuve votre façon de gouverner" : "désapprouve votre façon de gouverner",
       });
     }
   }
@@ -502,7 +502,7 @@ export const persuadeNeighbours = (assembly, { date = "" } = {}) => {
       rows.push({
         date, axis, group: g.name, seats: g.seats,
         approval: Math.round(g.approval * 10) / 10, step: Math.round(moved * 10) / 10,
-        reason: moved > 0 ? "was talked round by those already with you" : "was talked round by those already against you",
+        reason: moved > 0 ? "a été retourné par ceux qui vous sont déjà acquis" : "a été retourné par ceux qui vous sont déjà contraires",
       });
     }
   }
@@ -599,7 +599,7 @@ export const driftFromBlunders = (assembly, intents, { asOf = "", date = "" } = 
   const electors = a.electors.map((e) => ({ ...e, approval: clamp(e.approval + step, -APPROVAL_RANGE, APPROVAL_RANGE) }));
   return {
     assembly: { ...a, electors },
-    rows: [{ date, axis: "", group: "the whole room", seats: a.seats, step, reason: `${stale.length} scheme${stale.length === 1 ? "" : "s"} against you ran a year and produced nothing` }],
+    rows: [{ date, axis: "", group: "toute la salle", seats: a.seats, step, reason: `${stale.length} chantier${stale.length === 1 ? "" : "s"} contre vous ${stale.length === 1 ? "a tourné" : "ont tourné"} un an sans rien produire` }],
   };
 };
 

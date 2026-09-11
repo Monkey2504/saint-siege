@@ -27,3 +27,46 @@ export const retryDelayFromRateLimit = (details) => {
   // A second of slack, so we come back after the window rather than on its edge.
   return Math.min(RATE_LIMIT_MAX_WAIT_MS, Math.ceil(amount * unit) + 1_000);
 };
+
+// ── Quelle limite a sauté ────────────────────────────────────────────────────
+//
+// « Comment je peux parler et dire des bêtises si je n'ai plus d'API ? Je pense
+// que le problème n'est pas là. » Il avait raison : le bandeau annonçait un
+// quota gratuit épuisé pendant que les cardinaux répondaient encore. Les deux
+// sont vrais en même temps, parce que Google ne compte pas une requête, il
+// compte trois choses séparément — les requêtes par minute, les jetons par
+// minute, les requêtes par jour — et une édition ne pèse pas une lettre. Une
+// édition envoie le monde entier plus un schéma ; une lettre envoie un
+// paragraphe. La minute peut refuser la première et accepter la seconde.
+//
+// Google nomme lui-même celle qui a sauté, dans `error.details[].violations[]`,
+// sous une clé du genre « GenerateRequestsPerDayPerProjectPerModel-FreeTier ».
+// Le message que le joueur lisait jetait cette clé et ne gardait que la phrase
+// de facturation, qui accuse le portefeuille pour les trois cas.
+const DIMENSIONS = Object.freeze([
+  [/PerDay/i, "par jour", "Elle se rouvre à la remise à zéro quotidienne de Google (minuit, heure du Pacifique)."],
+  [/InputToken|Token/i, "de jetons par minute", "Une édition envoie le monde entier : elle pèse à elle seule plusieurs fois une lettre. C'est pourquoi le courrier passe encore."],
+  [/PerMinute/i, "par minute", "Elle se rouvre dans la minute qui suit."],
+]);
+
+/**
+ * Ce que le fournisseur a refusé, en français, d'après sa propre comptabilité.
+ * Rend une chaîne vide quand la charge utile ne nomme aucun quota : mieux vaut
+ * ne rien affirmer que d'inventer laquelle des trois limites a sauté.
+ */
+export const diagnosticDeQuota = (payload) => {
+  const details = Array.isArray(payload?.error?.details) ? payload.error.details : [];
+  const violations = details.flatMap((d) => (Array.isArray(d?.violations) ? d.violations : []));
+  const cle = violations.map((v) => String(v?.quotaId ?? v?.quota_id ?? "")).find(Boolean);
+  if (!cle) return "";
+  const gratuit = /free[_-]?tier/i.test(cle);
+  const trouve = DIMENSIONS.find(([motif]) => motif.test(cle));
+  if (!trouve) return "";
+  const [, quoi, quand] = trouve;
+  const plafond = violations.map((v) => String(v?.quotaValue ?? v?.quota_value ?? "")).find(Boolean);
+  return [
+    `La limite ${quoi}${gratuit ? " du palier gratuit" : ""} de ce modèle est atteinte${plafond ? ` (${plafond})` : ""}.`,
+    "Votre clé fonctionne : c'est le compteur qui est plein, pas la clé.",
+    quand,
+  ].join(" ");
+};

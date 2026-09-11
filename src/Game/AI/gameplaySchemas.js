@@ -1609,3 +1609,72 @@ export const validateGameplayPayload = (taskKey, value) => {
 
   return { valid: true, error: "" };
 };
+
+// ── Ce que ce jeu n'utilise pas ──────────────────────────────────────────────
+//
+// « Retirer tout ce que le jeu n'utilise pas comme jeton. »
+//
+// Mesuré chez le joueur, palier gratuit, Gemini 3.5 Flash Lite : requêtes par
+// minute 13/15, par jour 284/500, et JETONS PAR MINUTE 339 950 pour un plafond
+// de 250 000. C'est la seule des trois qui saute, et le schéma du tour y entre
+// pour 11 462 jetons — envoyés avant le moindre mot de contenu, à chaque appel.
+//
+// Ventilé, `impacts` en porte 10 214. Quatre leviers y décrivent une guerre sur
+// une carte : des bataillons, des bases et des ports posés au sol, des régions
+// qui changent de maître, des guerres livrées. Ce jeu se lit dans un journal.
+// Le pape n'a pas d'armée — « lever une armée » est d'ailleurs le seul ordre que
+// le moteur juge BLOQUÉ — et la carte ne paraît que dans l'éditeur de scénario,
+// derrière le menu ⋮. Le modèle payait donc 2 266 jetons par tour pour se voir
+// offrir des leviers qu'il ne pouvait pas actionner.
+//
+// Ce n'est pas une amputation du moteur : la coupe est CONDITIONNELLE. Un monde
+// qui tient des unités, ou dont le joueur commande une armée, reçoit le schéma
+// entier. Un scénario à carte joué dans ce dépôt marche donc comme avant.
+export const LEVIERS_DE_CARTE = Object.freeze(["unitOps", "markerOps", "warOps", "regionTransfers"]);
+
+/**
+ * Le même outil, privé des leviers nommés. Rend l'outil TEL QUEL quand il n'y a
+ * rien à retirer, pour que le cas courant ne recopie pas le schéma pour rien.
+ */
+export const outilSansLeviers = (tool, leviers = []) => {
+  const aRetirer = new Set(leviers);
+  const impacts = tool?.schema?.properties?.events?.items?.properties?.impacts;
+  if (!aRetirer.size || !impacts?.properties) return tool;
+  const restants = Object.fromEntries(
+    Object.entries(impacts.properties).filter(([k]) => !aRetirer.has(k)),
+  );
+  if (Object.keys(restants).length === Object.keys(impacts.properties).length) return tool;
+  return Object.freeze({
+    ...tool,
+    schema: {
+      ...tool.schema,
+      properties: {
+        ...tool.schema.properties,
+        events: {
+          ...tool.schema.properties.events,
+          items: {
+            ...tool.schema.properties.events.items,
+            properties: {
+              ...tool.schema.properties.events.items.properties,
+              impacts: { ...impacts, properties: restants },
+            },
+          },
+        },
+      },
+    },
+  });
+};
+
+/**
+ * Si ce monde se joue sur une carte. Un monde qui tient des unités, ou dont un
+ * scénario déclare des transferts de régions, en est un ; le Saint-Siège n'en
+ * est pas un. Dans le doute — un monde qu'on n'a pas pu lire — on répond OUI,
+ * parce que le coût d'un schéma trop gros est une lenteur, et celui d'un schéma
+ * trop petit un levier que le monde ne peut plus actionner.
+ */
+export const laCarteEstEnJeu = (world) => {
+  if (!world || typeof world !== "object") return true;
+  if (Array.isArray(world.units) && world.units.length > 0) return true;
+  if (Array.isArray(world.wars) && world.wars.length > 0) return true;
+  return false;
+};

@@ -3,9 +3,42 @@
 // UI language: chosen in Settings, stored on the SERVER (shared by every
 // device that plays through it — desktop browser and the Android app see the
 // same choice) and mirrored in localStorage so boot doesn't wait on a fetch.
-// "en" (the authored language) means no translation work happens at all.
+// La langue par défaut est celle dans laquelle le jeu est ÉCRIT : aucune
+// traduction n'a lieu quand le joueur la lit.
 const STORAGE_KEY = "ui_language";
-export const DEFAULT_LANGUAGE = "en";
+
+/**
+ * Le français, et c'est le cœur d'un défaut qui a duré une journée entière.
+ *
+ * Cette constante disait « en ». Elle ne dit pas quelle langue on préfère :
+ * elle dit dans quelle langue le jeu est écrit — et cette édition est écrite en
+ * français, en dur, depuis que `runtime/designTokens.test.js` l'exige (« les
+ * chaînes d'interface sont FRANÇAISES dans la source ; cette règle demandait
+ * l'inverse, et elle avait tort »).
+ *
+ * Ce que « en » produisait : un joueur qui n'a jamais ouvert les Réglages n'a
+ * rien de stocké, `getStoredLanguage()` rendait donc « en », et
+ * `chatLanguageDirective()` — qui force la consigne, même pour l'anglais —
+ * collait À LA FIN de chaque invite de chat, la position la plus forte :
+ *
+ *     « LANGUAGE: The player reads English (en). Write ALL natural-language
+ *       text in English… Reply in English regardless of the language of
+ *       earlier messages. »
+ *
+ * Le jeu demandait donc explicitement l'anglais au modèle, par-dessus le bloc
+ * [Langue] français posé ailleurs. Un cardinal répondait « Most Holy Father,
+ * while material provisions are governed by the Providence that feeds the
+ * birds… » à un pape qui écrivait en français, dans une interface entièrement
+ * française. Quatre passes de francisation n'y pouvaient rien : elles
+ * traduisaient l'écran, pendant qu'une ligne disait au modèle le contraire.
+ *
+ * En français, `languageDirective("fr")` rend maintenant une chaîne vide pour
+ * les tâches ordinaires — rien à demander, le jeu est déjà dans cette langue —
+ * et le chat, qui force, épingle le français au lieu de l'anglais. Un joueur
+ * qui choisit l'anglais dans les Réglages passe alors par le traducteur : c'est
+ * l'autre langue qui se dégrade, et non la sienne.
+ */
+export const DEFAULT_LANGUAGE = "fr";
 
 // What the advisor and diplomatic chats reply in, so the interface can be read
 // in one language and the chats held in another. Defaults to the UI language —
@@ -85,28 +118,34 @@ export const getStoredLanguage = () => {
 };
 
 /**
- * The language to speak to somebody who has never chosen one: their browser's,
- * falling back to the authored language.
+ * La langue à parler à quelqu'un qui n'en a jamais choisi : celle du jeu.
  *
- * It matters for exactly the screens shown BEFORE a player has set anything —
- * the front door and the outage banner. Neither can be machine-translated
- * (there is no key yet, or the model is precisely what is unreachable), so both
- * carry hand-written text per language. Reading only the stored setting meant a
- * French player's very first screen was the one screen left in English.
+ * Elle décide des trois écrans qui paraissent AVANT tout choix — la porte
+ * d'entrée, l'écran des clés, le bandeau de panne. Aucun des trois ne peut
+ * passer par le traducteur (il n'y a pas encore de clé, ou le modèle est
+ * précisément ce qui est injoignable), d'où leurs tables écrites à la main.
+ *
+ * Cette fonction lisait la langue du NAVIGATEUR à défaut de choix. C'était juste
+ * du temps où l'interface était écrite en anglais : le navigateur était alors le
+ * seul indice qu'un joueur français existait. Depuis que tout le jeu est écrit
+ * en français, l'indice s'est retourné contre lui — sur un navigateur réglé en
+ * anglais, et c'est le cas de la plupart, le tout premier écran du jeu
+ * s'affichait en anglais devant une interface entièrement française. Mesuré :
+ * l'écran des clés rendait « One thing before you begin » là où tout le reste
+ * de la page disait « N° 1 · AN 1 DU PONTIFICAT ».
+ *
+ * Le choix du joueur l'emporte toujours ; à défaut, c'est la langue du jeu. Le
+ * navigateur ne décide plus de rien : il ne sait pas dans quelle langue ce jeu
+ * est écrit, et les tables par langue servent celui qui a CHOISI la sienne.
  */
 export const preferredLanguage = () => {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored && stored.trim()) return stored.trim();
   } catch {
-    // No storage available: fall through to what the browser reports.
+    // Pas de stockage : la langue du jeu, comme pour un joueur qui n'a rien choisi.
   }
-  try {
-    const fromBrowser = (navigator?.languages?.[0] || navigator?.language || "").split(/[-_]/)[0];
-    return fromBrowser || DEFAULT_LANGUAGE;
-  } catch {
-    return DEFAULT_LANGUAGE;
-  }
+  return DEFAULT_LANGUAGE;
 };
 
 const writeLocalLanguage = (code) => {

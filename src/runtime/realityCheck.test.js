@@ -36,8 +36,8 @@ test("a weak state: spending under a deficit, a reform beyond the state's reach,
   const ctx = { playerPolity: "Ruritania", economy: weak, world: {}, jumpDays: 365 };
   const build = assessAction(order("Build a national rail network"), ctx);
   assert.equal(build.verdict, "constrained");
-  assert.ok(build.constraints.some((c) => c.factor === "budget" && /short by/.test(c.detail)));
-  assert.ok(build.constraints.some((c) => c.factor === "reach" && /40%/.test(c.detail)));
+  assert.ok(build.constraints.some((c) => c.factor === "budget" && /manque déjà de/.test(c.detail)));
+  assert.ok(build.constraints.some((c) => c.factor === "reach" && /40 %/.test(c.detail)));
   const tax = assessAction(order("Raise a new land tax"), ctx);
   assert.ok(tax.constraints.some((c) => c.factor === "legitimacy" && /35\/100/.test(c.detail)));
 });
@@ -46,7 +46,7 @@ test("nothing to pay with blocks a purchase; no forces blocks an attack — the 
   const broke = normalizeEconomy({ ...solid(), treasury: 0, civilSpending: 1e12, financing: "austerity" });
   const buy = assessAction(order("Purchase new trains for the national railways"), { playerPolity: "X", economy: broke, world: {}, jumpDays: 365 });
   assert.equal(buy.verdict, "blocked");
-  assert.match(buy.constraints[0].detail, /nothing to pay with/);
+  assert.match(buy.constraints[0].detail, /rien pour payer/);
   const attack = assessAction(order("Invade the neighbour"), { playerPolity: "X", economy: solid(), world: { units: [] }, jumpDays: 30 });
   assert.equal(attack.verdict, "blocked");
   assert.equal(attack.constraints[0].factor, "forces");
@@ -69,7 +69,7 @@ test("the pope decides; what resists is the schemes already running and the time
   assert.ok(opposition, "the resistance is real, it is just not a ballot");
   assert.match(opposition.detail, /Bloc des cardinaux des dubia/, "the dubia fight liturgy");
   assert.match(opposition.detail, /Vieille garde/, "the old guard's scheme against restructuring is on the list");
-  assert.match(opposition.detail, /working for you: Compagnie de Jésus/);
+  assert.match(opposition.detail, /travaillent pour vous : Compagnie de Jésus/);
   assert.ok(!/Opus Dei/.test(opposition.detail), "Opus Dei has no stake in liturgy or the Curia: not against");
 
   const time = a.constraints.find((c) => c.factor === "time");
@@ -98,7 +98,7 @@ test("a body that decides by unanimity is scored as such (the enum is \"unanimit
   const a = assessAction(order("Bring the matter before the Security Council"), { playerPolity: "X", economy: solid(), world, jumpDays: 400 });
   const vote = a.constraints.find((c) => c.factor === "vote");
   assert.ok(vote, "the body is named, the player is a member: it must vote");
-  assert.match(vote.detail, /unanimity vote/);
+  assert.match(vote.detail, /vote unanimity/);
   assert.ok(vote.severity >= 0.4, `unanimity adds its own weight: ${vote.severity}`);
 });
 
@@ -333,4 +333,71 @@ test("an order about debt or a funded liability meets the budget it draws on", (
   const tax = assessAction(order("Relever le prélèvement sur les diocèses"), ctx);
   assert.ok(tax.domains.includes("tax"));
   assert.ok(!tax.constraints.some((c) => c.factor === "budget"), "raising revenue is not a new expense");
+});
+
+// J'avais noté que le verdict « bloqué » était inatteignable depuis une
+// trésorerie saine, et je m'étais trompé : il l'est, et pour la raison qui fait
+// ce jeu. Le pape n'a pas d'armée. Trois contraintes seulement franchissent
+// 0,90 — le budget vide (0,92), une portée administrative nulle (0,90 à
+// l'extrême), et l'absence de forces (0,95) — et c'est la troisième qui rend
+// « bloqué » vivant ici : « pas d'armée, un demi-kilomètre carré ».
+//
+// Le vote plafonne à 0,88 et l'opposition à 0,70, à dessein : le Collège
+// contraint un pape régnant, il ne le bloque pas. Ce test garde les deux.
+test("le pape n'a pas d'armée : un ordre militaire est bloqué, une réforme n'est que contrainte", () => {
+  const economie = {
+    treasury: 5e5, revenue: 1.2e6, spending: 1.1e6,
+    administrativeReach: 72, legitimacy: 70, fiscalCredibility: 65, debt: 0, gdp: 1e7,
+  };
+  const ctx = { playerPolity: "Saint-Siège", economy: economie, world: { organizations: [], intents: [], units: [] }, jumpDays: 30 };
+  const juge = (texte) => assessAction({ id: "x", kind: "action", status: "planned", text: texte, title: texte }, ctx);
+
+  const armee = juge("Lever une armée et envahir l'Italie.");
+  assert.equal(armee.verdict, "blocked", "une trésorerie saine ne fait pas apparaître des soldats");
+  assert.ok(armee.constraints.some((c) => c.factor === "forces" && c.severity >= 0.9));
+
+  // Et ce qu'un pape PEUT faire n'est pas bloqué pour autant : c'est contraint,
+  // ce qui est le verdict qui porte tout le jeu.
+  assert.equal(juge("Réformer la Curie romaine.").verdict, "constrained");
+  assert.equal(juge("Vendre le patrimoine immobilier pour les pauvres.").verdict, "constrained");
+});
+
+// « J'ai testé deux ordres idiots — je veux que les évêques portent des
+// mini-jupes à l'église — l'ordre est passé. »
+//
+// Il était passé, et tout passait : onze chantiers en jeu, aucun ne se
+// déclenchait jamais. Deux causes.
+//
+// La portée ne suffisait pas : il fallait EN PLUS que le genre du chantier
+// recouvre le domaine détecté par un classifieur séparé — deux vocabulaires
+// sans rapport, et ils se contredisaient. Mesuré : « supprimer le célibat » ne
+// réveillait les cardinaux des dubia que sous le genre ECONOMIC, et « ouvrir un
+// audit » ne réveillait le gardien du coffre que sous POLITICAL. Inversés.
+//
+// Et un chantier NEUTRE était invisible : le filtre ne lisait que « hostile » et
+// « supportive ».
+test("un chantier se déclenche sur sa portée, quel que soit son genre", () => {
+  const economie = { treasury: 5e5, revenue: 1.2e6, spending: 1.1e6, administrativeReach: 72, legitimacy: 70, fiscalCredibility: 65 };
+  const chantier = (kind, stance, scope) => ({
+    ownerType: "polity", owner: "Bloc d'essai", target: "Saint-Siège",
+    kind, stance, secret: false, stage: 50, scope, summary: "s", triggerHint: "t",
+  });
+  const opposition = (texte, it) => {
+    const a = assessAction({ id: "x", kind: "action", status: "planned", text: texte, title: texte }, {
+      playerPolity: "Saint-Siège", economy: economie,
+      world: { organizations: [], intents: [it], units: [] }, jumpDays: 30,
+    });
+    return (a.constraints || []).find((c) => c.factor === "opposition") || null;
+  };
+
+  const celibat = "Supprimer le célibat des prêtres.";
+  assert.ok(opposition(celibat, chantier("political", "hostile", ["célibat"])), "le genre du chantier ne doit plus décider à la place de sa portée");
+  assert.ok(opposition("Ouvrir les comptes à un audit externe.", chantier("economic", "hostile", ["audit"])), "un audit réveille le gardien du coffre");
+
+  // Un corps neutre poursuit une chose : il réagit à ce qui touche son terrain.
+  assert.ok(opposition(celibat, chantier("political", "neutral", ["célibat"])), "un chantier neutre n'est plus muet");
+  // Un corps qui vous suit n'est pas une opposition.
+  assert.equal(opposition(celibat, chantier("political", "supportive", ["célibat"])), null);
+  // Et une portée qui ne correspond pas ne réveille toujours personne.
+  assert.equal(opposition("Demain au menu ce sera tartiflette.", chantier("political", "hostile", ["célibat"])), null);
 });

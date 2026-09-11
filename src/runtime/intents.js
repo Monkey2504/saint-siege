@@ -53,7 +53,14 @@ export const normalizeIntent = (entry, index = 0) => {
     // "audit", "curia"). An order that mentions none of them is not this
     // scheme's business — see realityCheck.assessAction. Empty = everything
     // the target does, which is what a total enemy actually is.
-    scope: (Array.isArray(entry.scope) ? entry.scope : []).map((k) => lower(k)).filter(Boolean).slice(0, 16),
+    // La borne était à 16, et elle coupait des lexiques écrits à la main : le
+    // chantier financier du préréglage en déclarait 19, et « deficit »,
+    // « investisse » et « invest » tombaient par-dessus bord sans que rien ne le
+    // dise. Une borne reste nécessaire — une portée vient aussi du texte d'un
+    // joueur ou d'un modèle — mais elle doit être plus large que ce qu'un auteur
+    // écrit, pas plus étroite. `classify` garde la sienne à 16 : celle-là est
+    // dérivée d'une table de sujets, pas rédigée.
+    scope: (Array.isArray(entry.scope) ? entry.scope : []).map((k) => lower(k)).filter(Boolean).slice(0, 64),
     triggerHint: str(entry.triggerHint),
     status,
     outcome: str(entry.outcome),
@@ -512,7 +519,7 @@ export const intentMovesFromOrder = (order, { player = "", intents = [], economi
   return moves;
 };
 
-const stanceWord = (it) => (it.stance === "hostile" ? "against" : it.stance === "supportive" ? "for" : "toward");
+const stanceWord = (it) => (it.stance === "hostile" ? "contre" : it.stance === "supportive" ? "pour" : "envers");
 const aimedAt = (it) => (it.target ? ` ${stanceWord(it)} ${it.target}` : "");
 
 /**
@@ -591,14 +598,14 @@ export const applyIntentMoves = (world, moves, { player = "", date = "" } = {}) 
     list = next;
 
     if (move.kind === "advance") {
-      rows.push({ date: when, polity: after.owner, kind: "standing", what: `pressed a standing plan on${aimedAt(after)}: ${short(after.summary, 90)}`, amount: after.stage - before.stage, unit: "pt", source: `intent:advance:${after.id}` });
+      rows.push({ date: when, polity: after.owner, kind: "standing", what: `a poussé un plan permanent${aimedAt(after)} : ${short(after.summary, 90)}`, amount: after.stage - before.stage, unit: "pt", source: `intent:advance:${after.id}` });
     } else if (move.kind === "abandon") {
-      rows.push({ date: when, polity: after.owner, kind: "standing", what: `abandoned a standing plan at stage ${before.stage}: ${short(after.summary, 90)}`, amount: -before.stage, unit: "pt", source: `intent:abandon:${after.id}` });
+      rows.push({ date: when, polity: after.owner, kind: "standing", what: `a abandonné un plan permanent au stade ${before.stage} : ${short(after.summary, 90)}`, amount: -before.stage, unit: "pt", source: `intent:abandon:${after.id}` });
     } else if (move.kind === "expose") {
       // Both sides, the way a treasury move leaves a row on each purse: the
       // power whose scheme is now public, and the player who published it.
-      rows.push({ date: when, polity: after.owner, kind: "standing", what: `its secret plan${aimedAt(after)} is in the open at stage ${after.stage}: ${short(after.summary, 90)}`, amount: 0, unit: "pt", source: `intent:expose:${after.id}` });
-      rows.push({ date: when, polity: me, kind: "standing", what: `published ${after.owner}'s scheme`, amount: 0, unit: "pt", source: `intent:expose:${after.id}` });
+      rows.push({ date: when, polity: after.owner, kind: "standing", what: `son plan secret${aimedAt(after)} est au grand jour au stade ${after.stage} : ${short(after.summary, 90)}`, amount: 0, unit: "pt", source: `intent:expose:${after.id}` });
+      rows.push({ date: when, polity: me, kind: "standing", what: `a rendu public le chantier de ${after.owner}`, amount: 0, unit: "pt", source: `intent:expose:${after.id}` });
     }
   }
 

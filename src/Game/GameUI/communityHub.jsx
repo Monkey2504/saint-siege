@@ -165,8 +165,8 @@ export const fetchHubPosts = async ({ force = false } = {}) => {
   if (!response.ok) {
     throw new Error(
       response.status === 403
-        ? "GitHub rate limit reached — try again in a few minutes."
-        : `Could not reach the Scenario Hub (HTTP ${response.status}).`,
+        ? "Limite de débit GitHub atteinte — réessayez dans quelques minutes."
+        : `Le hub des scénarios est injoignable (HTTP ${response.status}).`,
     );
   }
   const issues = await response.json();
@@ -326,7 +326,7 @@ const ScenarioCard = ({ post, busy, onImport, onSelect }) => (
     </div>
     <div style={{ alignItems: "center", display: "flex", gap: "0.5rem" }}>
       {post.installs != null && (
-        <span title="Times this scenario has been imported" style={{ color: "var(--oh-text)", fontSize: "var(--oh-t-xs)" }}>⬇ {post.installs}</span>
+        <span title="Nombre de fois que ce scénario a été importé" style={{ color: "var(--oh-text)", fontSize: "var(--oh-t-xs)" }}>⬇ {post.installs}</span>
       )}
       <span title="Liked (👍 reactions on the hub post)" style={{ color: "var(--oh-text)", fontSize: "var(--oh-t-xs)" }}>👍 {post.upvotes}</span>
       <span title="Comments on the hub post" style={{ color: "var(--oh-text)", fontSize: "var(--oh-t-xs)" }}>💬 {post.comments}</span>
@@ -345,7 +345,7 @@ const ScenarioCard = ({ post, busy, onImport, onSelect }) => (
         type="button"
         disabled={!post.bundleUrl || busy}
         onClick={(event) => { event.stopPropagation(); onImport(post); }}
-        title={post.bundleUrl ? "Import into your Scenarios" : "This post has no scenario file attached"}
+        title={post.bundleUrl ? "Importer dans vos scénarios" : "Ce billet ne porte aucun fichier de scénario"}
         style={{
           ...pillButton,
           minHeight: "1.8rem",
@@ -448,7 +448,7 @@ const ScenarioDetail = ({ post, busy, onImport, onBack, notice, error }) => (
       <a href={post.url} target="_blank" rel="noopener noreferrer" title="Comment on its GitHub post" style={{ ...detailStat, textDecoration: "none" }}>💬 {post.comments} comments</a>
     </div>
     <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)", marginBottom: "1rem" }}>
-      Likes and comments live on the scenario's GitHub post — tap 👍 or 💬 above (or the button below) to open it and react there.
+      Les mentions et les commentaires vivent sur le billet GitHub du scénario — touchez 👍 ou 💬 ci-dessus (ou le bouton ci-dessous) pour l'ouvrir et y réagir.
     </div>
 
     <p style={{ color: "var(--oh-text)", fontSize: "var(--oh-t-sm)", lineHeight: 1.6, marginBottom: "1.3rem" }}>
@@ -666,11 +666,11 @@ const CommunityPanel = ({ fullPage = false, onImported }) => {
         files[split.imageName] = split.imageBytes;
         if (split.previewBytes) files[split.previewName] = split.previewBytes;
         extra =
-          " Its custom basemap is bundled inside the .zip, so the scenario is self-contained — just drag the one file." +
-          " (To also list the basemap on its own in the community Basemaps tab, open the editor's Basemap picker and hit ⤴ on it.)";
+          " Son fond de carte propre est empaqueté dans le .zip : le scénario est autonome, il suffit de glisser ce seul fichier." +
+          " (Pour publier aussi le fond de carte seul dans l'onglet Fonds de carte, ouvrez le sélecteur de fonds de l'éditeur et touchez ⤴ dessus.)";
       } else {
         extra = dedup.referenced
-          ? " Its custom basemap was reused from the community hub, so the file stays small."
+          ? " Son fond de carte propre a été repris du hub : le fichier reste léger."
           : "";
       }
       // The cover rides inside the .zip as its own file (cover.<ext>) so the bundle is
@@ -712,8 +712,8 @@ const CommunityPanel = ({ fullPage = false, onImported }) => {
         (technicalLines.length ? `&technical=${encodeURIComponent(technicalLines.join("\n"))}` : "");
       window.open(scenarioUrl, "_blank", "noopener");
       setNotice(
-        `${hasCover ? `"${fileName}" and its cover image were` : `"${fileName}" was`} downloaded. ` +
-          `On the GitHub page that just opened, drag ${hasCover ? "both files" : "that file"} into the Description box, then submit.` +
+        `${hasCover ? `« ${fileName} » et son image de couverture ont été téléchargés` : `« ${fileName} » a été téléchargé`}. ` +
+          `Sur la page GitHub qui vient de s'ouvrir, glissez ${hasCover ? "les deux fichiers" : "ce fichier"} dans le champ Description, puis validez.` +
           `${hasCover ? " The cover image becomes the card's preview in the hub." : ""}${extra}`,
       );
     } catch (nextError) {
@@ -738,7 +738,7 @@ const CommunityPanel = ({ fullPage = false, onImported }) => {
         <>
           <div style={{ alignItems: "center", display: "flex", flexWrap: "wrap", gap: "0.5rem", marginBottom: "0.9rem" }}>
             <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)" }}>
-              Community scenarios from the hub — ⬇ = imports, 👍 = likes. Open any post to 👍 like or 💬 comment on GitHub.
+              Les scénarios de la communauté — ⬇ = importations, 👍 = mentions. Ouvrez un billet pour le mentionner ou le commenter sur GitHub.
               {" "}<span style={{ color: "var(--oh-accent)" }}>Purple = verified official post.</span>
             </div>
             <div style={{ flex: 1 }} />
@@ -766,8 +766,8 @@ const CommunityPanel = ({ fullPage = false, onImported }) => {
           {publishPickerOpen && (
             <div style={{ background: "var(--oh-plate-2)", border: "1px solid var(--oh-line)", borderRadius: "14px", marginBottom: "0.9rem", padding: "0.8rem" }}>
               <div style={{ color: "var(--oh-text)", fontSize: "var(--oh-t-xs)", marginBottom: "0.55rem" }}>
-                Pick a scenario to publish. Its bundle downloads to your computer, and a prefilled hub post opens —
-                drag the downloaded file into the Description box there and submit.
+                Choisissez un scénario à publier. Son paquet se télécharge sur votre machine et un billet prérempli s'ouvre —
+                glissez-y le fichier téléchargé dans le champ Description, puis validez.
               </div>
               <div style={{ display: "flex", flexWrap: "wrap", gap: "0.45rem" }}>
                 {scenarios.map((scenario) => (

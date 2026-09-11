@@ -491,7 +491,15 @@ export const buildWorldSummary = async (bundle, regionCatalog = null) => {
     `Language: ${world.language || bundle.game.language || "English"}`,
     `Difficulty: ${bundle.game.difficulty || "standard"}`,
     `World before round one: ${world.startingTimelineText || "No world briefing provided."}`,
-    `Simulation rules: ${world.simulationRules || "No extra simulation rules were provided."}`,
+    // Les règles de simulation NE sont plus recopiées ici.
+    //
+    // Elles arrivaient déjà par leur propre substitution
+    // (HISTORICAL_PRESET_SIMULATION_RULES) dans six gabarits sur douze, et ce
+    // résumé les collait une seconde fois : deux mille cent jetons envoyés en
+    // double à chaque appel, sans rien apprendre au modèle. Le gabarit
+    // `actions` était le seul à les recevoir UNIQUEMENT par ici — il les reçoit
+    // maintenant à la composition (promptAssembly.js), comme les autres règles
+    // qui doivent atteindre les parties dont le gabarit est gelé.
     "",
     "Territorial changes from the base scenario:",
     territorySummary,

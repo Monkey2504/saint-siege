@@ -7,6 +7,7 @@ import { JSON_URLS, readJson, writeJson } from "../../runtime/assets.js";
 import { chatLanguageDiffersFromUi, isRtlLanguage, resolveChatLanguage } from "../../runtime/i18n.js";
 import StatsPane from "./stats.jsx";
 import { useSurface } from "../../runtime/useSurface.js";
+import { CONTENU_TOP } from "./chrome.js";
 
 Chart.register(...registerables);
 
@@ -195,7 +196,7 @@ const TabButton = ({ icon, label, active, onClick }) => (
         alignItems: "center",
         background: "none",
         border: "none",
-        borderBottom: active ? "2px solid var(--oh-accent)" : "2px solid transparent",
+        borderBottom: active ? "var(--oh-filet-fort) solid var(--oh-accent)" : "var(--oh-filet-fort) solid transparent",
         color: active ? "var(--oh-text-strong)" : "var(--oh-text-dim)",
         cursor: "pointer",
         display: "flex",
@@ -210,7 +211,7 @@ const TabButton = ({ icon, label, active, onClick }) => (
     </button>
 );
 
-const AdvisorPanel = ({ isAdvisorOpen, onClose, width, onResize, fullPage = false, section = null, onSection = null }) => {
+const AdvisorPanel = ({ isAdvisorOpen, onClose, width, onResize, fullPage = false, section = null, onSection = null, nav = null }) => {
     const [messages, setMessages]   = useState([]);
     const [input, setInput]         = useState("");
     const [isLoading, setIsLoading] = useState(false);
@@ -372,7 +373,7 @@ const AdvisorPanel = ({ isAdvisorOpen, onClose, width, onResize, fullPage = fals
             // right. Same component, same content, two placements.
             ...(fullPage
                 ? {
-                    bottom: "2.6rem", left: 0, right: 0, top: "3.9rem",
+                    bottom: 0, left: 0, right: 0, top: CONTENU_TOP,
                     width: "auto", height: "auto",
                     transform: isAdvisorOpen ? "translateY(0)" : "translateY(100vh)",
                     borderLeft: 0, boxShadow: "none",
@@ -420,10 +421,16 @@ const AdvisorPanel = ({ isAdvisorOpen, onClose, width, onResize, fullPage = fals
                 }} />
             </div>
         )}
+        {/* La ligne des cahiers appartient à la page, pas à un onglet : posée
+            dans le contenu d'un onglet, elle disparaissait avec lui et
+            enfermait le joueur dans les caisses. */}
+        {fullPage && nav && (
+            <div style={{ margin: "0 auto", maxWidth: "62rem", padding: "1rem 1.5rem 0", width: "100%" }}>{nav()}</div>
+        )}
         {/* Header: tabs to flip between the advisor chat and national stats. */}
         <div style={{ alignItems: "center", borderBottom: "1px solid var(--oh-line)", display: "flex", padding: "0 0.75rem 0 0.35rem" }}>
-        <TabButton icon="🧭" label="Advisor" active={activeTab === "advisor"} onClick={() => setActiveTab("advisor")} />
-        <TabButton icon="📊" label="Stats" active={activeTab === "stats"} onClick={() => setActiveTab("stats")} />
+        <TabButton icon="🧭" label="Conseiller" active={activeTab === "advisor"} onClick={() => setActiveTab("advisor")} />
+        <TabButton icon="📊" label="Comptes" active={activeTab === "stats"} onClick={() => setActiveTab("stats")} />
         <div style={{ flex: 1 }} />
         {activeTab === "advisor" && (
             <button
@@ -453,7 +460,7 @@ const AdvisorPanel = ({ isAdvisorOpen, onClose, width, onResize, fullPage = fals
         <div style={{ padding: fullPage ? "1.2rem 1.5rem" : "0.75rem", flex: 1, minHeight: 0, overflowY: "auto", display: "flex", flexDirection: "column", gap: "1rem", scrollbarWidth: "none", margin: fullPage ? "0 auto" : undefined, maxWidth: fullPage ? "62rem" : undefined, width: "100%" }}>
         {messages.length === 0 && (
             <p style={{ fontSize: "var(--oh-t-xs)", color: "var(--oh-text-dim)", marginTop: 0 }}>
-            No messages yet. Ask your advisor something!
+            Aucun message pour l'instant. Posez une question à votre conseiller.
             </p>
         )}
 
@@ -511,7 +518,7 @@ const AdvisorPanel = ({ isAdvisorOpen, onClose, width, onResize, fullPage = fals
         <div style={{ padding: fullPage ? "1rem 1.5rem 1.4rem" : "1rem", borderTop: "1px solid var(--oh-line)", display: "flex", alignItems: "center", gap: "0.5rem", margin: fullPage ? "0 auto" : undefined, maxWidth: fullPage ? "62rem" : undefined, width: "100%" }}>
         <textarea
         ref={inputRef}
-        placeholder="Ask your advisor…  (Shift+Enter for a new line)"
+        placeholder="Posez une question à votre conseiller…  (Maj+Entrée pour une nouvelle ligne)"
         rows={1} value={input}
         onChange={e => {
             setInput(e.target.value);
@@ -547,7 +554,7 @@ const markdownStyles = `
 .advisor-markdown code { background: var(--oh-plate-2); padding: 0.1rem 0.35rem; border-radius: 0; font-size: var(--oh-t-xs); }
 .advisor-markdown pre { background: var(--oh-plate-2); padding: 0.75rem; border-radius: 8px; overflow-x: auto; margin: 0.5rem 0; }
 .advisor-markdown h1, .advisor-markdown h2, .advisor-markdown h3 { margin: 0.75rem 0 0.25rem; font-size: var(--oh-t-md); color: var(--oh-text-strong); font-family: var(--oh-font-display); }
-.advisor-markdown blockquote { border-left: 2px solid var(--oh-accent-soft); margin: 0.5rem 0; padding-left: 0.75rem; color: var(--oh-text-dim); }
+.advisor-markdown blockquote { border-left: var(--oh-filet-fort) solid var(--oh-accent-soft); margin: 0.5rem 0; padding-left: 0.75rem; color: var(--oh-text-dim); }
 `;
 
 const MarkdownStyleInjector = () => {

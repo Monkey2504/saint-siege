@@ -117,7 +117,7 @@ const LanguagePicker = ({ label, current, onSelect, saving = false, helperText }
         style={{ ...inputStyle, marginBottom: "0.4rem" }}
         type="text"
         value={query}
-        placeholder="Search languages..."
+        placeholder="Chercher une langue…"
         onChange={(event) => setQuery(event.target.value)}
         />
         <select
@@ -164,7 +164,7 @@ const LanguageSelector = () => {
     };
 
     return (
-        <LanguagePicker label="UI language" current={current} onSelect={applyLanguage} saving={saving} />
+        <LanguagePicker label="Langue de l'interface" current={current} onSelect={applyLanguage} saving={saving} />
     );
 };
 
@@ -183,10 +183,10 @@ const ChatLanguageSelector = () => {
 
     return (
         <LanguagePicker
-        label="AI chat language"
+        label="Langue des réponses du modèle"
         current={current}
         onSelect={applyLanguage}
-        helperText="What the advisor and diplomatic chats reply in. Defaults to your interface language."
+        helperText="La langue dans laquelle répondent le conseiller et vos correspondants. Par défaut, celle de l'interface."
         />
     );
 };
@@ -254,7 +254,7 @@ const ApiProviderSelector = ({ provider, onProviderChange }) => {
     return (
         <div style={{ marginBottom: "1rem" }}>
         <label style={{ display: "block", fontSize: "var(--oh-t-sm)", marginBottom: "0.6rem", color: "var(--oh-text)" }}>
-        AI Provider
+        Fournisseur du modèle
         </label>
 
         <button
@@ -286,7 +286,7 @@ const ApiProviderSelector = ({ provider, onProviderChange }) => {
         </button>
 
         <div style={{ ...helperStyle, marginBottom: isCatalogOpen ? "0.65rem" : 0 }}>
-        Searchable catalog instead of a wall of provider buttons.
+        Un catalogue qui se cherche, plutôt qu'un mur de boutons.
         </div>
 
         {isCatalogOpen && (
@@ -303,7 +303,7 @@ const ApiProviderSelector = ({ provider, onProviderChange }) => {
             type="text"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search provider, protocol or gateway..."
+            placeholder="Chercher un fournisseur, un protocole, une passerelle…"
             autoComplete="off"
             spellCheck={false}
             style={{
@@ -358,7 +358,7 @@ const ApiProviderSelector = ({ provider, onProviderChange }) => {
                 </div>
             )) : (
                 <div style={{ ...helperStyle, marginTop: 0 }}>
-                Nothing matched the search.
+                Rien ne correspond à cette recherche.
                 </div>
             )}
             </div>
@@ -441,27 +441,27 @@ const ProviderSettingsPanel = ({ provider, settings, onSettingChange }) => {
         {provider === "gemini" && (
             <>
             <SettingsInput
-            label="Gemini API Key"
+            label="Clé Gemini"
             type="password"
             value={settings.geminiApiKey ?? ""}
             onChange={(value) => onSettingChange("geminiApiKey", value)}
-            placeholder="Paste Gemini API key"
-            helperText="Stored only in this browser."
+            placeholder="Collez votre clé Gemini"
+            helperText="Gardée sur cet appareil seulement."
             />
             <SettingsInput
-            label="Model"
+            label="Modèle"
             value={settings.geminiModel ?? ""}
             onChange={(value) => onSettingChange("geminiModel", value)}
             placeholder="gemini-3.5-flash-lite"
-            helperText="Leave blank to use the built-in Gemini default."
+            helperText="Laissez vide pour le modèle Gemini par défaut."
             />
             <SettingsInput
-            label="Custom parameters (JSON)"
+            label="Paramètres personnalisés (JSON)"
             multiline
             value={settings.geminiCustomParams ?? ""}
             onChange={(value) => onSettingChange("geminiCustomParams", value)}
             placeholder='{"generationConfig": {"topP": 0.9}}'
-            helperText="Optional. Merged into the request body — e.g. to limit reasoning budget/effort. Invalid JSON is ignored."
+            helperText="Facultatif. Fondu dans le corps de la requête — par exemple pour borner le budget de réflexion. Un JSON invalide est ignoré."
             />
             </>
         )}
@@ -469,15 +469,15 @@ const ProviderSettingsPanel = ({ provider, settings, onSettingChange }) => {
         {provider === "openai" && (
             <>
             <SettingsInput
-            label="OpenAI API Key"
+            label="Clé OpenAI"
             type="password"
             value={settings.openaiApiKey ?? ""}
             onChange={(value) => onSettingChange("openaiApiKey", value)}
-            placeholder="Paste OpenAI API key"
-            helperText="Stored only in this browser."
+            placeholder="Collez votre clé OpenAI"
+            helperText="Gardée sur cet appareil seulement."
             />
             <SettingsInput
-            label="Model"
+            label="Modèle"
             value={settings.openaiModel ?? ""}
             onChange={(value) => onSettingChange("openaiModel", value)}
             placeholder="gpt-..."
@@ -488,12 +488,12 @@ const ProviderSettingsPanel = ({ provider, settings, onSettingChange }) => {
             }
             />
             <SettingsInput
-            label="Custom parameters (JSON)"
+            label="Paramètres personnalisés (JSON)"
             multiline
             value={settings.openaiCustomParams ?? ""}
             onChange={(value) => onSettingChange("openaiCustomParams", value)}
             placeholder='{"top_p": 0.9}'
-            helperText="Optional. Merged into the request body — e.g. to limit reasoning budget/effort. Invalid JSON is ignored."
+            helperText="Facultatif. Fondu dans le corps de la requête — par exemple pour borner le budget de réflexion. Un JSON invalide est ignoré."
             />
             </>
         )}
@@ -501,27 +501,27 @@ const ProviderSettingsPanel = ({ provider, settings, onSettingChange }) => {
         {provider === "anthropic" && (
             <>
             <SettingsInput
-            label="Anthropic API Key"
+            label="Clé Anthropic"
             type="password"
             value={settings.anthropicApiKey ?? ""}
             onChange={(value) => onSettingChange("anthropicApiKey", value)}
-            placeholder="Paste Anthropic API key"
-            helperText="Stored only in this browser."
+            placeholder="Collez votre clé Anthropic"
+            helperText="Gardée sur cet appareil seulement."
             />
             <SettingsInput
-            label="Model"
+            label="Modèle"
             value={settings.anthropicModel ?? ""}
             onChange={(value) => onSettingChange("anthropicModel", value)}
             placeholder="claude-haiku-4-5"
-            helperText="Claude model ids are manual here. Leave blank to use the built-in default."
+            helperText="Les identifiants de modèles Claude se saisissent à la main. Laissez vide pour celui par défaut."
             />
             <SettingsInput
-            label="Custom parameters (JSON)"
+            label="Paramètres personnalisés (JSON)"
             multiline
             value={settings.anthropicCustomParams ?? ""}
             onChange={(value) => onSettingChange("anthropicCustomParams", value)}
             placeholder='{"top_p": 0.9}'
-            helperText="Optional. Merged into the request body — e.g. to limit reasoning budget/effort. Invalid JSON is ignored."
+            helperText="Facultatif. Fondu dans le corps de la requête — par exemple pour borner le budget de réflexion. Un JSON invalide est ignoré."
             />
             </>
         )}
@@ -529,7 +529,7 @@ const ProviderSettingsPanel = ({ provider, settings, onSettingChange }) => {
         {provider === "openai-compatible" && (
             <>
             <SettingsInput
-            label="API Endpoint"
+            label="Adresse de l'API"
             value={settings.openaiCompatibleEndpoint ?? ""}
             onChange={(value) => onSettingChange("openaiCompatibleEndpoint", value)}
             placeholder="http://localhost:11434/v1"
@@ -537,34 +537,34 @@ const ProviderSettingsPanel = ({ provider, settings, onSettingChange }) => {
             // if it allows this origin — otherwise the browser silently drops the reply.
             // Say so up front here rather than letting it surface as "Failed to fetch".
             helperText={import.meta.env.VITE_OH_WEB
-                ? "Base URL that exposes /chat/completions and /models. A server on your own machine (Ollama, LM Studio) also has to allow this site: start Ollama with OLLAMA_ORIGINS set to this site's address, or use the desktop app."
-                : "Base URL that exposes /chat/completions and /models."}
+                ? "L'adresse de base qui expose /chat/completions et /models. Un serveur sur votre propre machine (Ollama, LM Studio) doit en plus autoriser ce site : lancez Ollama avec OLLAMA_ORIGINS réglé sur l'adresse de ce site, ou passez par l'application de bureau."
+                : "L'adresse de base qui expose /chat/completions et /models."}
             />
             <SettingsInput
-            label="API Key (optional)"
+            label="Clé (facultative)"
             type="password"
             value={settings.openaiCompatibleApiKey ?? ""}
             onChange={(value) => onSettingChange("openaiCompatibleApiKey", value)}
-            placeholder="Leave empty for local Ollama"
-            helperText="Use a bearer token if your gateway requires authentication."
+            placeholder="Laissez vide pour un Ollama local"
+            helperText="Mettez un jeton si votre passerelle demande une authentification."
             />
             <SettingsInput
-            label="Model"
+            label="Modèle"
             value={settings.openaiCompatibleModel ?? ""}
             onChange={(value) => onSettingChange("openaiCompatibleModel", value)}
             placeholder="llama / qwen / gpt / mistral"
-            helperText="Leave blank to auto-pick a model from /models."
+            helperText="Laissez vide pour qu'un modèle soit choisi dans /models."
             />
             <SettingsInput
-            label="Custom parameters (JSON)"
+            label="Paramètres personnalisés (JSON)"
             multiline
             value={settings.openaiCompatibleCustomParams ?? ""}
             onChange={(value) => onSettingChange("openaiCompatibleCustomParams", value)}
             placeholder='{"top_p": 0.9}'
-            helperText="Optional. Merged into the request body — e.g. to limit reasoning budget/effort. Invalid JSON is ignored."
+            helperText="Facultatif. Fondu dans le corps de la requête — par exemple pour borner le budget de réflexion. Un JSON invalide est ignoré."
             />
             <Toggle
-            label="Strict tool schema"
+            label="Schéma d'outil strict"
             enabled={settings.openaiCompatibleToolStrict === "1"}
             onToggle={() => onSettingChange(
                 "openaiCompatibleToolStrict",
@@ -572,10 +572,10 @@ const ProviderSettingsPanel = ({ provider, settings, onSettingChange }) => {
             )}
             />
             <div style={{ ...helperStyle, marginTop: "-0.6rem" }}>
-            Sends strict:true with the tool call so a self-hosted backend constrains
-            generation to the schema (SGLang/xgrammar, vLLM). Stops malformed or
-            mistyped tool arguments. Leave off for OpenAI and Azure: they reject a
-            schema that does not list every property as required.
+            Envoie strict:true avec l'appel d'outil, pour qu'un serveur que vous hébergez
+            contraigne la génération au schéma (SGLang/xgrammar, vLLM). Supprime les
+            arguments mal formés. Laissez éteint pour OpenAI et Azure : ils refusent un
+            schéma qui ne déclare pas toutes ses propriétés comme obligatoires.
             </div>
             </>
         )}
@@ -583,48 +583,48 @@ const ProviderSettingsPanel = ({ provider, settings, onSettingChange }) => {
         {provider === "anthropic-compatible" && (
             <>
             <SettingsInput
-            label="API Endpoint"
+            label="Adresse de l'API"
             value={settings.anthropicCompatibleEndpoint ?? ""}
             onChange={(value) => onSettingChange("anthropicCompatibleEndpoint", value)}
             placeholder="https://my-proxy.example/v1"
-            helperText="Base URL of a self-hosted proxy that speaks the Anthropic Messages API (POST /messages). Routed through the game server to avoid CORS."
+            helperText="L'adresse de base d'un relais que vous hébergez et qui parle l'API Anthropic Messages (POST /messages). Passe par le serveur du jeu, pour éviter CORS."
             />
             <SettingsInput
-            label="API Key (optional)"
+            label="Clé (facultative)"
             type="password"
             value={settings.anthropicCompatibleApiKey ?? ""}
             onChange={(value) => onSettingChange("anthropicCompatibleApiKey", value)}
-            placeholder="Sent as x-api-key if set"
-            helperText="Leave empty if your proxy doesn't require a key."
+            placeholder="Envoyée comme x-api-key si renseignée"
+            helperText="Laissez vide si votre relais n'en demande pas."
             />
             <SettingsInput
-            label="Model"
+            label="Modèle"
             value={settings.anthropicCompatibleModel ?? ""}
             onChange={(value) => onSettingChange("anthropicCompatibleModel", value)}
             placeholder="claude-haiku-4-5"
-            helperText="The model id your proxy expects. Leave blank to use the built-in default."
+            helperText="L'identifiant de modèle qu'attend votre relais. Laissez vide pour celui par défaut."
             />
             <SettingsInput
-            label="Custom parameters (JSON)"
+            label="Paramètres personnalisés (JSON)"
             multiline
             value={settings.anthropicCompatibleCustomParams ?? ""}
             onChange={(value) => onSettingChange("anthropicCompatibleCustomParams", value)}
             placeholder='{"top_p": 0.9}'
-            helperText="Optional. Merged into the request body — e.g. to limit reasoning budget/effort. Invalid JSON is ignored."
+            helperText="Facultatif. Fondu dans le corps de la requête — par exemple pour borner le budget de réflexion. Un JSON invalide est ignoré."
             />
             </>
         )}
 
         <div style={{ marginTop: "0.5rem" }}>
         <Toggle
-        label="Model reasoning"
+        label="Réflexion du modèle"
         enabled={reasoningOn}
         onToggle={toggleReasoning}
         />
         <div style={{ ...helperStyle, marginTop: "-0.6rem" }}>
-        Lets thinking-capable models reason before answering (Gemini thinking, OpenAI
-        reasoning effort, Claude extended thinking). Slower and costs more tokens;
-        needs a model that supports it.
+        Laisse réfléchir les modèles qui en sont capables avant qu'ils répondent (Gemini
+        thinking, OpenAI reasoning effort, Claude extended thinking). Plus lent et plus
+        coûteux en jetons ; demande un modèle qui le gère.
         </div>
         </div>
         </div>
@@ -646,7 +646,7 @@ const SocialLinks = ({ discordUrl, redditUrl, githubUrl }) => (
         href={discordUrl}
         target="_blank"
         rel="noopener noreferrer"
-        title="Join our Discord"
+        title="Rejoindre le Discord"
         style={{
             flex: 1,
             display: "flex",
@@ -684,7 +684,7 @@ const SocialLinks = ({ discordUrl, redditUrl, githubUrl }) => (
         href={redditUrl}
         target="_blank"
         rel="noopener noreferrer"
-        title="Join the subreddit"
+        title="Rejoindre le subreddit"
         style={{
             flex: 1,
             display: "flex",
@@ -722,7 +722,7 @@ const SocialLinks = ({ discordUrl, redditUrl, githubUrl }) => (
         href={githubUrl}
         target="_blank"
         rel="noopener noreferrer"
-        title="View on GitHub"
+        title="Voir sur GitHub"
         style={{
             flex: 1,
             display: "flex",
@@ -835,7 +835,7 @@ const SettingsMenu = ({
             borderBottom: "1px solid var(--oh-line)",
         }}
         >
-        Game Settings
+        Réglages de la partie
         </h3>
 
         <ApiProviderSelector
@@ -852,7 +852,7 @@ const SettingsMenu = ({
         <LanguageSelector />
         <ChatLanguageSelector />
 
-        <Toggle label="Fullscreen" enabled={isFullscreenEnabled} onToggle={onToggleFullscreen} />
+        <Toggle label="Plein écran" enabled={isFullscreenEnabled} onToggle={onToggleFullscreen} />
         <Toggle label="3D Globe" enabled={isGlobeEnabled} onToggle={onToggleGlobe} />
         <div style={{ marginTop: "-0.85rem", marginBottom: "1rem" }}>
         <span
@@ -867,19 +867,19 @@ const SettingsMenu = ({
             padding: "0.16rem 0.55rem",
         }}
         >
-        Very Experimental
+        Très expérimental
         </span>
         </div>
         <Toggle label="3D Terrain" enabled={isTerrainEnabled} onToggle={onToggleTerrain} />
         <div style={{ margin: "0.5rem 0 1rem", paddingTop: "0.75rem", borderTop: "1px solid var(--oh-line)" }}>
         <div style={{ fontSize: "var(--oh-t-xs)", fontWeight: 700, marginBottom: "0.6rem" }}>Map</div>
         <Toggle
-        label="Hide country labels"
+        label="Masquer les noms de pays"
         enabled={mapSettings.hideCountryLabels}
         onToggle={() => updateMapSetting("hideCountryLabels", MAP_SETTING_KEYS.hideCountryLabels, !mapSettings.hideCountryLabels)}
         />
         <Toggle
-        label="Reduce motion"
+        label="Réduire les animations"
         enabled={mapSettings.disableIdleRotation && mapSettings.disableEventCamera}
         onToggle={() => {
             // Umbrella accessibility control: on = stop both the idle globe spin
@@ -891,12 +891,12 @@ const SettingsMenu = ({
         }}
         />
         <Toggle
-        label="Disable idle globe rotation"
+        label="Arrêter la rotation du globe au repos"
         enabled={mapSettings.disableIdleRotation}
         onToggle={() => updateMapSetting("disableIdleRotation", MAP_SETTING_KEYS.disableIdleRotation, !mapSettings.disableIdleRotation)}
         />
         <Toggle
-        label="Disable camera movement during events"
+        label="Figer la caméra pendant les événements"
         enabled={mapSettings.disableEventCamera}
         onToggle={() => updateMapSetting("disableEventCamera", MAP_SETTING_KEYS.disableEventCamera, !mapSettings.disableEventCamera)}
         />
@@ -905,12 +905,12 @@ const SettingsMenu = ({
         <div style={{ margin: "0.5rem 0 1rem", paddingTop: "0.75rem", borderTop: "1px solid var(--oh-line)" }}>
         <div style={{ fontSize: "var(--oh-t-xs)", fontWeight: 700, marginBottom: "0.6rem" }}>AI</div>
         <Toggle
-        label="Limit AI generation"
+        label="Borner le temps de génération"
         enabled={mapSettings.limitAiGeneration}
         onToggle={() => updateMapSetting("limitAiGeneration", MAP_SETTING_KEYS.limitAiGeneration, !mapSettings.limitAiGeneration)}
         />
         <div style={{ marginTop: "-0.7rem", marginBottom: "0.4rem", fontSize: "var(--oh-t-xs)", color: "var(--oh-text-dim)", lineHeight: 1.35 }}>
-        On: time skips give the model 5 minutes, then fall back to canned events. Off (default): generation waits as long as the model needs. Cancel works either way.
+        Activé : un saut de temps laisse cinq minutes au modèle, puis retombe sur des événements tout faits. Éteint (par défaut) : la génération attend le temps qu'il faut. Annuler fonctionne dans les deux cas.
         </div>
         </div>
 
@@ -935,7 +935,7 @@ const SettingsMenu = ({
                 width: "100%",
             }}
             >
-            🧪 Cheats
+            🧪 Banc d'essai
             </button>
         )}
 

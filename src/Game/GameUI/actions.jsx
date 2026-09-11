@@ -2,6 +2,7 @@
 import React from "react";
 import dayjs from "dayjs";
 import advancedFormat from "dayjs/plugin/advancedFormat";
+import "dayjs/locale/fr";
 import { JSON_URLS, readJson } from "../../runtime/assets.js";
 import { useCountryDisplayName } from "../../runtime/polityNames.js";
 import { generateActionSuggestions, refinePlayerAction } from "../AI/gameplay.js";
@@ -16,11 +17,13 @@ import {
 } from "../../runtime/gameState.js";
 import { assessAction } from "../../runtime/realityCheck.js";
 import { RealityTally } from "./verdict.jsx";
+import { CahierVide } from "./journal.jsx";
 
 // The verdict the next jump will hold the order to (runtime/realityCheck.js),
 // shown the moment it is queued — so the player argues with the world before
 // the turn, not after.
 dayjs.extend(advancedFormat);
+dayjs.locale("fr");
 
 const ACTIONS_STYLE_ID = "actions-style";
 
@@ -107,6 +110,18 @@ normalizeActionEntry({
     status: "planned",
 });
 
+// Le moteur garde ses clés en anglais — un ordre est « order », un état est
+// « planned » — et la ligne de tête les recopiait telles quelles : le joueur
+// lisait ORDER · PLANNED au-dessus d'un ordre qu'il venait d'écrire en français.
+// Une table d'affichage laisse les clés intactes et donne au lecteur les mots
+// de sa langue ; un état inconnu retombe sur sa clé plutôt que de disparaître.
+const LIBELLE_GENRE = Object.freeze({ action: "Ordre", chat: "Lettre" });
+const LIBELLE_ETAT = Object.freeze({
+    cancelled: "retiré",
+    planned: "en cours",
+    resolved: "jugé",
+});
+
 const ActionItem = ({ action, onDelete, realityContext }) => {
     const [hovered, setHovered] = React.useState(false);
     const normalized = normalizeActionEntry(action);
@@ -140,7 +155,7 @@ const ActionItem = ({ action, onDelete, realityContext }) => {
         >
         <div style={{ flex: 1, minWidth: 0 }}>
         <div className="oh-label" style={{ color: "var(--oh-text-dim)", marginBottom: "0.2rem" }}>
-        {normalized.kind === "chat" ? "Outreach" : "Order"} · {normalized.status}
+        {LIBELLE_GENRE[normalized.kind] || LIBELLE_GENRE.action} · {LIBELLE_ETAT[normalized.status] || normalized.status}
         </div>
         {showTitle && (
             <div style={{ color: "var(--oh-text-strong)", fontSize: "var(--oh-t-base)", fontWeight: 600, marginBottom: "0.1rem" }}>
@@ -160,7 +175,7 @@ const ActionItem = ({ action, onDelete, realityContext }) => {
             alignItems: "center",
             background: hovered ? "var(--oh-alert-soft)" : "none",
             border: "none",
-            borderRadius: "6px",
+            borderRadius: "var(--oh-r-flat)",
             // Red on a red tint cannot reach 4.5:1: the tint is the warning, the
             // glyph goes to ink while hovered.
             color: hovered ? "var(--oh-text-strong)" : "var(--oh-alert)",
@@ -190,10 +205,10 @@ const SuggestionCard = ({ topic, onQueue, queuedIds }) => {
     return (
         <div
         style={{
-            background: "var(--oh-plate-2)",
+            background: "transparent",
             border: "1px solid var(--oh-line)",
-            borderLeft: contested ? "4px solid var(--oh-caution)" : "1px solid var(--oh-line)",
-            borderRadius: "12px",
+            borderLeft: contested ? "var(--oh-filet-fort) solid var(--oh-caution)" : "var(--oh-filet) solid var(--oh-line)",
+            borderRadius: "var(--oh-r-flat)",
             display: "flex",
             flexDirection: "column",
             gap: "0.55rem",
@@ -224,7 +239,7 @@ const SuggestionCard = ({ topic, onQueue, queuedIds }) => {
                 style={{
                     background: isQueued ? "var(--oh-grant-soft)" : "var(--oh-accent-soft)",
                     border: isQueued ? "1px solid var(--oh-grant)" : "1px solid var(--oh-accent-soft)",
-                    borderRadius: "10px",
+                    borderRadius: "var(--oh-r-flat)",
                     color: "var(--oh-text-strong)",
                     cursor: "pointer",
                     fontFamily: "inherit",
@@ -236,7 +251,7 @@ const SuggestionCard = ({ topic, onQueue, queuedIds }) => {
                     <div className="oh-label" style={{ color: isQueued ? "var(--oh-grant)" : "var(--oh-accent)", fontSize: "var(--oh-t-2xs)", marginBottom: "0.15rem" }}>{action.stance}</div>
                 )}
                 <div style={{ fontSize: "var(--oh-t-xs)", fontWeight: 700 }}>
-                {isQueued ? `✓ Queued — ${action.title}` : action.title}
+                {isQueued ? `✓ Versé — ${action.title}` : action.title}
                 </div>
                 <div style={{ color: "var(--oh-text)", fontSize: "var(--oh-t-xs)", lineHeight: "1.45", marginTop: "0.18rem" }}>
                 {action.text}
@@ -255,7 +270,7 @@ const SuggestionCard = ({ topic, onQueue, queuedIds }) => {
 const ActionsPanel = ({ isOpen, onClose, onOpenAdvisor, embedded = false }) => {
     const [actions, setActions] = React.useState([]);
     const [inputValue, setInputValue] = React.useState("");
-    const [country, setCountry] = React.useState("your nation");
+    const [country, setCountry] = React.useState("votre puissance");
     // The normalized world (plus a cheap change stamp) behind the live verdicts.
     const [realityWorld, setRealityWorld] = React.useState(null);
     const realityContext = React.useMemo(
@@ -266,7 +281,7 @@ const ActionsPanel = ({ isOpen, onClose, onOpenAdvisor, embedded = false }) => {
     );
     // Full display name for the header, never the code.
     const countryDisplayName = useCountryDisplayName(country);
-    const [gameDate, setGameDate] = React.useState("the current date");
+    const [gameDate, setGameDate] = React.useState("");
     const [suggestions, setSuggestions] = React.useState([]);
     const [hasRequestedSuggestions, setHasRequestedSuggestions] = React.useState(false);
     const [isSubmitting, setIsSubmitting] = React.useState(false);
@@ -315,7 +330,9 @@ const ActionsPanel = ({ isOpen, onClose, onOpenAdvisor, embedded = false }) => {
                 }
 
                 if (data.gameDate) {
-                    setGameDate(dayjs(data.gameDate).format("MMMM Do, YYYY"));
+                    // « septembre 1er, 2026 » était un ordre de mots anglais : le formateur
+                    // sait écrire la date, la chaîne ne le lui demandait pas.
+                    setGameDate(dayjs(data.gameDate).format("Do MMMM YYYY"));
                 }
 
                 // After a jump, applySimulationResult re-marks last round's actions
@@ -479,7 +496,7 @@ const ActionsPanel = ({ isOpen, onClose, onOpenAdvisor, embedded = false }) => {
     };
 
     const suggestionButtonLabel = hasRequestedSuggestions
-    ? (isSuggesting ? "Refreshing AI suggestions..." : "Refresh AI suggestions")
+    ? (isSuggesting ? "Suggestions en cours…" : "En demander d'autres")
     : (isSuggesting ? "Suggestions en cours…" : "Demander des suggestions");
 
     return (
@@ -493,7 +510,7 @@ const ActionsPanel = ({ isOpen, onClose, onOpenAdvisor, embedded = false }) => {
                 : {
                     backgroundColor: "var(--oh-plate)",
                     border: "1px solid var(--oh-line)",
-                    borderRadius: "16px",
+                    borderRadius: "var(--oh-r-flat)",
                     bottom: isOpen ? "4.25rem" : "-30rem",
                     boxShadow: "-4px 0 24px rgba(0,0,0,0.4), inset 0 1px 0 var(--oh-line)",
                 }),
@@ -524,7 +541,7 @@ const ActionsPanel = ({ isOpen, onClose, onOpenAdvisor, embedded = false }) => {
         <div
         style={{
             alignItems: "baseline",
-            borderBottom: embedded ? "4px solid var(--oh-text-strong)" : "1px solid var(--oh-line)",
+            borderBottom: embedded ? "var(--oh-filet-fort) solid var(--oh-text-strong)" : "var(--oh-filet) solid var(--oh-line)",
             display: "flex",
             justifyContent: "space-between",
             padding: embedded ? "0 0 0.4rem" : "1rem 1.25rem 0.75rem",
@@ -539,7 +556,7 @@ const ActionsPanel = ({ isOpen, onClose, onOpenAdvisor, embedded = false }) => {
         style={{
             background: "none",
             border: "none",
-            borderRadius: "6px",
+            borderRadius: "var(--oh-r-flat)",
             color: "var(--oh-text-dim)",
             cursor: "pointer",
             fontSize: "var(--oh-t-md)",
@@ -570,46 +587,19 @@ const ActionsPanel = ({ isOpen, onClose, onOpenAdvisor, embedded = false }) => {
         }}
         >
         {embedded
-            ? <>Orders in the name of {countryDisplayName}, to take effect from {gameDate}. Each one is held to the budget, the reach of the apparatus, the schemes already running and the bodies that must vote, before the world answers it.</>
-            : <>Submit actions for {countryDisplayName} for {gameDate}. Your actions will affect how the game world responds.</>}
+            ? <>Des ordres au nom de {countryDisplayName}, prenant effet {gameDate ? `le ${gameDate}` : "à la date en cours"}. Chacun est tenu au budget, à la portée de l'appareil, aux chantiers déjà lancés et aux corps qui doivent voter, avant que le monde y réponde.</>
+            : <>Soumettez des ordres pour {countryDisplayName}{gameDate ? ` au ${gameDate}` : ""}. Vos ordres décideront de la réponse du monde.</>}
         </p>
 
-        <button
-        type="button"
-        onClick={onOpenAdvisor}
-        style={{
-            background: "var(--oh-accent-soft)",
-            border: "1px solid var(--oh-accent-soft)",
-            borderRadius: "10px",
-            color: "var(--oh-accent)",
-            cursor: "pointer",
-            fontSize: "var(--oh-t-xs)",
-            fontWeight: 500,
-            letterSpacing: "0.01em",
-            padding: "0.55rem 1rem",
-            transition: "background 0.15s, border-color 0.15s",
-            width: "100%",
-        }}
-        onMouseEnter={(event) => {
-            event.currentTarget.style.background = "var(--oh-accent-soft)";
-            event.currentTarget.style.borderColor = "var(--oh-accent-soft)";
-        }}
-        onMouseLeave={(event) => {
-            event.currentTarget.style.background = "var(--oh-accent-soft)";
-            event.currentTarget.style.borderColor = "var(--oh-accent-soft)";
-        }}
-        >
-        M'aider à trouver des idées
-        </button>
 
         <button
         type="button"
         onClick={refreshSuggestions}
         style={{
             alignItems: "center",
-            background: "var(--oh-plate-2)",
+            background: "transparent",
             border: "1px solid var(--oh-line)",
-            borderRadius: "10px",
+            borderRadius: "var(--oh-r-flat)",
             color: "var(--oh-text)",
             cursor: "pointer",
             display: "flex",
@@ -679,11 +669,15 @@ const ActionsPanel = ({ isOpen, onClose, onOpenAdvisor, embedded = false }) => {
             scrollbarWidth: "none",
         }}
         >
-        {submittedActions.length === 0 && (
+        {submittedActions.length === 0 && (embedded ? (
+            <CahierVide quoiFaire="Le verdict paraît dès qu'un ordre est versé au dossier : le budget, la portée de l'appareil, les chantiers en cours et les corps qui doivent voter y répondent avant le monde.">
+            Aucun ordre en cours. Écrivez-en un ci-dessous.
+            </CahierVide>
+        ) : (
             <p style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-sm)", fontStyle: "italic", margin: 0 }}>
-            Aucun ordre en cours. Écrivez-en un ci-dessous : le verdict paraît dès qu'il est versé au dossier.
+            Aucun ordre en cours. Écrivez-en un ci-dessous : le verdict paraît dès qu&apos;il est versé au dossier.
             </p>
-        )}
+        ))}
         {submittedActions.map(({ normalized, originalIndex }) => (
             <ActionItem key={normalized.id || originalIndex} action={normalized} onDelete={() => handleDelete(originalIndex)} realityContext={realityContext} />
         ))}
@@ -698,7 +692,7 @@ const ActionsPanel = ({ isOpen, onClose, onOpenAdvisor, embedded = false }) => {
             <div
             style={{
                 background: "var(--oh-caution-soft)",
-                borderLeft: "4px solid var(--oh-caution)",
+                borderLeft: "var(--oh-filet-fort) solid var(--oh-caution)",
                 color: "var(--oh-text-strong)",
                 fontSize: "var(--oh-t-sm)",
                 lineHeight: 1.5,
@@ -706,7 +700,7 @@ const ActionsPanel = ({ isOpen, onClose, onOpenAdvisor, embedded = false }) => {
                 padding: "0.6rem 0.8rem",
             }}
             >
-            This order raises money but names no figure. Say what it seeks — “raise 500 million euros” — or the ledger has no number to follow, and nothing it brings in can ever be counted.
+            Cet ordre lève de l&apos;argent mais ne nomme aucun chiffre. Dites ce qu&apos;il cherche — « lever 500 millions d&apos;euros » — sinon le registre n&apos;a aucun nombre à suivre, et rien de ce qu&apos;il rapportera ne pourra jamais être compté.
             </div>
         )}
 
@@ -729,9 +723,9 @@ const ActionsPanel = ({ isOpen, onClose, onOpenAdvisor, embedded = false }) => {
         onChange={(event) => setInputValue(event.target.value)}
         onKeyDown={handleKeyDown}
         style={{
-            background: "var(--oh-plate-2)",
+            background: "transparent",
             border: "1px solid var(--oh-line)",
-            borderRadius: "10px",
+            borderRadius: "var(--oh-r-flat)",
             boxSizing: "border-box",
             color: "var(--oh-text)",
             fontFamily: "inherit",
@@ -742,6 +736,7 @@ const ActionsPanel = ({ isOpen, onClose, onOpenAdvisor, embedded = false }) => {
             transition: "border-color 0.2s",
             minHeight: embedded ? "8rem" : "3rem",
             lineHeight: "1.45",
+            maxWidth: embedded ? "62ch" : "none",
             overflowY: "auto",
             width: "100%",
         }}
@@ -761,7 +756,7 @@ const ActionsPanel = ({ isOpen, onClose, onOpenAdvisor, embedded = false }) => {
             alignItems: "center",
             background: "none",
             border: "none",
-            borderRadius: "8px",
+            borderRadius: "var(--oh-r-flat)",
             color: isImproving || inputValue.trim() ? "var(--oh-accent)" : "var(--oh-accent)",
             cursor: isImproving || inputValue.trim() ? "pointer" : "default",
             display: "flex",
@@ -786,7 +781,7 @@ const ActionsPanel = ({ isOpen, onClose, onOpenAdvisor, embedded = false }) => {
             alignItems: "center",
             background: inputValue.trim() && !isSubmitting && !isImproving ? "var(--oh-accent)" : "var(--oh-accent-soft)",
             border: "none",
-            borderRadius: "10px",
+            borderRadius: "var(--oh-r-flat)",
             color: inputValue.trim() && !isSubmitting && !isImproving ? "var(--oh-on-accent)" : "var(--oh-text)",
             cursor: inputValue.trim() && !isSubmitting && !isImproving ? "pointer" : "not-allowed",
             display: "flex",
@@ -847,7 +842,7 @@ const Actions = ({ onOpenAdvisor, hovered, setHovered, isOpen, onToggle }) => {
             : isOpen
             ? "1px solid var(--oh-accent-soft)"
             : "1px solid var(--oh-line)",
-            borderRadius: "10px",
+            borderRadius: "var(--oh-r-flat)",
             boxShadow: hovered
             ? "inset 0 1px 0 var(--oh-line), 0 2px 8px rgba(0,0,0,0.4)"
             : "inset 0 1px 0 var(--oh-line), inset 0 -1px 0 var(--oh-plate-2), 0 2px 6px rgba(0,0,0,0.35)",
