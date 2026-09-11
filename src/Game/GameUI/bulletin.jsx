@@ -868,7 +868,7 @@ const Gatherings = ({ gatherings, usdPerSY }) => {
     );
 };
 
-const Bulletin = ({ onOpenAdvisor, pressFocus = 0 }) => {
+const Bulletin = ({ onOpenAdvisor, pressFocus = 0, nav = null }) => {
     useSurface("press");
     const [game, setGame] = useState(null);
     const [world, setWorld] = useState(null);
@@ -1098,31 +1098,14 @@ const Bulletin = ({ onOpenAdvisor, pressFocus = 0 }) => {
             )}
             </div>
         )}
-        <div
-        style={{
-            alignItems: "baseline",
-            borderBottom: "1px solid var(--oh-line)",
-            display: "flex",
-            gap: "1rem",
-            justifyContent: "space-between",
-            marginBottom: "1.6rem",
-            padding: "0.4rem 0 0.7rem",
-        }}
-        >
-        <span className="oh-label" style={{ color: "var(--oh-text-strong)" }}>
-        {edition.length ? "Édition du tour" : "Première édition"}
-        </span>
-        {/* Ce que cette feuille contient, dit avant qu'on la lise — la maquette
-            met ce compte en regard du titre de l'édition. La date est déjà au
-            bandeau : la répéter ici ne disait rien de plus. */}
-        <span style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)" }}>
-        {[
+        {/* Les cahiers, et ce que cette feuille contient : la maquette met les
+            deux sur la même ligne, sous le bandeau. La date n'y est pas répétée,
+            le bandeau la donne deux lignes plus haut. */}
+        {nav && nav([
             `${edition.length} ${edition.length === 1 ? "événement" : "événements"}`,
             `${ordresJuges} ${ordresJuges === 1 ? "ordre jugé" : "ordres jugés"}`,
             `${lignesRegistre} ${lignesRegistre === 1 ? "ligne au registre" : "lignes au registre"}`,
-        ].join(" · ")}
-        </span>
-        </div>
+        ].join(" · "))}
 
         <div className="oh-bulletin-grid">
 

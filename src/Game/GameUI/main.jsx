@@ -15,6 +15,7 @@ import { Search } from "./search";
 import { ForcesPanel } from "./forces";
 import { Bulletin } from "./bulletin.jsx";
 import { Ordres, Registre } from "./cahiers.jsx";
+import { BarreDesCahiers } from "./navigation.jsx";
 import { nextEdition } from "../../runtime/nextEdition.js";
 import { readActionsState, readGameData, readWorldState } from "../../runtime/gameState.js";
 import {
@@ -102,150 +103,10 @@ const SECTIONS = [
   ...(HAS_MAP ? [["map", "Carte"]] : []),
 ];
 
-// La barre commune de la maquette : les cahiers dans l'ordre, et à droite un
-// seul bouton. Elle remplace la barre de sections qui vivait en pied de page
-// et le cahier « Prochaine édition », devenu ce bouton — la date d'arrivée est
-// dite AVANT qu'on clique, parce qu'un joueur ne devrait pas avoir à ouvrir une
-// page pour savoir ce qu'un bouton va lui coûter en jours.
-//
-// Pas de réglage de durée ici : le moteur fixe la date d'après ce qui est au
-// dossier (runtime/nextEdition.js), et c'est lui qui a raison.
-const ViewTabs = ({ current, onSelect }) => {
-  const [game, setGame] = useState(null);
-  const [world, setWorld] = useState(null);
-  const [actions, setActions] = useState([]);
-
-  // Il n'y a pas de bus d'état dans ce jeu : chaque page relit ce dont elle a
-  // besoin. La barre relit au changement de cahier, ce qui couvre le retour sur
-  // l'édition après un passage sous presse.
-  useEffect(() => {
-    let vivant = true;
-    Promise.all([
-      readGameData().catch(() => null),
-      readWorldState({ force: true }).catch(() => null),
-      readActionsState({ force: true }).catch(() => []),
-    ]).then(([g, w, a]) => {
-      if (!vivant) return;
-      setGame(g);
-      setWorld(w);
-      setActions(Array.isArray(a) ? a : []);
-    });
-    return () => { vivant = false; };
-  }, [current]);
-
-  const aujourdhui = game?.gameDate ? dayjs(game.gameDate).locale("fr") : null;
-  const arrivee = useMemo(
-    () => nextEdition(world, actions, { today: game?.gameDate || "" }),
-    [world, actions, game?.gameDate],
-  );
-  const jours = Number(arrivee?.days) || 0;
-  const dateArrivee = aujourdhui && aujourdhui.isValid() && jours > 0
-    ? aujourdhui.add(jours, "day")
-    : null;
-
-  const cahier = (id, label) => {
-    const actif = current === id;
-    return (
-      <button
-        type="button"
-        key={id}
-        onClick={() => onSelect(id)}
-        style={{
-          background: actif ? "var(--oh-line-strong)" : "transparent",
-          border: 0,
-          color: actif ? "var(--oh-on-accent)" : "var(--oh-text)",
-          cursor: "pointer",
-          fontFamily: "var(--oh-font-label)",
-          fontSize: "var(--oh-t-xs)",
-          fontWeight: "var(--oh-label-weight)",
-          letterSpacing: "var(--oh-label-track)",
-          padding: "0.5rem 0.9rem",
-          textTransform: "var(--oh-label-case)",
-          whiteSpace: "nowrap",
-        }}
-      >
-        {label}
-      </button>
-    );
-  };
-
-  return (
-    <div
-      style={{
-        alignItems: "center",
-        background: "var(--oh-plate)",
-        borderBottom: "2px solid var(--oh-line)",
-        display: "flex",
-        gap: "0.4rem",
-        left: 0,
-        padding: "0.35rem 0.9rem",
-        position: "fixed",
-        right: 0,
-        top: `calc(${TOP_BAR_OFFSET} + 3.5rem)`,
-        zIndex: 10001,
-      }}
-    >
-      {/* Le bandeau du journal : son nom, et le jour qu'on est en train de jouer. */}
-      <span
-        className="oh-barre-titre"
-        style={{
-          color: "var(--oh-text-strong)",
-          fontFamily: "var(--oh-font-display)",
-          fontSize: "var(--oh-t-md)",
-          fontWeight: 800,
-          letterSpacing: "-0.02em",
-          whiteSpace: "nowrap",
-        }}
-      >
-        Saint-Siège
-      </span>
-      {aujourdhui && aujourdhui.isValid() && (
-        <span className="oh-barre-titre" style={{ borderLeft: "1px solid var(--oh-line)", color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)", marginLeft: "0.2rem", paddingLeft: "0.7rem", whiteSpace: "nowrap" }}>
-          {aujourdhui.format("D MMMM YYYY")}
-        </span>
-      )}
-
-      <div className="oh-barre-cahiers" style={{ display: "flex", flex: 1, gap: "0.2rem", justifyContent: "center", overflowX: "auto" }}>
-        {SECTIONS.map(([id, label]) => cahier(id, label))}
-      </div>
-
-      {/* Un seul bouton, et ce qu'il coûte écrit à côté. */}
-      <button
-        type="button"
-        onClick={() => onSelect("next")}
-        style={{
-          background: "var(--oh-accent)",
-          border: 0,
-          color: "var(--oh-on-accent)",
-          cursor: "pointer",
-          fontFamily: "var(--oh-font-label)",
-          fontSize: "var(--oh-t-xs)",
-          fontWeight: "var(--oh-label-weight)",
-          letterSpacing: "var(--oh-label-track)",
-          padding: "0.5rem 1rem",
-          textTransform: "var(--oh-label-case)",
-          whiteSpace: "nowrap",
-        }}
-      >
-        Tour suivant
-      </button>
-      {dateArrivee && (
-        <span
-          className="oh-barre-arrivee"
-          style={{
-            background: "var(--oh-line-strong)",
-            color: "var(--oh-on-accent)",
-            fontSize: "var(--oh-t-xs)",
-            padding: "0.5rem 0.8rem",
-            whiteSpace: "nowrap",
-          }}
-        >
-          → {dateArrivee.format("D MMMM YYYY")} · {jours} j
-        </span>
-      )}
-    </div>
-  );
-};
+// La navigation vit désormais DANS les pages (navigation.jsx) : la maquette
+// journal met le bandeau au-dessus d'elle, ce qu'une barre fixe posée sur
+// l'écran ne peut pas rendre. main.jsx ne fait plus que tenir l'état de la
+// section et le passer à la page qui a la feuille.
 
 const WebGLWarningPopup = () => (
   <div
@@ -497,19 +358,23 @@ const Main = ({
     }
   }, []);
 
+  // La ligne des cahiers, rendue par la page à l'endroit qu'elle lui donne.
+  const nav = (apercu = "") => (
+    <BarreDesCahiers sections={SECTIONS} current={currentSection} onSelect={selectSection} apercu={apercu} />
+  );
+
   return (
     <>
       {showWebGLWarning && <WebGLWarningPopup />}
       {onMessages && (
-        <Correspondence />
+        <Correspondence nav={nav} />
       )}
       {onBulletin && (
-        <Bulletin onOpenAdvisor={openAdvisor} pressFocus={pressFocus} />
+        <Bulletin onOpenAdvisor={openAdvisor} pressFocus={pressFocus} nav={nav} />
       )}
-      {onOrdres && <Ordres onOpenAdvisor={openAdvisor} />}
-      {onRegistre && <Registre />}
-      {section === "college" && <College />}
-      <ViewTabs current={currentSection} onSelect={selectSection} />
+      {onOrdres && <Ordres onOpenAdvisor={openAdvisor} nav={nav} />}
+      {onRegistre && <Registre nav={nav} />}
+      {section === "college" && <College nav={nav} />}
       <LibraryTopBar />
       <DateWidget
         activePanel={activeBottomPanel}
@@ -555,6 +420,7 @@ const Main = ({
             fullPage={advisorIsSection}
             section={advisorIsSection ? advisorSection : null}
             onSection={advisorIsSection ? setAdvisorSection : null}
+            nav={nav}
           />
         )}
       </Suspense>

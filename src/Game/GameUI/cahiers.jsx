@@ -17,7 +17,7 @@ import { Record } from "./bulletin.jsx";
 import { CONTENU_TOP } from "./chrome.js";
 
 /** Le cadre d'un cahier : même surface, même géométrie que l'édition. */
-const Feuille = ({ surface, children }) => (
+const Feuille = ({ surface, nav, children }) => (
   <div
     data-surface={surface}
     style={{
@@ -32,19 +32,22 @@ const Feuille = ({ surface, children }) => (
       zIndex: 10002,
     }}
   >
-    <div style={{ margin: "0 auto", maxWidth: "74rem", padding: "1.6rem 1.5rem 3rem" }}>{children}</div>
+    <div style={{ margin: "0 auto", maxWidth: "74rem", padding: "1.6rem 1.5rem 3rem" }}>
+      {nav && nav()}
+      {children}
+    </div>
   </div>
 );
 
 /** Les ordres : ce qu'on verse au dossier, et ce que le moteur en a jugé. */
-export const Ordres = ({ onOpenAdvisor }) => (
-  <Feuille surface="press">
+export const Ordres = ({ onOpenAdvisor, nav }) => (
+  <Feuille surface="press" nav={nav}>
     <ActionsPanel embedded isOpen onClose={() => {}} onOpenAdvisor={onOpenAdvisor} />
   </Feuille>
 );
 
 /** Le registre : les lignes que le moteur a écrites, et rien d'autre. */
-export const Registre = () => {
+export const Registre = ({ nav }) => {
   const [game, setGame] = useState(null);
   const [world, setWorld] = useState(null);
 
@@ -65,7 +68,7 @@ export const Registre = () => {
   const usdPerSY = Number(player ? world?.economies?.[player]?.usdPerSY : 0) || 0;
 
   return (
-    <Feuille surface="press">
+    <Feuille surface="press" nav={nav}>
       <Record record={world?.record} treasuries={world?.treasuries} player={player} usdPerSY={usdPerSY} />
     </Feuille>
   );

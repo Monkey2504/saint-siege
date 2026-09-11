@@ -211,7 +211,7 @@ const TabButton = ({ icon, label, active, onClick }) => (
     </button>
 );
 
-const AdvisorPanel = ({ isAdvisorOpen, onClose, width, onResize, fullPage = false, section = null, onSection = null }) => {
+const AdvisorPanel = ({ isAdvisorOpen, onClose, width, onResize, fullPage = false, section = null, onSection = null, nav = null }) => {
     const [messages, setMessages]   = useState([]);
     const [input, setInput]         = useState("");
     const [isLoading, setIsLoading] = useState(false);
@@ -420,6 +420,12 @@ const AdvisorPanel = ({ isAdvisorOpen, onClose, width, onResize, fullPage = fals
                     transition: "background-color 0.15s",
                 }} />
             </div>
+        )}
+        {/* La ligne des cahiers appartient à la page, pas à un onglet : posée
+            dans le contenu d'un onglet, elle disparaissait avec lui et
+            enfermait le joueur dans les caisses. */}
+        {fullPage && nav && (
+            <div style={{ margin: "0 auto", maxWidth: "62rem", padding: "1rem 1.5rem 0", width: "100%" }}>{nav()}</div>
         )}
         {/* Header: tabs to flip between the advisor chat and national stats. */}
         <div style={{ alignItems: "center", borderBottom: "1px solid var(--oh-line)", display: "flex", padding: "0 0.75rem 0 0.35rem" }}>

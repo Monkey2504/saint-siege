@@ -9,11 +9,10 @@
 // Vit dans son propre module pour que les pages n'aient pas à importer main.jsx,
 // qui les importe déjà.
 
-/** Hauteur de la barre de session (bibliothèque, sortie de partie). */
-export const BARRE_SESSION = "4rem";
-
-/** Hauteur de la barre des cahiers, sous la barre de session. */
-export const BARRE_CAHIERS = "2.9rem";
-
-/** Où commence le contenu d'une page : sous les deux barres. */
-export const CONTENU_TOP = `calc(${BARRE_SESSION} + ${BARRE_CAHIERS})`;
+/** Où commence le contenu d'une page.
+ *
+ * Zéro : la maquette journal commence par le bandeau, en haut de la feuille.
+ * La navigation n'est plus une barre posée sur l'écran mais une ligne du
+ * journal (navigation.jsx), et la session flotte par-dessus sans réserver de
+ * bande. Ce qui reste constant, c'est que les pages partent du bord. */
+export const CONTENU_TOP = 0;

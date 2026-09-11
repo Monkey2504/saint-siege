@@ -141,7 +141,7 @@ const CorrespondentRow = ({ chat, active, unread, standing: where, onOpen, onDel
     );
 };
 
-const Correspondence = () => {
+const Correspondence = ({ nav = null }) => {
     useSurface("desk");
     const [game, setGame] = useState(null);
     const [world, setWorld] = useState(null);
@@ -281,7 +281,9 @@ const Correspondence = () => {
     const activeNames = (activeChat?.countries ?? []).map((c) => c.name).join(", ");
 
     return (
-        <div data-surface="desk" style={{ background: "var(--oh-plate)", bottom: 0, color: "var(--oh-text)", display: "grid", gridTemplateColumns: "minmax(17rem, 20rem) minmax(0, 1fr)", left: 0, overflow: "hidden", position: "fixed", right: 0, top: CONTENU_TOP, zIndex: 10002 }}>
+        <div data-surface="desk" style={{ background: "var(--oh-plate)", bottom: 0, color: "var(--oh-text)", display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gridTemplateRows: "auto minmax(0, 1fr)", left: 0, overflow: "hidden", position: "fixed", right: 0, top: CONTENU_TOP, zIndex: 10002 }}>
+        {nav && <div style={{ padding: "0.8rem 1.5rem 0" }}>{nav()}</div>}
+        <div style={{ display: "grid", gridTemplateColumns: "minmax(17rem, 20rem) minmax(0, 1fr)", minHeight: 0, overflow: "hidden" }}>
 
         {/* ── The column of correspondents ─────────────────────────────────── */}
         <div style={{ borderRight: "1px solid var(--oh-line)", display: "flex", flexDirection: "column", minHeight: 0 }}>
@@ -430,6 +432,7 @@ const Correspondence = () => {
             </div>
             </div>
         )}
+        </div>
         </div>
     );
 };
