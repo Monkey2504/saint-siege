@@ -570,8 +570,8 @@ const ActionsPanel = ({ isOpen, onClose, onOpenAdvisor, embedded = false }) => {
         }}
         >
         {embedded
-            ? <>Orders in the name of {countryDisplayName}, to take effect from {gameDate}. Each one is held to the budget, the reach of the apparatus, the schemes already running and the bodies that must vote, before the world answers it.</>
-            : <>Submit actions for {countryDisplayName} for {gameDate}. Your actions will affect how the game world responds.</>}
+            ? <>Des ordres au nom du {countryDisplayName}, prenant effet au {gameDate}. Chacun est tenu au budget, à la portée de l'appareil, aux chantiers déjà lancés et aux corps qui doivent voter, avant que le monde y réponde.</>
+            : <>Soumettez des ordres pour {countryDisplayName} au {gameDate}. Vos ordres décideront de la réponse du monde.</>}
         </p>
 
         <button

@@ -817,7 +817,7 @@ const PlannedOrdersBrief = ({ orders }) => {
         Ordres que ce tour règle
         </span>
         <span style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)" }}>
-        {orders.length === 0 ? "none queued" : `${orders.length} standing`}
+        {orders.length === 0 ? "aucun en attente" : `${orders.length} standing`}
         </span>
         </div>
 

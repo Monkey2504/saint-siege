@@ -459,12 +459,12 @@ const ScenarioCard = ({ onClone, onEdit, onPlay, onSelect, onUpdate, scenario, s
                     textTransform: "var(--oh-label-case)",
                   }}
                 >
-                  Built-In
+                  Intégré
                 </span>
               )}
             </div>
             <span style={{ color: "var(--oh-text)", fontSize: "var(--oh-t-xs)" }}>
-              {scenario.gameCount} game{scenario.gameCount === 1 ? "" : "s"}
+              {scenario.gameCount} partie{scenario.gameCount === 1 ? "" : "s"}
             </span>
           </div>
           <div style={{ marginTop: "4rem" }}>
@@ -511,17 +511,17 @@ const ScenarioCard = ({ onClone, onEdit, onPlay, onSelect, onUpdate, scenario, s
                 flex: 1,
               }}
               title={updateAvailable
-                ? "A newer version of this scenario is on the community hub. Updating replaces this copy (existing games keep working)."
+                ? "Une version plus récente de ce scénario est sur le pôle communautaire. La mise à jour remplace cette copie (les parties existantes continuent de fonctionner)."
                 : undefined}
               type="button"
             >
-              {updateAvailable ? "⬆ Update" : "New Game"}
+              {updateAvailable ? "⬆ Mettre à jour" : "Nouvelle partie"}
             </button>
             <button onClick={() => onEdit(scenario.id)} style={{ ...actionButtonStyle, flex: 1 }} type="button">
-              Edit
+              Modifier
             </button>
             <button onClick={() => onClone(scenario)} style={{ ...actionButtonStyle, flexBasis: "100%" }} type="button">
-              Clone Scenario
+              Cloner le scénario
             </button>
           </div>
         </div>
@@ -586,7 +586,7 @@ const GameCard = ({ active, game, onActivate, onArchive, onClone, onEdit }) => {
                 textTransform: "var(--oh-label-case)",
               }}
             >
-              {active ? "Current Game" : game.eyebrow || "Game"}
+              {active ? "Partie en cours" : game.eyebrow || "Partie"}
             </span>
             <span style={{ color: "var(--oh-text)", fontSize: "var(--oh-t-xs)" }}>
               {game.scenarioName}
@@ -598,7 +598,7 @@ const GameCard = ({ active, game, onActivate, onArchive, onClone, onEdit }) => {
               {game.name}
             </div>
             <div style={{ color: "var(--oh-text)", fontSize: "var(--oh-t-sm)", marginTop: "0.45rem" }}>
-              {game.country || "No player country"} / {game.currentDate || "No date"} / Round {game.round || 1}
+              {game.country || "Aucun pays joueur"} / {game.currentDate || "Sans date"} / Tour {game.round || 1}
             </div>
             <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)", marginTop: "0.5rem", lineHeight: 1.45 }}>
               {game.description || "Playable campaign session."}
@@ -608,7 +608,7 @@ const GameCard = ({ active, game, onActivate, onArchive, onClone, onEdit }) => {
 
         <div>
           <div style={{ color: "var(--oh-text)", fontSize: "var(--oh-t-xs)", marginBottom: "0.75rem" }}>
-            {game.pendingActions} pending action{game.pendingActions === 1 ? "" : "s"} / {game.eventCount} event{game.eventCount === 1 ? "" : "s"}
+            {game.pendingActions} ordre{game.pendingActions === 1 ? "" : "s"} en attente / {game.eventCount} événement{game.eventCount === 1 ? "" : "s"}
           </div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: "0.55rem" }}>
             <button
@@ -622,13 +622,13 @@ const GameCard = ({ active, game, onActivate, onArchive, onClone, onEdit }) => {
               }}
               type="button"
             >
-              {active ? "Current" : "Play"}
+              {active ? "En cours" : "Jouer"}
             </button>
             <button onClick={() => onEdit(game.id)} style={{ ...actionButtonStyle, flex: 1 }} type="button">
-              Edit
+              Modifier
             </button>
             <button onClick={() => onClone(game)} style={{ ...actionButtonStyle, flex: 1 }} type="button">
-              Clone
+              Cloner
             </button>
             {/* Hide a finished or abandoned run without destroying it — the case
                 Delete cannot serve. Archiving the ACTIVE game is allowed: the
@@ -636,10 +636,10 @@ const GameCard = ({ active, game, onActivate, onArchive, onClone, onEdit }) => {
             <button
               onClick={() => onArchive(game)}
               style={{ ...actionButtonStyle, flexBasis: "100%" }}
-              title={game.archived ? "Move back into your library" : "Hide from the library without deleting"}
+              title={game.archived ? "Remettre dans votre bibliothèque" : "Masquer de la bibliothèque sans supprimer"}
               type="button"
             >
-              {game.archived ? "Unarchive" : "Archive"}
+              {game.archived ? "Désarchiver" : "Archiver"}
             </button>
           </div>
         </div>
@@ -1314,34 +1314,39 @@ const LibraryTopBar = () => {
   const getBaseCountryOptions = () =>
     Object.entries(countryNames ?? {}).map(([code, name]) => ({ code, name }));
 
-  // "New Game" now opens a country picker first (the player chooses who to play).
-  const handleScenarioPlay = (scenario) => {
+  // "New Game" opens a country picker first — sauf quand le scénario nomme déjà
+  // le pays que tient le joueur. Saint-Siège le nomme : on y est le pape, et la
+  // liste des pays s'ouvrait sur l'Afghanistan. Un tel scénario va droit au choix
+  // de difficulté, avec son propre pays.
+  const handleScenarioPlay = async (scenario) => {
     setCountryQuery("");
     setCountryOptions([]);
     setCustomRegionData(null); setPickerOwnerOverrides(null);
     setPlayGameId(null);
     setPickerTab("country");
     setCountryPicker(scenario);
-    Promise.all([loadCountryNames().catch(() => []), loadScenarioDetails(scenario.id).catch(() => null)])
-      .then(([allCountries, details]) => {
-        setCountryOptions(buildScenarioCountryOptions(
-          details?.data?.world,
-          [...getBaseCountryOptions(), ...allCountries],
-          scenario.countryNameOverrides,
-        ));
-        // Needed whether or not the scenario has geometry of its own: with it the
-        // stock seed is repainted in this scenario's owners, without it the picker
-        // shows modern countries the scenario does not contain.
-        setPickerOwnerOverrides(details?.data?.world?.regionOwnershipOverrides ?? null);
-        // Load custom region geometry so the map renders the scenario's actual
-        // boundaries instead of the stock world seed.
-        if (details?.data?.world?.customRegions) {
-          downloadScenarioJsonAsset(scenario.id, "regionsGeojson")
-            .then((geojson) => { if (geojson) setCustomRegionData(geojson); })
-            .catch(() => {});
-        }
-      })
-      .catch(() => setCountryOptions([]));
+
+    const details = await loadScenarioDetails(scenario.id).catch(() => null);
+    const paysImpose = details?.data?.game?.country;
+    if (paysImpose) { setDifficultyPick({ countryCode: paysImpose }); return; }
+
+    const allCountries = await loadCountryNames().catch(() => []);
+    setCountryOptions(buildScenarioCountryOptions(
+      details?.data?.world,
+      [...getBaseCountryOptions(), ...allCountries],
+      scenario.countryNameOverrides,
+    ));
+    // Needed whether or not the scenario has geometry of its own: with it the
+    // stock seed is repainted in this scenario's owners, without it the picker
+    // shows modern countries the scenario does not contain.
+    setPickerOwnerOverrides(details?.data?.world?.regionOwnershipOverrides ?? null);
+    // Load custom region geometry so the map renders the scenario's actual
+    // boundaries instead of the stock world seed.
+    if (details?.data?.world?.customRegions) {
+      downloadScenarioJsonAsset(scenario.id, "regionsGeojson")
+        .then((geojson) => { if (geojson) setCustomRegionData(geojson); })
+        .catch(() => {});
+    }
   };
 
   // Hub update detection: scenarios imported straight from the community tab
@@ -2093,7 +2098,7 @@ const LibraryTopBar = () => {
             type="button"
             style={{ ...actionButtonStyle, ...surfaceStyle, borderRadius: "999px", fontSize: "var(--oh-t-xs)", minHeight: "0", padding: "0.5rem 0.85rem" }}
           >
-            ⌂ Exit Game
+            ⌂ Quitter la partie
           </button>
           {/* Shut the server down (phones/Termux have no terminal handy). Hidden
               on the hosted website (web build) — there's no local server to stop
@@ -2233,9 +2238,9 @@ const LibraryTopBar = () => {
           >
             {difficultyPick ? (
               <>
-                <div style={{ fontWeight: 800, fontSize: "var(--oh-t-base)" }}>Choose your difficulty</div>
+                <div style={{ fontWeight: 800, fontSize: "var(--oh-t-base)" }}>Choisissez la difficulté</div>
                 <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)", margin: "0.15rem 0 0.7rem" }}>
-                  How hard should the world fight back?
+                  Avec quelle force le monde doit-il résister ?
                 </div>
                 {selectedCountryOption && (
                   <div style={{ alignItems: "center", display: "flex", fontSize: "var(--oh-t-sm)", fontWeight: 700, gap: "0.5rem", marginBottom: "0.7rem" }}>
@@ -2437,12 +2442,12 @@ const LibraryTopBar = () => {
             <div style={{ alignItems: "center", display: "flex", gap: "0.55rem", justifyContent: "flex-end" }}>
               {activeTab !== "community" && (
                 <button onClick={() => refreshLibraryCatalog({ force: true }).catch(() => {})} style={actionButtonStyle} type="button">
-                  {isMobile ? "⟳" : "Refresh"}
+                  {isMobile ? "⟳" : "Rafraîchir"}
                 </button>
               )}
               {activeTab === "scenarios" && (
                 <button onClick={() => importScenarioInputRef.current?.click()} style={actionButtonStyle} type="button">
-                  {isMobile ? "⬆" : "Import JSON"}
+                  {isMobile ? "⬆" : "Importer du JSON"}
                 </button>
               )}
               {!import.meta.env.VITE_OH_WEB && (
@@ -2507,7 +2512,7 @@ const LibraryTopBar = () => {
                 </div>
               ) : (
                 <>
-                  <MenuRow title="🕐 Last Played">
+                  <MenuRow title="🕐 Dernière jouée">
                     {lastPlayedGames.map((game) => (
                       <GameCard
                         key={game.id}
@@ -2520,7 +2525,7 @@ const LibraryTopBar = () => {
                       />
                     ))}
                   </MenuRow>
-                  <MenuRow title="🔥 Most Played">
+                  <MenuRow title="🔥 Les plus jouées">
                     {mostPlayedGames.map((game) => (
                       <GameCard
                         key={game.id}
@@ -2552,7 +2557,7 @@ const LibraryTopBar = () => {
               )
             ) : (
               <>
-                <MenuRow title="🔥 Most Played" emptyText="No scenarios yet.">
+                <MenuRow title="🔥 Les plus joués" emptyText="Aucun scénario pour l'instant.">
                   {mostPlayedScenarios.map((scenario) => (
                     <ScenarioCard
                       key={scenario.id}
@@ -2567,7 +2572,7 @@ const LibraryTopBar = () => {
                     />
                   ))}
                 </MenuRow>
-                <MenuRow title="🕐 Last Updated" emptyText="No scenarios yet.">
+                <MenuRow title="🕐 Mis à jour en dernier" emptyText="Aucun scénario pour l'instant.">
                   {lastUpdatedScenarios.map((scenario) => (
                     <ScenarioCard
                       key={scenario.id}

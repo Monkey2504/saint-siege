@@ -6,41 +6,41 @@
 export const DIFFICULTY_LEVELS = [
   {
     id: "very-easy",
-    label: "Very Easy",
+    label: "Très facile",
     emoji: "😴",
-    blurb: "The world bends your way",
+    blurb: "Le monde plie dans votre sens",
     directive:
       "DIFFICULTY very-easy: The world favors the player heavily. Within what the Reality Check allows, their actions succeed and outperform expectations; rival nations act passively and rarely exploit the friction, and events tend to benefit the player's nation. The Reality Check's verdicts still bind — a budget that is empty stays empty at every difficulty.",
   },
   {
     id: "easy",
-    label: "Easy",
+    label: "Facile",
     emoji: "🙂",
-    blurb: "A forgiving world",
+    blurb: "Un monde indulgent",
     directive:
       "DIFFICULTY easy: The world is forgiving. Reasonable player actions succeed within what the Reality Check allows, rivals are slow to exploit mistakes, and setbacks stay small and recoverable.",
   },
   {
     id: "medium",
-    label: "Medium",
+    label: "Moyen",
     emoji: "⚖️",
-    blurb: "Realistic and balanced",
+    blurb: "Réaliste et équilibré",
     directive:
       "DIFFICULTY medium: Simulate a balanced, realistic world. Player actions succeed or fail on their merits, and rival nations pursue their own interests with normal competence.",
   },
   {
     id: "hard",
-    label: "Hard",
+    label: "Difficile",
     emoji: "😰",
-    blurb: "Rivals play to win",
+    blurb: "Les rivaux jouent pour gagner",
     directive:
       "DIFFICULTY hard: The world is demanding. Rival nations are competent and opportunistic, weak or vague player actions fail or backfire, and success requires sound strategy.",
   },
   {
     id: "very-hard",
-    label: "Very Hard",
+    label: "Très difficile",
     emoji: "🔥",
-    blurb: "A hostile world",
+    blurb: "Un monde hostile",
     directive:
       "DIFFICULTY very-hard: The world is hostile to the player. Rivals actively counter their moves and form coalitions against them, only well-reasoned plans succeed, and events often work against the player's nation.",
   },
@@ -48,7 +48,7 @@ export const DIFFICULTY_LEVELS = [
     id: "impossible",
     label: "Impossible",
     emoji: "💀",
-    blurb: "Everything conspires against you",
+    blurb: "Tout conspire contre vous",
     directive:
       "DIFFICULTY impossible: The world conspires against the player. Rival nations are ruthless, coordinated, and relentless; even good plans meet complications; crises compound. The player survives only through brilliance — never luck.",
   },

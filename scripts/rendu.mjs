@@ -63,7 +63,7 @@ const franchirLePortail = async (page) => {
 /** Depuis la bibliothèque, rouvrir la partie courante : elle mène à HABEMUS PAPAM. */
 const rouvrirLaPartie = async (page) => {
   await cliquer(page, /^Parties$/i, 1500);
-  await cliquer(page, /^Current$/i, 5000);
+  await cliquer(page, /^En cours$/i, 5000);
 };
 
 /**
