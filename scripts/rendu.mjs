@@ -42,6 +42,13 @@ const bouton = (page, nom) => page.getByRole('button', { name: nom }).first();
 const cliquer = async (page, nom, repos = 2500) => {
   await bouton(page, nom).click({ timeout: 20000 });
   await page.waitForTimeout(repos);
+  // Chaque cahier est un panneau qui défile pour son compte, et il garde la
+  // position du précédent : sans cela on capture le milieu d'une page.
+  await page.evaluate(() => {
+    window.scrollTo(0, 0);
+    document.querySelectorAll("*").forEach((n) => { if (n.scrollTop) n.scrollTop = 0; });
+  });
+  await page.waitForTimeout(400);
 };
 
 /**
@@ -95,11 +102,11 @@ const PARCOURS = [
   { fichier: '05-bibliotheque-scenarios', faire: p => cliquer(p, /^Scénarios$/i, 2000) },
   { fichier: '06-habemus-papam',          faire: rouvrirLaPartie },
   {                                       faire: signerLePontificat },
-  { fichier: '07-courrier',               faire: p => cliquer(p, /^Courrier$/i) },
-  { fichier: '08-bulletin',               faire: p => cliquer(p, /^Bulletin$/i) },
+  { fichier: '07-edition-du-jour',        faire: p => cliquer(p, /^Édition du jour$/i) },
+  { fichier: '08-lettres',                faire: p => cliquer(p, /^Lettres$/i) },
   { fichier: '09-college',                faire: p => cliquer(p, /^Collège$/i) },
   { fichier: '10-conseiller',             faire: p => cliquer(p, /^Conseiller$/i) },
-  { fichier: '11-comptes',                faire: p => cliquer(p, /^Comptes$/i) },
+  { fichier: '11-finances',               faire: p => cliquer(p, /^Finances$/i) },
 ];
 
 /* ---------------------------------------------------------------- capture  */

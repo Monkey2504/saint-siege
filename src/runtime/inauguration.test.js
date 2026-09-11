@@ -28,7 +28,7 @@ test("inaugurate names the pope on the polity and the stat sheet, and turns the 
   assert.equal(own.owner, HOLY_SEE);
   assert.equal(own.secret, false, "declared before the Church, not schemed");
   assert.equal(own.stance, "supportive");
-  assert.match(w.startingTimelineText, /Leo XV was elected on this programme: Gather the faithful/);
+  assert.match(w.startingTimelineText, /Leo XV a été élu sur ce programme : Gather the faithful/);
   assert.equal(isInaugurated(w), true);
   assert.equal(w.intents.length, 2, "the dubia's scheme is untouched");
 });

@@ -28,6 +28,7 @@ import { preferredLanguage } from "../../runtime/i18n.js";
 import { nextEdition } from "../../runtime/nextEdition.js";
 import { useSurface } from "../../runtime/useSurface.js";
 import { simulateAutoJump, simulateTimelineJump } from "../AI/gameplay.js";
+import { CONTENU_TOP } from "./chrome.js";
 
 // Written as a page, not as a panel dressed up as one. Nothing here inherits the
 // floating-drawer chrome the rest of the interface was built from: no border, no
@@ -979,13 +980,13 @@ const Bulletin = ({ onOpenAdvisor, pressFocus = 0 }) => {
         data-surface="press"
         style={{
             background: "var(--oh-plate)",
-            bottom: "2.6rem",
+            bottom: 0,
             color: "var(--oh-text)",
             left: 0,
             overflowY: "auto",
             position: "fixed",
             right: 0,
-            top: 0,
+            top: CONTENU_TOP,
             zIndex: 10002,
         }}
         >

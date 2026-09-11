@@ -2,6 +2,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { readActionsState, readGameData, readWorldState, writeActionsState } from "../../runtime/gameState.js";
 import { useSurface } from "../../runtime/useSurface.js";
+import { CONTENU_TOP } from "./chrome.js";
 import {
     AXES, HOSTILE_AT, LOYAL_AT, RADICAL_AT, ZEALOUS_AT,
     coalition, groupsOn, normalizeAssembly, putToTheVote, speechOrderText, standing, temper,
@@ -142,7 +143,7 @@ export const College = () => {
     if (!world) return null;
     if (!assembly || !room) {
         return (
-            <div data-surface="chamber" style={{ background: "var(--oh-plate)", bottom: "2.6rem", color: "var(--oh-text)", left: 0, overflowY: "auto", position: "fixed", right: 0, top: 0, zIndex: 10002 }}>
+            <div data-surface="chamber" style={{ background: "var(--oh-plate)", bottom: 0, color: "var(--oh-text)", left: 0, overflowY: "auto", position: "fixed", right: 0, top: CONTENU_TOP, zIndex: 10002 }}>
             <div style={{ margin: "0 auto", maxWidth: "42rem", padding: "3rem 1.5rem" }}>
             <h1 style={{ color: "var(--oh-text-strong)", fontFamily: "var(--oh-font-display)", fontSize: "var(--oh-t-xl)", margin: 0 }}>Aucune assemblée</h1>
             <p style={{ fontSize: "var(--oh-t-base)", lineHeight: 1.6 }}>Ce scénario n'a pas encore de corps d'électeurs.</p>
@@ -166,7 +167,7 @@ export const College = () => {
     // into it: stone rather than paper, cooler and heavier
     // (theme.css, [data-surface="chamber"]).
     return (
-        <div data-surface="chamber" style={{ background: "var(--oh-plate)", bottom: "2.6rem", color: "var(--oh-text)", left: 0, overflowY: "auto", position: "fixed", right: 0, top: 0, zIndex: 10002 }}>
+        <div data-surface="chamber" style={{ background: "var(--oh-plate)", bottom: 0, color: "var(--oh-text)", left: 0, overflowY: "auto", position: "fixed", right: 0, top: CONTENU_TOP, zIndex: 10002 }}>
         <div style={{ margin: "0 auto", maxWidth: "70rem", padding: "1.6rem 1.5rem 3rem" }}>
 
         {/* The room itself, so a reader who has never seen a consistory knows

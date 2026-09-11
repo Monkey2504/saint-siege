@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { readGameData, readWorldState } from "../../runtime/gameState.js";
 import { groupsOn, normalizeAssembly, temperWord } from "../../runtime/factions.js";
 import { useSurface } from "../../runtime/useSurface.js";
+import { CONTENU_TOP } from "./chrome.js";
 import { ensureOrganizations } from "./organizationsView.jsx";
 import {
     ConversationView,
@@ -280,7 +281,7 @@ const Correspondence = () => {
     const activeNames = (activeChat?.countries ?? []).map((c) => c.name).join(", ");
 
     return (
-        <div data-surface="desk" style={{ background: "var(--oh-plate)", bottom: "2.6rem", color: "var(--oh-text)", display: "grid", gridTemplateColumns: "minmax(17rem, 20rem) minmax(0, 1fr)", left: 0, overflow: "hidden", position: "fixed", right: 0, top: 0, zIndex: 10002 }}>
+        <div data-surface="desk" style={{ background: "var(--oh-plate)", bottom: 0, color: "var(--oh-text)", display: "grid", gridTemplateColumns: "minmax(17rem, 20rem) minmax(0, 1fr)", left: 0, overflow: "hidden", position: "fixed", right: 0, top: CONTENU_TOP, zIndex: 10002 }}>
 
         {/* ── The column of correspondents ─────────────────────────────────── */}
         <div style={{ borderRight: "1px solid var(--oh-line)", display: "flex", flexDirection: "column", minHeight: 0 }}>

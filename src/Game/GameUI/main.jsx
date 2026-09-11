@@ -1,5 +1,7 @@
 /*! Open Historia — portions (mobile HUD wiring + advisor/forces launchers) © 2026 Nicholas Krol, MIT (see src/Editor/LICENSE). */
-import React, { Suspense, lazy, useCallback, useEffect, useState } from "react";
+import React, { Suspense, lazy, useCallback, useEffect, useMemo, useState } from "react";
+import dayjs from "dayjs";
+import "dayjs/locale/fr";
 import { SettingsButton, SettingsMenu } from "./settings";
 import { LibraryTopBar, TOP_BAR_OFFSET } from "./libraryBar";
 import { useLibraryState } from "../../runtime/library.js";
@@ -12,6 +14,8 @@ import { HAS_MAP, HOME_SECTION } from "../../runtime/edition.js";
 import { Search } from "./search";
 import { ForcesPanel } from "./forces";
 import { Bulletin } from "./bulletin.jsx";
+import { nextEdition } from "../../runtime/nextEdition.js";
+import { readActionsState, readGameData, readWorldState } from "../../runtime/gameState.js";
 import {
   getStoredProvider,
   loadProviderSettingsFormState,
@@ -78,44 +82,77 @@ const checkWebGL = () => {
 // days stale — so the game published to Vercel opened half in English. French
 // here needs no model, no key and no regenerated pack.
 const SECTIONS = [
-  ["messages", "Courrier"],
-  ["bulletin", "Bulletin"],
+  ["bulletin", "Édition du jour"],
+  ["messages", "Lettres"],
   // The room that decides, drawn seat by seat, and the place to argue with it.
   ["college", "Collège"],
   ["advisor", "Conseiller"],
-  ["stats", "Comptes"],
+  ["stats", "Finances"],
   // The atlas, in the edition that has one (runtime/edition.js). The Holy See
   // game is played in the paper, and its polity owns half a square kilometre.
   ...(HAS_MAP ? [["map", "Carte"]] : []),
-  ["next", "Prochaine édition"],
 ];
 
+// La barre commune de la maquette : les cahiers dans l'ordre, et à droite un
+// seul bouton. Elle remplace la barre de sections qui vivait en pied de page
+// et le cahier « Prochaine édition », devenu ce bouton — la date d'arrivée est
+// dite AVANT qu'on clique, parce qu'un joueur ne devrait pas avoir à ouvrir une
+// page pour savoir ce qu'un bouton va lui coûter en jours.
+//
+// Pas de réglage de durée ici : le moteur fixe la date d'après ce qui est au
+// dossier (runtime/nextEdition.js), et c'est lui qui a raison.
 const ViewTabs = ({ current, onSelect }) => {
-  const tab = (id, label) => {
-    const active = current === id;
-    // The correspondence tab is the quiet one at the left edge: a word, no flex
-    // share of the bar, set apart from the sections of the paper by a rule.
-    const quiet = id === "messages";
+  const [game, setGame] = useState(null);
+  const [world, setWorld] = useState(null);
+  const [actions, setActions] = useState([]);
+
+  // Il n'y a pas de bus d'état dans ce jeu : chaque page relit ce dont elle a
+  // besoin. La barre relit au changement de cahier, ce qui couvre le retour sur
+  // l'édition après un passage sous presse.
+  useEffect(() => {
+    let vivant = true;
+    Promise.all([
+      readGameData().catch(() => null),
+      readWorldState({ force: true }).catch(() => null),
+      readActionsState({ force: true }).catch(() => []),
+    ]).then(([g, w, a]) => {
+      if (!vivant) return;
+      setGame(g);
+      setWorld(w);
+      setActions(Array.isArray(a) ? a : []);
+    });
+    return () => { vivant = false; };
+  }, [current]);
+
+  const aujourdhui = game?.gameDate ? dayjs(game.gameDate).locale("fr") : null;
+  const arrivee = useMemo(
+    () => nextEdition(world, actions, { today: game?.gameDate || "" }),
+    [world, actions, game?.gameDate],
+  );
+  const jours = Number(arrivee?.days) || 0;
+  const dateArrivee = aujourdhui && aujourdhui.isValid() && jours > 0
+    ? aujourdhui.add(jours, "day")
+    : null;
+
+  const cahier = (id, label) => {
+    const actif = current === id;
     return (
       <button
         type="button"
-        title={quiet ? "Correspondence" : undefined}
+        key={id}
         onClick={() => onSelect(id)}
         style={{
-          background: "none",
+          background: actif ? "var(--oh-line-strong)" : "transparent",
           border: 0,
-          borderTop: `3px solid ${active ? "var(--oh-accent)" : "transparent"}`,
-          color: active ? "var(--oh-text-strong)" : "var(--oh-text-dim)",
-          borderRight: quiet ? "1px solid var(--oh-line)" : 0,
+          color: actif ? "var(--oh-on-accent)" : "var(--oh-text)",
           cursor: "pointer",
-          flex: quiet ? "0 0 auto" : 1,
           fontFamily: "var(--oh-font-label)",
           fontSize: "var(--oh-t-xs)",
-          fontWeight: 700,
+          fontWeight: "var(--oh-label-weight)",
           letterSpacing: "var(--oh-label-track)",
-          marginTop: "-1px",
-          padding: quiet ? "0.55rem 1.4rem" : "0.55rem 0",
+          padding: "0.5rem 0.9rem",
           textTransform: "var(--oh-label-case)",
+          whiteSpace: "nowrap",
         }}
       >
         {label}
@@ -126,19 +163,75 @@ const ViewTabs = ({ current, onSelect }) => {
   return (
     <div
       style={{
+        alignItems: "center",
         background: "var(--oh-plate)",
-        borderTop: "1px solid var(--oh-line)",
-        bottom: 0,
+        borderBottom: "2px solid var(--oh-line)",
         display: "flex",
+        gap: "0.4rem",
         left: 0,
+        padding: "0.35rem 0.9rem",
         position: "fixed",
         right: 0,
+        top: `calc(${TOP_BAR_OFFSET} + 3.5rem)`,
         zIndex: 10001,
       }}
     >
-      {SECTIONS.map(([id, label]) => (
-        <React.Fragment key={id}>{tab(id, label)}</React.Fragment>
-      ))}
+      {/* Le bandeau du journal : son nom, et le jour qu'on est en train de jouer. */}
+      <span
+        style={{
+          color: "var(--oh-text-strong)",
+          fontFamily: "var(--oh-font-display)",
+          fontSize: "var(--oh-t-md)",
+          fontWeight: 800,
+          letterSpacing: "-0.02em",
+          whiteSpace: "nowrap",
+        }}
+      >
+        Saint-Siège
+      </span>
+      {aujourdhui && aujourdhui.isValid() && (
+        <span style={{ borderLeft: "1px solid var(--oh-line)", color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)", marginLeft: "0.2rem", paddingLeft: "0.7rem", whiteSpace: "nowrap" }}>
+          {aujourdhui.format("D MMMM YYYY")}
+        </span>
+      )}
+
+      <div style={{ display: "flex", flex: 1, gap: "0.2rem", justifyContent: "center", overflowX: "auto" }}>
+        {SECTIONS.map(([id, label]) => cahier(id, label))}
+      </div>
+
+      {/* Un seul bouton, et ce qu'il coûte écrit à côté. */}
+      <button
+        type="button"
+        onClick={() => onSelect("next")}
+        style={{
+          background: "var(--oh-accent)",
+          border: 0,
+          color: "var(--oh-on-accent)",
+          cursor: "pointer",
+          fontFamily: "var(--oh-font-label)",
+          fontSize: "var(--oh-t-xs)",
+          fontWeight: "var(--oh-label-weight)",
+          letterSpacing: "var(--oh-label-track)",
+          padding: "0.5rem 1rem",
+          textTransform: "var(--oh-label-case)",
+          whiteSpace: "nowrap",
+        }}
+      >
+        Tour suivant
+      </button>
+      {dateArrivee && (
+        <span
+          style={{
+            background: "var(--oh-line-strong)",
+            color: "var(--oh-on-accent)",
+            fontSize: "var(--oh-t-xs)",
+            padding: "0.5rem 0.8rem",
+            whiteSpace: "nowrap",
+          }}
+        >
+          → {dateArrivee.format("D MMMM YYYY")} · {jours} j
+        </span>
+      )}
     </div>
   );
 };

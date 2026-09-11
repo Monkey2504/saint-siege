@@ -7,6 +7,7 @@ import { JSON_URLS, readJson, writeJson } from "../../runtime/assets.js";
 import { chatLanguageDiffersFromUi, isRtlLanguage, resolveChatLanguage } from "../../runtime/i18n.js";
 import StatsPane from "./stats.jsx";
 import { useSurface } from "../../runtime/useSurface.js";
+import { CONTENU_TOP } from "./chrome.js";
 
 Chart.register(...registerables);
 
@@ -372,7 +373,7 @@ const AdvisorPanel = ({ isAdvisorOpen, onClose, width, onResize, fullPage = fals
             // right. Same component, same content, two placements.
             ...(fullPage
                 ? {
-                    bottom: "2.6rem", left: 0, right: 0, top: "3.9rem",
+                    bottom: 0, left: 0, right: 0, top: CONTENU_TOP,
                     width: "auto", height: "auto",
                     transform: isAdvisorOpen ? "translateY(0)" : "translateY(100vh)",
                     borderLeft: 0, boxShadow: "none",
@@ -511,7 +512,7 @@ const AdvisorPanel = ({ isAdvisorOpen, onClose, width, onResize, fullPage = fals
         <div style={{ padding: fullPage ? "1rem 1.5rem 1.4rem" : "1rem", borderTop: "1px solid var(--oh-line)", display: "flex", alignItems: "center", gap: "0.5rem", margin: fullPage ? "0 auto" : undefined, maxWidth: fullPage ? "62rem" : undefined, width: "100%" }}>
         <textarea
         ref={inputRef}
-        placeholder="Ask your advisor…  (Shift+Enter for a new line)"
+        placeholder="Posez une question à votre conseiller…  (Maj+Entrée pour une nouvelle ligne)"
         rows={1} value={input}
         onChange={e => {
             setInput(e.target.value);

@@ -46,7 +46,7 @@ export const inaugurate = (world, { name, declaration }) => {
     { id: INAUGURATION_INTENT_ID, ownerType: "polity", owner: HOLY_SEE, target: "", kind: "political", summary: programme, stage: 5, secret: false, stance: "supportive", scope: [], status: "active" },
   ];
 
-  const line = `${papalName} was elected on this programme: ${programme}`;
+  const line = `${papalName} a été élu sur ce programme : ${programme}`;
   const opening = str(w.startingTimelineText);
   w.startingTimelineText = opening.includes(line) ? opening : `${opening} ${line}`.trim();
 
