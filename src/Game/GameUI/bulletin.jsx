@@ -676,22 +676,32 @@ const Drives = ({ drives, sinceDate, player }) => {
 // The non-narrative floor under the paper: one dated line per stock the engine
 // actually moved. Stories never write here, so a page that stays empty while
 // the editions announce fortunes is itself the answer.
+// Les lignes du registre qui regardent ce joueur.
+//
+// Field report: rows were kept only when r.polity was the player, so a
+// federation that earned on its capital, was paid its running costs and
+// distributed to its members all turn had every one of those rows thrown
+// away — and the panel then printed "Nothing has moved" over the busiest
+// turn in the game. A body's purse is the player's money; it is only held
+// one level down, so its rows belong on the same paper, named.
+//
+// Exportée parce que le bandeau de l'édition les compte : deux sélections
+// séparées finiraient par annoncer un nombre que la table ne montre pas.
+export const lignesDuRegistre = (record, treasuries, player) => {
+    const bodies = new Map(normalizeTreasuries(treasuries).map((t) => [t.body.toLowerCase(), t.body]));
+    return normalizeRecord(record)
+        .filter((r) => !player || !r.polity || r.polity === player || bodies.has(r.polity.toLowerCase()))
+        .slice(-12).reverse();
+};
+
 const Record = ({ record, treasuries, player, usdPerSY }) => {
-    // Field report: rows were kept only when r.polity was the player, so a
-    // federation that earned on its capital, was paid its running costs and
-    // distributed to its members all turn had every one of those rows thrown
-    // away — and the panel then printed "Nothing has moved" over the busiest
-    // turn in the game. A body's purse is the player's money; it is only held
-    // one level down, so its rows belong on the same paper, named.
     const bodies = useMemo(
         () => new Map(normalizeTreasuries(treasuries).map((t) => [t.body.toLowerCase(), t.body])),
         [treasuries],
     );
     const rows = useMemo(
-        () => normalizeRecord(record)
-            .filter((r) => !player || !r.polity || r.polity === player || bodies.has(r.polity.toLowerCase()))
-            .slice(-12).reverse(),
-        [record, player, bodies],
+        () => lignesDuRegistre(record, treasuries, player),
+        [record, treasuries, player],
     );
     const money = (sy) => moneyOf(sy, usdPerSY);
     // Field report: every row went through money() whatever it measured, so
@@ -907,6 +917,15 @@ const Bulletin = ({ onOpenAdvisor, pressFocus = 0 }) => {
         ? aujourdhui.diff(depuis, "day") + 1
         : 0;
     const anDuPontificat = jourDuPontificat > 0 ? Math.floor((jourDuPontificat - 1) / 365) + 1 : 1;
+    // Les ordres que le moteur a jugés portent un verdict ; les autres attendent.
+    const ordresJuges = useMemo(
+        () => (Array.isArray(actions) ? actions.filter((a) => a && a.verdict).length : 0),
+        [actions],
+    );
+    const lignesRegistre = useMemo(
+        () => lignesDuRegistre(world?.record, world?.treasuries, player).length,
+        [world?.record, world?.treasuries, player],
+    );
     const baptises = useMemo(() => {
         const c = normalizeChurch(world?.church);
         const total = c ? totalFaithful(c.faithful) : 0;
@@ -1093,8 +1112,15 @@ const Bulletin = ({ onOpenAdvisor, pressFocus = 0 }) => {
         <span className="oh-label" style={{ color: "var(--oh-text-strong)" }}>
         {edition.length ? "Édition du tour" : "Première édition"}
         </span>
+        {/* Ce que cette feuille contient, dit avant qu'on la lise — la maquette
+            met ce compte en regard du titre de l'édition. La date est déjà au
+            bandeau : la répéter ici ne disait rien de plus. */}
         <span style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)" }}>
-        {fmtDate(game?.gameDate)}
+        {[
+            `${edition.length} ${edition.length === 1 ? "événement" : "événements"}`,
+            `${ordresJuges} ${ordresJuges === 1 ? "ordre jugé" : "ordres jugés"}`,
+            `${lignesRegistre} ${lignesRegistre === 1 ? "ligne au registre" : "lignes au registre"}`,
+        ].join(" · ")}
         </span>
         </div>
 
