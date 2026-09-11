@@ -93,3 +93,12 @@ test("a scenario's own tags outrank the drawn manner", () => {
   assert.equal(street.formality, "low");
   assert.equal(voiceFor("Belgique", { tags: [], player: "France" }).formality, "normal");
 });
+
+// « Ces devenu n'importe quoi les reponse. » Antigua-et-Barbuda chiffrait un
+// bonjour à « deux points de base sur nos fonds de réserve ». Les chiffres
+// bornent ce qu'une lettre peut affirmer ; ils ne sont pas un quota par lettre.
+test("les règles de voix interdisent de chiffrer une politesse", () => {
+  assert.match(VOICE_RULES, /not a quota of figures/, "les chiffres bornent, ils n'obligent pas");
+  assert.match(VOICE_RULES, /Never price courtesy/, "un bonjour ne se chiffre pas");
+  assert.match(VOICE_RULES, /no proposal, do not invent one/, "on n'invente pas la proposition à laquelle réagir");
+});

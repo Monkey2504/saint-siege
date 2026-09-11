@@ -109,26 +109,60 @@ export const hasProviderKey = () => {
  */
 export const ChampDeCle = ({ onDone = () => {} }) => {
     const [cle, setCle] = useState("");
-    const [enregistree, setEnregistree] = useState(false);
+    // "", "ok" ou "echec" : ce que l'écriture a RÉELLEMENT produit.
+    const [etat, setEtat] = useState("");
 
     const enregistrer = () => {
         const propre = cle.trim();
         if (!propre) return;
+        // « Vérifie que la clé que je mets est bien entrée comme nouvelle clé. »
+        // Elle ne l'était pas toujours, et rien ne le disait. L'ancienne version
+        // annonçait « Clé enregistrée » sur le seul fait que setItem n'avait pas
+        // levé, et quand il levait — fenêtre privée, données de site bloquées,
+        // stockage plein — le catch avalait tout : ni succès, ni échec, un champ
+        // qui se vide et un bandeau qui continue de dire que le modèle est
+        // injoignable. Pire, une exception sur la première ligne sautait la
+        // seconde, donc la clé n'était jamais écrite du tout.
+        //
+        // On écrit, puis on relit par le même chemin que callGemini (il lit le
+        // stockage à chaque requête, sans cache : une clé relue est une clé qui
+        // servira au prochain envoi). Ce qu'on affiche est ce qu'on a relu.
         try {
             localStorage.setItem("api_provider", "gemini");
             setProviderField("gemini", "apiKey", propre);
-            setEnregistree(true);
-            setCle("");
         } catch {
-            // Pas de stockage : le même cas que celui que hasProviderKey admet.
+            // Pas de stockage : dit plus bas, jamais tu.
         }
-        onDone();
+        const relue = (() => {
+            try { return getProviderSettings("gemini").apiKey.trim(); } catch { return ""; }
+        })();
+        if (relue === propre) {
+            setEtat("ok");
+            setCle("");
+            onDone();
+            return;
+        }
+        setEtat("echec");
     };
 
-    if (enregistree) {
+    if (etat === "ok") {
         return (
         <div style={{ color: "var(--oh-grant)", fontSize: "var(--oh-t-xs)", marginTop: "0.6rem" }}>
-        Clé enregistrée sur cette machine. La prochaine édition sera écrite par le modèle.
+        Clé relue sur cette machine : c&apos;est bien elle que le prochain envoi utilisera.
+        Si le compteur du quota est encore plein, elle n&apos;y changera rien tant qu&apos;il
+        ne se sera pas rouvert — une clé de plus dans le même projet Google partage le même
+        compteur.
+        </div>
+        );
+    }
+
+    if (etat === "echec") {
+        return (
+        <div style={{ color: "var(--oh-alert)", fontSize: "var(--oh-t-xs)", marginTop: "0.6rem" }}>
+        Cette clé n&apos;a pas pu être gardée sur cette machine — le navigateur refuse le
+        stockage du site (fenêtre privée, données bloquées, ou espace plein). Le jeu
+        continuera d&apos;écrire ses éditions hors ligne. Ouvrez le jeu dans une fenêtre
+        ordinaire, ou autorisez les données de site, puis recollez-la.
         </div>
         );
     }
@@ -192,7 +226,9 @@ const FirstRunKey = ({ onDone }) => {
             localStorage.setItem("api_provider", "gemini");
             setProviderField("gemini", "apiKey", trimmed);
         } catch {
-            // Nothing to do: the same absent storage the guard above allows for.
+            // Pas de stockage. On ne retient personne à la porte pour ça — mais
+            // on ne le tait pas non plus : le bandeau de panne de la une le
+            // redira, avec le champ pour recoller la clé.
         }
         onDone();
     };

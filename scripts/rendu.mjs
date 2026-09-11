@@ -64,25 +64,23 @@ const cliquer = async (page, nom, repos = 2500) => {
   await page.waitForTimeout(400);
 };
 
-/**
- * Le portail web garde « Enter Open Historia » désactivé tant que la connexion
- * n'est pas résolue — une quinzaine de secondes quand le registre communautaire
- * est injoignable et qu'il faut attendre le repli sur l'origine. On attend donc
- * l'activation du bouton, jamais un délai fixe. La modale de démo suit.
- */
+// Le portail s'appelait « ⚔ Enter Open Historia » et gardait son bouton inerte
+// treize secondes et demie, le temps de choisir un nœud de carte : le parcours
+// s'y était cassé les dents une première fois, en cliquant sur un bouton mort.
+// Il s'appelle « Entrer », il est actif dès qu'il paraît, et la fenêtre de démo
+// qui suivait n'existe plus (runtime/web/homePage.js).
 const franchirLePortail = async (page, { obligatoire = true } = {}) => {
   try {
     await page.waitForFunction(() => {
-      const b = [...document.querySelectorAll('button')].find(x => /Enter Open Historia/i.test(x.textContent || ''));
+      const b = document.querySelector('#oh-home-root .oh-porte-entrer');
       return b && !b.disabled;
     }, { timeout: obligatoire ? 90000 : 8000 });
   } catch (e) {
     if (obligatoire) throw e;
     return; // la porte a déjà été franchie : il n'y a rien à franchir.
   }
-  await cliquer(page, /Enter Open Historia/i, 1500);
-  const demo = bouton(page, /Play the demo anyway/i);
-  if (await demo.count() && await demo.isVisible()) await cliquer(page, /Play the demo anyway/i, 2000);
+  await page.click('#oh-home-root .oh-porte-entrer');
+  await page.waitForTimeout(1500);
 };
 
 /**
