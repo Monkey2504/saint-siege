@@ -3,6 +3,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { readActionsState, readGameData, readWorldState, writeActionsState } from "../../runtime/gameState.js";
 import { useSurface } from "../../runtime/useSurface.js";
 import { CONTENU_TOP } from "./chrome.js";
+import { SectionHead } from "./journal.jsx";
 import {
     AXES, HOSTILE_AT, LOYAL_AT, RADICAL_AT, ZEALOUS_AT,
     coalition, groupsOn, normalizeAssembly, putToTheVote, speechOrderText, standing, temper,
@@ -84,6 +85,42 @@ const Hemicycle = ({ electors, axis, colours, selected, onSelect, byMood }) => {
             );
         })}
         </svg>
+    );
+};
+
+/**
+ * Le collège vu depuis l'édition : l'hémicycle et le compte de la salle, tels
+ * que la maquette les met en bas de colonne droite.
+ *
+ * C'est le MÊME hémicycle que le cahier, coloré par humeur. Un second dessin
+ * finirait par montrer une salle que le cahier dément, et c'est le genre de
+ * contradiction que ce journal promet de ne pas imprimer. Les marques n'y sont
+ * pas cliquables : d'ici on lit la salle, on ne l'interroge pas.
+ */
+export const ApercuDuCollege = ({ assembly: brut }) => {
+    const assembly = useMemo(() => normalizeAssembly(brut), [brut]);
+    const room = useMemo(() => (assembly ? standing(assembly) : null), [assembly]);
+    if (!assembly || !room) return null;
+    return (
+        <section>
+        <SectionHead aside={`${room.seats} électeurs`}>Le collège</SectionHead>
+        <Hemicycle
+            electors={assembly.electors}
+            axis="doctrine"
+            colours={{}}
+            selected=""
+            onSelect={() => {}}
+            byMood
+        />
+        <p style={{ fontSize: "var(--oh-t-xs)", lineHeight: 1.5, margin: "0.4rem 0 0" }}>
+        <b style={{ color: "var(--oh-grant)" }}>{room.with}</b> avec vous ·{" "}
+        <b style={{ color: "var(--oh-text-dim)" }}>{room.undecided}</b> indécis ·{" "}
+        <b style={{ color: "var(--oh-caution)" }}>{room.against}</b> contre
+        </p>
+        <p style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)", lineHeight: 1.5, margin: "0.2rem 0 0" }}>
+        Il en faut {room.majority} pour emporter une décision.
+        </p>
+        </section>
     );
 };
 

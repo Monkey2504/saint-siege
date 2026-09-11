@@ -30,6 +30,8 @@ import { nextEdition } from "../../runtime/nextEdition.js";
 import { useSurface } from "../../runtime/useSurface.js";
 import { simulateAutoJump, simulateTimelineJump } from "../AI/gameplay.js";
 import { CONTENU_TOP } from "./chrome.js";
+import { SectionHead } from "./journal.jsx";
+import { ApercuDuCollege } from "./college.jsx";
 
 // Written as a page, not as a panel dressed up as one. Nothing here inherits the
 // floating-drawer chrome the rest of the interface was built from: no border, no
@@ -78,21 +80,6 @@ const moneyOf = (sy, usdPerSY) => {
     return fmtMoney(n * usdPerSY) ?? "$0";
 };
 
-const SectionHead = ({ children, aside }) => (
-    <div
-    style={{
-        alignItems: "baseline",
-        borderBottom: "4px solid var(--oh-text-strong)",
-        display: "flex",
-        gap: "1rem",
-        justifyContent: "space-between",
-        paddingBottom: "0.4rem",
-    }}
-    >
-    <span className="oh-label" style={{ color: "var(--oh-text-strong)" }}>{children}</span>
-    {aside && <span style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)" }}>{aside}</span>}
-    </div>
-);
 
 const Dateline = ({ children, tone = "alert" }) => (
     <span
@@ -785,12 +772,12 @@ const Purses = ({ treasuries, usdPerSY }) => {
                 on nothing, and reads as a figure rather than as the absence of
                 one. A body with no capital simply has no capital. */}
             {t.capital > 0
-                ? <>capital {money(t.capital)} at {Math.round(rateOf(t) * 1000) / 10}%{rateOf(t) > 0 ? `, worth ${money(t.capital * rateOf(t))} a year` : ""}</>
+                ? <>capital {money(t.capital)} à {Math.round(rateOf(t) * 1000) / 10}%{rateOf(t) > 0 ? `, soit ${money(t.capital * rateOf(t))} par an` : ""}</>
                 : <>sans capital</>} · {money(t.treasury)} in hand · keeps {Math.round(t.retain * 100)}%
             </div>
             {t.earnedMargin > 0 && t.capital > 0 && (
                 <div style={{ color: "var(--oh-text)", fontSize: "var(--oh-t-xs)", lineHeight: 1.5, marginTop: "0.15rem" }}>
-                Its crowds brought a further {money(t.capital * t.earnedMargin)} a year, already banked on the day of each gathering.
+                Ses foules ont rapporté {money(t.capital * t.earnedMargin)} de plus par an, encaissés le jour même de chaque rassemblement.
                 </div>
             )}
             {/* Where the rest goes. Saying only what a body keeps left the
@@ -805,7 +792,7 @@ const Purses = ({ treasuries, usdPerSY }) => {
                 chapter, and it was nowhere on this page. */}
             {t.operatingBudget > 0 && (
                 <div style={{ color: "var(--oh-text-strong)", fontSize: "var(--oh-t-xs)", lineHeight: 1.5, marginTop: "0.15rem" }}>
-                Operating budget {money(t.operatingBudget)} a year{t.fundedUntil ? `, paid through ${fmtDate(t.fundedUntil, "D MMM YYYY")}` : ", not yet paid"}. Its national gatherings are funded from it.
+                Budget de fonctionnement {money(t.operatingBudget)} par an{t.fundedUntil ? `, financé jusqu'au ${fmtDate(t.fundedUntil, "D MMM YYYY")}` : ", pas encore financé"}. Ses rassemblements nationaux en sont payés.
                 </div>
             )}
             {t.capital === 0 && t.treasury > 0 && (
@@ -1202,6 +1189,10 @@ const Bulletin = ({ onOpenAdvisor, pressFocus = 0, nav = null }) => {
 
         <Record record={world?.record} treasuries={world?.treasuries} player={player} usdPerSY={usdPerSY} />
 
+        {/* La salle qui décide, en bas de colonne droite : la maquette la met
+            là, sous le registre. C'est le même hémicycle que le cahier. */}
+        <ApercuDuCollege assembly={world?.assembly} />
+
         {indicators && (
             <section>
             <SectionHead aside="cette année">Comptes — {player}</SectionHead>
@@ -1236,11 +1227,11 @@ const Bulletin = ({ onOpenAdvisor, pressFocus = 0, nav = null }) => {
                 lineHeight: 1,
             }}
             >
-            {indicators.yearsOfPatrimonyLeft == null ? "—" : `${indicators.yearsOfPatrimonyLeft} yrs`}
+            {indicators.yearsOfPatrimonyLeft == null ? "—" : `${indicators.yearsOfPatrimonyLeft} ans`}
             </div>
             <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)", marginTop: "0.35rem" }}>
             de patrimoine restant
-            <Movement row={rows.yearsOfPatrimonyLeft} format={(v) => `${Math.round(v)} yrs`} />
+            <Movement row={rows.yearsOfPatrimonyLeft} format={(v) => `${Math.round(v)} ans`} />
             </div>
             </div>
             </div>
@@ -1260,14 +1251,14 @@ const Bulletin = ({ onOpenAdvisor, pressFocus = 0, nav = null }) => {
             <tr><td>Patrimoine placé</td><td>{money(indicators.endowment)}<Movement row={rows.endowment} format={money} /></td></tr>
             {/* The rate AND what it actually throws off: a percentage of a stock
                 the reader has to go and find is not an income. */}
-            <tr><td>Rendement du patrimoine</td><td>{(indicators.endowmentYield * 100).toFixed(2)} % · {money(indicators.endowmentIncome)} a year<Movement row={rows.endowmentYield} format={(v) => `${(v * 100).toFixed(2)} pt`} /></td></tr>
+            <tr><td>Rendement du patrimoine</td><td>{(indicators.endowmentYield * 100).toFixed(2)} % · {money(indicators.endowmentIncome)} par an<Movement row={rows.endowmentYield} format={(v) => `${(v * 100).toFixed(2)} pt`} /></td></tr>
             <tr><td>Dons reçus</td><td>{money(indicators.transfers)}<Movement row={rows.transfers} format={money} /></td></tr>
             {/* The federation's remittance, on its own line. It used to land in
                 the treasury and nowhere else, so the balance never felt it. */}
             {rows.bodyTransfers?.value > 0 && (
-                <tr><td>Versé par ses propres organismes</td><td>{money(rows.bodyTransfers.value)} a year<Movement row={rows.bodyTransfers} format={money} /></td></tr>
+                <tr><td>Versé par ses propres organismes</td><td>{money(rows.bodyTransfers.value)} par an<Movement row={rows.bodyTransfers} format={money} /></td></tr>
             )}
-            <tr><td>Recettes fiscales</td><td>{indicators.taxRevenue > 0 ? money(indicators.taxRevenue) : "none"}<Movement row={rows.taxRevenue} format={money} /></td></tr>
+            <tr><td>Recettes fiscales</td><td>{indicators.taxRevenue > 0 ? money(indicators.taxRevenue) : "aucune"}<Movement row={rows.taxRevenue} format={money} /></td></tr>
             <tr><td>Promesses non financées</td><td>{money(indicators.unfundedLiabilities)}<Movement row={rows.unfundedLiabilities} format={money} /></td></tr>
             {rows.legitimacy?.value != null && (
                 <tr><td>Légitimité</td><td>{Math.round(rows.legitimacy.value)}/100<Movement row={rows.legitimacy} format={(v) => `${Math.round(v)} pt`} /></td></tr>

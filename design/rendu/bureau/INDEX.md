@@ -1,6 +1,6 @@
 # Rendu réel — bureau (1440×900)
 
-Capturé le 2026-09-11 07:36 · commit c221dc0 · source http://localhost:4173
+Capturé le 2026-09-11 07:46 · commit d987c9e · source http://localhost:4173
 
 Ces images sont le rendu réel du jeu dans un navigateur, pas une maquette.
 Une session sans navigateur (Claude Design) doit les lire avant de juger le graphisme.
