@@ -56,11 +56,28 @@ export const ACTIONS_REFERENCE = "[Actions You Can Take]\nThis is the full menu 
 // Render a task's template with its variables and append every call-time rule
 // block that applies. `difficultyText` is the rendered difficulty directive
 // (runtime/difficulty.js) — empty when game data could not be read.
+// Les quatre paragraphes de la référence qui décrivent une guerre sur une carte.
+// Ils y pèsent 628 jetons sur 2 209 ; retirés, ils ne laissent aucun trou — la
+// liste est une suite de puces, chacune close sur elle-même.
+const PUCES_DE_CARTE = Object.freeze(["regionTransfers", "unitOps", "markerOps"]);
+
+/** La référence des actions, privée des leviers qu'un monde sans carte n'a pas. */
+export const referenceSansLaCarte = () => ACTIONS_REFERENCE
+  .split("\n\n")
+  .filter((bloc) => {
+    const puce = /^•\s*([A-Za-z.]+)/.exec(bloc);
+    return !puce || !PUCES_DE_CARTE.includes(puce[1]);
+  })
+  .join("\n\n");
+
 export const composeTaskSystemPrompt = (taskKey, {
   template,
   helpers = {},
   variables = {},
   difficultyText = "",
+  // Si ce monde se joue sur une carte. Par défaut OUI : un appelant qui ne
+  // renseigne rien garde l'invite entière, jamais une invite amputée.
+  carteEnJeu = true,
 } = {}) => {
   // Le fonds : ce qui ne change pas d'un tour à l'autre d'une même partie — les
   // règles, la table des actions, la consigne de langue. Il était jusqu'ici
@@ -341,8 +358,13 @@ This supersedes any earlier instruction asking for a scene or for atmosphere. Wr
 
   // The actions menu goes last so the system prompt for every jump ends with the full
   // list of levers the model can pull (reaches existing games too — see ACTIONS_REFERENCE).
+  //
+  // Les quatre leviers de carte en occupent 628 jetons sur 2 209 : les décrire à
+  // un modèle dont le schéma ne les porte plus, c'est lui promettre ce qu'il ne
+  // peut pas tenir — et payer deux fois pour cette promesse. Ils sortent avec
+  // eux, sur le même signal (voir gameplaySchemas.laCarteEstEnJeu).
   if (["jumpForward", "autoJumpForward"].includes(taskKey)) {
-    fonds.push(`${ACTIONS_REFERENCE}`);
+    fonds.push(carteEnJeu ? ACTIONS_REFERENCE : referenceSansLaCarte());
   }
 
   // Mechanical escalation, placed last (closest to output): if what the

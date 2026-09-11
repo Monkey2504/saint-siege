@@ -1,7 +1,7 @@
 /*! Open Historia — portions (briefing dossiers + timeout/fallback hardening) © 2026 Nicholas Krol, MIT (see src/Editor/LICENSE). */
 import { callAI } from "./main.jsx";
 import { normalizePromptPack } from "./gameplayPrompts.js";
-import { getGameplayTool, validateGameplayPayload } from "./gameplaySchemas.js";
+import { LEVIERS_DE_CARTE, getGameplayTool, laCarteEstEnJeu, outilSansLeviers, validateGameplayPayload } from "./gameplaySchemas.js";
 import { toCountryName } from "../../runtime/ownerNames.js";
 import { describesOrganizationalPower } from "../../runtime/organizations.js";
 import { applyFaithfulOps, stepFaithful } from "../../runtime/churchFaithful.js";
@@ -476,7 +476,18 @@ const runJsonTask = async (taskKey, {
   } catch {
     // Without game data the task still runs at its default temperament.
   }
+  // Lu une seule fois : il décide des DEUX coupes, le schéma et la prose qui le
+  // décrit. Les laisser diverger promettrait au modèle des leviers que son
+  // schéma ne porte plus — et ferait payer deux fois la promesse.
+  let carteEnJeu = true;
+  try {
+    carteEnJeu = laCarteEstEnJeu(await readWorldState());
+  } catch {
+    // Un monde illisible garde l'invite entière.
+  }
+
   const systemPrompt = composeTaskSystemPrompt(taskKey, {
+    carteEnJeu,
     difficultyText,
     helpers: prompts.helpers,
     template: prompts.tasks[taskKey],
@@ -495,7 +506,15 @@ const runJsonTask = async (taskKey, {
   const deadline = Date.now() + effectiveTimeoutMs;
   const timeoutError = new Error(`AI task "${taskKey}" timed out.`);
   const timeoutId = setTimeout(() => controller.abort(timeoutError), effectiveTimeoutMs);
-  const tool = getGameplayTool(taskKey);
+  // Le schéma du tour pèse 11 462 jetons, envoyés avant le moindre mot de
+  // contenu. Quatre de ses leviers décrivent une guerre sur une carte — des
+  // bataillons, des bases au sol, des régions qui changent de maître, des
+  // guerres livrées — et ce jeu se lit dans un journal : le pape n'a pas
+  // d'armée, la carte ne paraît que dans l'éditeur. Ils sortent du schéma quand
+  // le monde n'en tient pas, et 2 266 jetons avec eux. Un monde qui tient des
+  // unités reçoit le schéma entier, comme avant.
+  const brut = getGameplayTool(taskKey);
+  const tool = carteEnJeu ? brut : outilSansLeviers(brut, LEVIERS_DE_CARTE);
   const history = [{ role: "user", parts: [{ text: userMessage }] }];
   let failureReason = "The model did not return valid structured output.";
 
