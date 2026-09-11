@@ -132,6 +132,11 @@ const ON_ACCENT_ALLOWED = [
   { file: "GameUI/main.jsx", pattern: /./ },
   { file: "styles.css", pattern: /./ },
   { file: "GameUI/verdict.jsx", pattern: /./ },
+  // Le bandeau de cotations du cahier des comptes est un aplat noir, comme dans
+  // la maquette : du blanc y est la seule encre lisible, et le système n'a pas
+  // d'autre token pour « encre sur fond sombre ». Même cas que le bouton de
+  // presse du bulletin, déjà admis plus haut.
+  { file: "GameUI/caisses.jsx", pattern: /color: "var\(--oh-on-accent\)"/ },
   { file: "theme.css", pattern: /./ },
 ];
 

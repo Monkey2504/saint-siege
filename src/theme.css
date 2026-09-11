@@ -545,3 +545,22 @@ button, input, textarea, select {
      téléphone. À l'étroit, le rail commence au bord et défile normalement. */
   .oh-barre-cahiers { justify-content: flex-start !important; }
 }
+
+/* ─── Le cahier des comptes ─────────────────────────────────────────────────
+   L'analyse à gauche, les tableaux à droite, séparés par un filet — la même
+   règle que la une : c'est le filet qui fait lire une feuille plutôt que deux
+   panneaux. Sous 62rem l'analyse passe au-dessus des tableaux. */
+.oh-comptes-grid {
+  display: grid;
+  gap: 1.6rem;
+  align-items: start;
+  margin-top: 1.4rem;
+}
+@media (min-width: 62rem) {
+  .oh-comptes-grid { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 0; }
+  .oh-comptes-grid > * + * {
+    border-left: 1px solid var(--oh-line);
+    margin-left: 1.6rem;
+    padding-left: 1.6rem;
+  }
+}

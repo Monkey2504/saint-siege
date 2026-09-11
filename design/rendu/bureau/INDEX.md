@@ -1,6 +1,6 @@
 # Rendu réel — bureau (1440×900)
 
-Capturé le 2026-09-11 07:58 · commit f45a76c · source http://localhost:4173
+Capturé le 2026-09-11 09:08 · commit d155605 · source http://localhost:4173
 
 Ces images sont le rendu réel du jeu dans un navigateur, pas une maquette.
 Une session sans navigateur (Claude Design) doit les lire avant de juger le graphisme.
@@ -17,10 +17,10 @@ Une session sans navigateur (Claude Design) doit les lire avant de juger le grap
 - `08-ordres.png` — capturé, 51 Ko
 - `09-registre.png` — capturé, 33 Ko
 - `10-college.png` — capturé, 371 Ko
-- `11-caisses.png` — capturé, 174 Ko
-- `12-correspondance.png` — capturé, 78 Ko
+- `11-caisses.png` — capturé, 66 Ko
+- `12-correspondance.png` — capturé, 77 Ko
 
-Total du lot : 2030 Ko.
+Total du lot : 1921 Ko.
 
 ## Polices
 
@@ -35,6 +35,6 @@ Toutes les polices annoncées par les tokens sont réellement dessinées ici.
 ## Anomalies relevées pendant la capture
 
 - réseau : www.googletagmanager.com
-- réseau : open-historia-registry.nichojkrol.workers.dev
 - réseau : fonts.googleapis.com
+- réseau : open-historia-registry.nichojkrol.workers.dev
 

@@ -15,6 +15,7 @@ import { Search } from "./search";
 import { ForcesPanel } from "./forces";
 import { Bulletin } from "./bulletin.jsx";
 import { Ordres, Registre } from "./cahiers.jsx";
+import { Caisses } from "./caisses.jsx";
 import { BarreDesCahiers } from "./navigation.jsx";
 import { nextEdition } from "../../runtime/nextEdition.js";
 import { readActionsState, readGameData, readWorldState } from "../../runtime/gameState.js";
@@ -305,6 +306,7 @@ const Main = ({
   const onBulletin = section === "bulletin";
   const onMessages = section === "messages";
   const onOrdres = section === "orders";
+  const onCaisses = section === "stats";
   const onRegistre = section === "register";
   // Which page of the paper is showing. The adviser and the ledger are the same
   // panel under two tabs; the map is the section with nothing open on top of it.
@@ -317,6 +319,8 @@ const Main = ({
     ? "orders"
     : onRegistre
     ? "register"
+    : onCaisses
+    ? "stats"
     : onCollege
     ? "college"
     : isAdvisorOpen
@@ -324,7 +328,7 @@ const Main = ({
       : HOME_SECTION;
   // A section of the paper takes the page; the old right-hand drawer is what the
   // adviser is when the map is showing under it.
-  const advisorIsSection = isAdvisorOpen && !onBulletin && !onCollege && !onOrdres && !onRegistre;
+  const advisorIsSection = isAdvisorOpen && !onBulletin && !onCollege && !onOrdres && !onRegistre && !onCaisses;
   const rightShift = isAdvisorOpen ?`calc(${advisorWidth}px + 0.5rem)` : "0.5rem";
   const toggleBottomPanel = useCallback((panelName) => {
     setActiveBottomPanel((currentPanel) => (
@@ -350,7 +354,9 @@ const Main = ({
     }
     setSection(next);
     setActiveBottomPanel(null);
-    const advisorWanted = next === "advisor" || next === "stats";
+    // « Caisses » est un cahier, plus un onglet du panneau : seul le conseiller
+    // ouvre encore le tiroir.
+    const advisorWanted = next === "advisor";
     setIsAdvisorOpen(advisorWanted);
     if (advisorWanted) {
       setShouldLoadAdvisor(true);
@@ -374,6 +380,7 @@ const Main = ({
       )}
       {onOrdres && <Ordres onOpenAdvisor={openAdvisor} nav={nav} />}
       {onRegistre && <Registre nav={nav} />}
+      {onCaisses && <Caisses nav={nav} />}
       {section === "college" && <College nav={nav} />}
       <LibraryTopBar />
       <DateWidget
@@ -386,7 +393,7 @@ const Main = ({
       />
       {/* While the bulletin holds the page, the round floating buttons would
           print on top of it. They belong to the map view. */}
-      {!onBulletin && !onMessages && !onOrdres && !onRegistre && (
+      {!onBulletin && !onMessages && !onOrdres && !onRegistre && !onCaisses && (
         <>
           <Toolbar
             onOpenAdvisor={openAdvisor}
