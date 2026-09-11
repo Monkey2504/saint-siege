@@ -148,15 +148,15 @@ const WebGLWarningPopup = () => (
         ⚠️
       </div>
       <h2 style={{ margin: "0 0 0.75rem", fontSize: "var(--oh-t-lg)", color: "var(--oh-alert)" }}>
-        WebGL Not Available
+        WebGL indisponible
       </h2>
       <p style={{ margin: "0 0 0.5rem", lineHeight: 1.6, color: "var(--oh-text)", fontSize: "var(--oh-t-sm)" }}>
-        This application requires <strong style={{ color: "var(--oh-text)" }}>WebGL</strong> to render
-        the map, but it doesn't appear to be supported or enabled in your browser.
+        Ce jeu a besoin de <strong style={{ color: "var(--oh-text)" }}>WebGL</strong> pour dessiner la
+        carte, et votre navigateur ne semble ni le gérer ni l'avoir activé.
       </p>
       <p style={{ margin: "0 0 1.5rem", lineHeight: 1.6, color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)" }}>
-        Try enabling hardware acceleration in your browser settings, updating your graphics
-        drivers, or switching to a WebGL-supported browser such as Chrome or Firefox.
+        Essayez d'activer l'accélération matérielle dans les réglages du navigateur, de mettre à
+        jour vos pilotes graphiques, ou de passer à un navigateur qui gère WebGL (Chrome, Firefox).
       </p>
     </div>
   </div>

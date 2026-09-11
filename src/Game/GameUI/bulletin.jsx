@@ -712,7 +712,7 @@ const Press = ({ game, world, actions, focus, onPrinted }) => {
         )}
         {stopped && (
             <p style={{ color: "var(--oh-caution)", fontSize: "var(--oh-t-xs)", lineHeight: 1.5, margin: "0.6rem 0 0", maxWidth: "44ch" }}>
-            The edition was stopped. Orders the engine had already carried out stand — gatherings convoked, money moved, promises taken on — and this sheet has been re-read to show them. Read the record before ordering the same thing a second time.
+            L'édition a été interrompue. Les ordres que le moteur avait déjà exécutés tiennent — rassemblements convoqués, argent déplacé, promesses engagées — et cette feuille a été relue pour les montrer. Lisez le registre avant d'ordonner deux fois la même chose.
             </p>
         )}
         </section>
@@ -754,7 +754,7 @@ const Drives = ({ drives, sinceDate, player }) => {
             </div>
             {top.shareOfPledged > CONCENTRATION_CEILING && (
                 <div style={{ color: "var(--oh-caution)", fontSize: "var(--oh-t-xs)", lineHeight: 1.45, marginTop: "0.3rem", maxWidth: "42ch" }}>
-                One contributor is carrying it. That is a dependence on a single purse, not a claim on what you own — it ends when others actually pledge.
+                Un seul contributeur la porte. C'est une dépendance à une seule bourse, pas une créance sur ce que vous possédez — elle cesse le jour où d'autres promettent vraiment.
                 </div>
             )}
             </div>
@@ -940,12 +940,12 @@ const Purses = ({ treasuries, usdPerSY }) => {
             )}
             {t.capital === 0 && t.treasury > 0 && (
                 <div style={{ color: "var(--oh-caution)", fontSize: "var(--oh-t-xs)", lineHeight: 1.45, marginTop: "0.2rem" }}>
-                This money is cash, not capital: it earns nothing until it is placed or spent.
+                Cet argent est de la trésorerie, pas du capital : il ne rapporte rien tant qu'il n'est ni placé ni dépensé.
                 </div>
             )}
             {rateOf(t) === 0 && t.capital > 0 && (
                 <div style={{ color: "var(--oh-caution)", fontSize: "var(--oh-t-xs)", marginTop: "0.2rem" }}>
-                This capital is placed nowhere and earns nothing.
+                Ce capital n'est placé nulle part et ne rapporte rien.
                 </div>
             )}
             </div>
@@ -969,7 +969,7 @@ const Gatherings = ({ gatherings, usdPerSY }) => {
             <div key={g.id} style={{ borderBottom: "1px dotted var(--oh-line)", padding: "0.7rem 0" }}>
             <div style={{ alignItems: "baseline", display: "flex", gap: "0.6rem", justifyContent: "space-between" }}>
             <span style={{ color: "var(--oh-text-strong)", fontFamily: "var(--oh-font-display)", fontSize: "var(--oh-t-md)", fontWeight: 700, letterSpacing: "-0.01em", minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{g.name}</span>
-            <span className="oh-label" style={{ color: g.status === "held" ? "var(--oh-grant)" : "var(--oh-text-dim)", flexShrink: 0, fontSize: "var(--oh-t-2xs)" }}>{g.status === "held" ? "held" : "planned"}</span>
+            <span className="oh-label" style={{ color: g.status === "held" ? "var(--oh-grant)" : "var(--oh-text-dim)", flexShrink: 0, fontSize: "var(--oh-t-2xs)" }}>{g.status === "held" ? "tenu" : "prévu"}</span>
             </div>
             <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)", marginTop: "0.1rem" }}>
             {[g.place, fmtDate(g.heldAt || g.date, "D MMM YYYY")].filter(Boolean).join(" · ")}
@@ -978,22 +978,22 @@ const Gatherings = ({ gatherings, usdPerSY }) => {
                 <div style={{ display: "grid", gap: "0.3rem 1rem", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", marginTop: "0.45rem" }}>
                 <div>
                 <div style={{ color: "var(--oh-text-strong)", fontFamily: "var(--oh-font-display)", fontSize: "var(--oh-t-lg)", fontWeight: 800, letterSpacing: "-0.02em", lineHeight: 1 }}>{fmtCount(g.attendance)}</div>
-                <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)" }}>came</div>
+                <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)" }}>venus</div>
                 </div>
                 <div>
                 <div style={{ color: "var(--oh-text-strong)", fontFamily: "var(--oh-font-display)", fontSize: "var(--oh-t-lg)", fontWeight: 800, letterSpacing: "-0.02em", lineHeight: 1 }}>{money(g.revenue)}</div>
-                <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)" }}>taken · {money(g.cost)} cost</div>
+                <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)" }}>recettes · {money(g.cost)} de frais</div>
                 </div>
                 <div>
                 <div style={{ color: g.surplus < 0 ? "var(--oh-alert)" : "var(--oh-grant)", fontFamily: "var(--oh-font-display)", fontSize: "var(--oh-t-lg)", fontWeight: 800, letterSpacing: "-0.02em", lineHeight: 1 }}>
                 {g.surplus < 0 ? "−" : "+"}{money(Math.abs(g.surplus)).replace(/^[−+]/, "")}
                 </div>
-                <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)" }}>{g.surplus < 0 ? "lost" : "left"} to {g.host}</div>
+                <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)" }}>{g.surplus < 0 ? "perdus par" : "restés à"} {g.host}</div>
                 </div>
                 </div>
             ) : (
                 <div style={{ color: "var(--oh-text)", fontSize: "var(--oh-t-xs)", lineHeight: 1.45, marginTop: "0.3rem" }}>
-                budgeted {money(g.cost)}{g.expected > 0 ? `, hoping for ${fmtCount(g.expected)}` : ", and the engine will say how many come"}. It earns nothing until the day arrives.
+                {money(g.cost)} budgétés{g.expected > 0 ? `, en espérant ${fmtCount(g.expected)} personnes` : ", et le moteur dira combien viennent"}. Rien n'est encaissé tant que le jour n'est pas venu.
                 </div>
             )}
             </div>

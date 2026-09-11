@@ -116,6 +116,80 @@ test("no font size is written outside the scale in the player-facing interface",
 // d'un ordre écrit en français, et « Fallback » en marge d'un événement.
 const ENGLISH_UI_TELLS = /(?:>|")\s*(?:Cancel|Close|Save|Delete|Send|Search|Loading|Settings|Back|Next|Confirm|Continue|Order|Outreach|Fallback|Update|Reload|Restart|Dismiss|Retry|Done)\s*(?:<|")/;
 
+// La liste de mots ci-dessus attrape un BOUTON anglais. Elle n'attrape pas une
+// PHRASE anglaise, et il en restait sur la une elle-même — « This money is cash,
+// not capital », « One contributor is carrying it », « The edition was stopped »
+// — au premier endroit où le lecteur regarde, pendant que le joueur redemandait
+// pour la dixième fois que le jeu soit en français.
+//
+// Une phrase est jugée anglaise quand elle porte TROIS mots-outils anglais
+// distincts. Deux suffiraient à condamner « Le rapport de la commission » ou un
+// nom propre ; trois ne se produisent pas par accident en français.
+const MOTS_OUTILS_ANGLAIS = /\b(the|and|your|you|with|from|this|that|which|what|when|where|will|would|should|could|must|have|has|been|were|are|is|not|all|any|each|every|there|they|their|its|for|but|about|into|than|then|only|also|more|most|other|such|some|because|before|after|while|during|between|through|under|over|again|never|always|already|still|yet|just|even|very|much|many|few|first|last|next|back|out|off|down|does|did|can|may|might|shall)\b/gi;
+
+// Ce qui est légitimement anglais : les tables par langue, qui portent l'anglais
+// comme contenu. Elles sont écrites à la main précisément parce que ces écrans
+// paraissent quand le traducteur ne peut pas tourner.
+const ANGLAIS_LEGITIME = [/FirstRunKey\.jsx$/, /welcomeText\.js$/, /outageNotice\.js$/];
+
+// Et ce qui est encore anglais SANS être décidé. Ces cinq écrans ne sont pas le
+// journal : ce sont les outils autour. Les traduire est du travail, et pour
+// l'un d'eux — le hub communautaire, qui n'affiche que des tickets GitHub de
+// l'amont, en anglais — ce serait du travail pour rien. La question est posée à
+// François ; d'ici sa réponse, la règle couvre le JEU et nomme ce qu'elle ne
+// couvre pas, plutôt que d'échouer en bloc et de ne plus rien garder du tout.
+//
+// Une ligne retirée d'ici est une promesse tenue. N'en ajoutez pas.
+const EN_ATTENTE_DE_DECISION = [
+  /GameUI\/settings\.jsx$/,      // les Réglages — là où se colle la clé
+  /GameUI\/cheats\.jsx$/,        // le banc d'essai
+  /GameUI\/communityHub\.jsx$/,  // le hub de l'amont : des tickets GitHub anglais
+  /GameUI\/libraryBar\.jsx$/,    // la bibliothèque
+  /GameUI\/FactionCreator\.jsx$/, // le créateur de puissance
+];
+
+// Une ligne de CODE n'est pas une phrase à l'écran. Ni une trace de console,
+// qui va au journal du navigateur et jamais sous les yeux du joueur.
+const estDuCode = (t) => /^(import|export|const|let|var|function|return|if|for|while|\}|\{|\)|<\/|\/\/|\*|\/\*)/.test(t)
+  || /console\.(log|warn|error|info|debug)\(/.test(t);
+
+test("aucune phrase anglaise n'atteint l'écran du joueur", () => {
+  const offenders = [];
+  for (const file of files) {
+    if (!file.endsWith(".jsx")) continue;
+    if (ANGLAIS_LEGITIME.some((re) => re.test(file))) continue;
+    if (EN_ATTENTE_DE_DECISION.some((re) => re.test(file))) continue;
+    const lines = fs.readFileSync(file, "utf8").split(/\r?\n/);
+    let dansUnCommentaire = false;
+    lines.forEach((line, i) => {
+      const t = line.trim();
+      // Les commentaires de bloc décrivent le pourquoi d'un correctif : ils sont
+      // en anglais dans tout ce dépôt et ne paraissent nulle part. En JSX ils
+      // s'ouvrent par « {/* » autant que par « /* », et courent sur plusieurs
+      // lignes dont aucune ne se reconnaît isolément.
+      if (/(^|\{)\/\*/.test(t) && !/\*\//.test(t)) dansUnCommentaire = true;
+      const finDeBloc = dansUnCommentaire && /\*\//.test(t);
+      const ignorer = dansUnCommentaire || estDuCode(t) || /(^|\{)\/\*/.test(t);
+      if (finDeBloc) dansUnCommentaire = false;
+      if (ignorer || !t) return;
+
+      // Le texte nu entre les balises, plus ce qu'un attribut affiche. Un
+      // commentaire posé EN FIN de ligne de code — « } catch { /* … */ } » — est
+      // retiré d'abord : il explique le code, il ne paraît nulle part.
+      const sansCommentaire = line.replace(/\/\*[\s\S]*?\*\//g, " ").replace(/\/\/.*$/, " ");
+      const textes = [sansCommentaire.replace(/<[^>]*>/g, " ")];
+      for (const m of sansCommentaire.matchAll(/(?:placeholder|title|aria-label|alt)=["']([^"']{15,})["']/g)) textes.push(m[1]);
+      for (const texte of textes) {
+        const phrase = texte.trim();
+        if (phrase.length < 25) continue;
+        const distincts = new Set([...phrase.matchAll(MOTS_OUTILS_ANGLAIS)].map((m) => m[0].toLowerCase()));
+        if (distincts.size >= 3) offenders.push(`${rel(file)}:${i + 1}: ${phrase.slice(0, 90)}`);
+      }
+    });
+  }
+  assert.deepEqual(offenders, [], `phrases anglaises à l'écran :\n${offenders.join("\n")}`);
+});
+
 test("interface strings are in the player's own language, not waiting on a translator", () => {
   const offenders = [];
   for (const file of files) {
