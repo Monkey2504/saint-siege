@@ -68,6 +68,17 @@ export const composeTaskSystemPrompt = (taskKey, {
     ...helperValues,
   });
 
+  // La langue du joueur. Tout ce que le modèle écrit finit à l'écran : les
+  // titres d'édition, les suggestions d'ordres, les lettres des cardinaux, les
+  // verdicts. L'interface a été traduite en dur, mais le modèle continuait de
+  // répondre en anglais faute qu'on le lui ait demandé — et le jeu s'ouvrait
+  // sur « Consult German Leadership » au milieu de phrases françaises.
+  //
+  // La consigne est posée ici, dans la composition commune, et non dans chaque
+  // gabarit : un gabarit gelé dans une partie déjà commencée ne l'aurait jamais
+  // reçue, et c'est précisément là que le mélange se voyait.
+  systemPrompt = `${systemPrompt}\n\n[Langue]\nÉcris tout ce qui sera lu par le joueur en FRANÇAIS : titres, récits, lettres, suggestions d'ordres, verdicts, noms d'événements. Les identifiants, les clés JSON et les codes pays restent tels quels. Un nom propre garde sa forme française d'usage quand elle existe.`;
+
   // The chosen difficulty steers every simulation task (see runtime/difficulty.js).
   if (difficultyText) systemPrompt = `${systemPrompt}\n\n${difficultyText}`;
 

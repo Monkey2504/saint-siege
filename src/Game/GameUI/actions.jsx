@@ -236,7 +236,7 @@ const SuggestionCard = ({ topic, onQueue, queuedIds }) => {
                     <div className="oh-label" style={{ color: isQueued ? "var(--oh-grant)" : "var(--oh-accent)", fontSize: "var(--oh-t-2xs)", marginBottom: "0.15rem" }}>{action.stance}</div>
                 )}
                 <div style={{ fontSize: "var(--oh-t-xs)", fontWeight: 700 }}>
-                {isQueued ? `✓ Queued — ${action.title}` : action.title}
+                {isQueued ? `✓ Versé — ${action.title}` : action.title}
                 </div>
                 <div style={{ color: "var(--oh-text)", fontSize: "var(--oh-t-xs)", lineHeight: "1.45", marginTop: "0.18rem" }}>
                 {action.text}
