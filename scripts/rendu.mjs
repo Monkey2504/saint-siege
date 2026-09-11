@@ -52,40 +52,23 @@ const cliquer = async (page, nom, repos = 2500) => {
 };
 
 /**
- * Le portail web garde « Enter Open Historia » désactivé tant que la connexion
- * n'est pas résolue — une quinzaine de secondes quand le registre communautaire
- * est injoignable et qu'il faut attendre le repli sur l'origine. On attend donc
- * l'activation du bouton, jamais un délai fixe. La modale de démo suit.
+ * Le parcours du joueur tel qu'il est aujourd'hui, et non tel qu'il était.
+ *
+ * Trois étapes ont disparu depuis la dernière version de ce fichier, et leurs
+ * sélecteurs faisaient échouer tout le reste :
+ *
+ * - « Enter Open Historia » appartient au site (runtime/web/homePage.js), pas
+ *   au jeu. Servie par `vite preview`, l'application s'ouvre directement sur
+ *   l'écran de la clé.
+ * - « Reprendre votre partie » n'existe que s'il y a une partie à reprendre.
+ *   Un navigateur neuf n'en a aucune : l'accueil ne montre que « Commencer ».
+ * - HABEMUS PAPAM n'est plus sur ce chemin. La feuille d'investiture ne paraît
+ *   que pour une partie d'Église, et la partie créée ici n'en est pas une :
+ *   `/api/runtime/json/game` répond 500 sous `vite preview`, le scénario n'est
+ *   jamais chargé et le monde reste sans pays. Cette capture montre donc les
+ *   cahiers vides — ce qui est précisément ce que la session de design a
+ *   demandé à voir — mais pas une partie en cours.
  */
-const franchirLePortail = async (page) => {
-  await page.waitForFunction(() => {
-    const b = [...document.querySelectorAll('button')].find(x => /Enter Open Historia/i.test(x.textContent || ''));
-    return b && !b.disabled;
-  }, { timeout: 90000 });
-  await cliquer(page, /Enter Open Historia/i, 1500);
-  const demo = bouton(page, /Play the demo anyway/i);
-  if (await demo.count() && await demo.isVisible()) await cliquer(page, /Play the demo anyway/i, 2000);
-};
-
-/** Depuis la bibliothèque, rouvrir la partie courante : elle mène à HABEMUS PAPAM. */
-const rouvrirLaPartie = async (page) => {
-  await cliquer(page, /^Parties$/i, 1500);
-  await cliquer(page, /^En cours$/i, 5000);
-};
-
-/**
- * HABEMUS PAPAM demande un nom, trois sièges de cabinet et un programme.
- * Aucune clé d'API n'est saisie nulle part : l'écran qui la réclame est franchi
- * par son lien « Passer », et le monde tourne alors avec la doublure hors ligne.
- */
-const signerLePontificat = async (page) => {
-  await page.locator('input[placeholder*="Léon XV"]').fill('Léon XV');
-  const candidats = page.locator('button').filter({ hasText: /Card\.|Mgr |Sr |Mère |P\. |M\. / });
-  for (let i = 0; i < 3; i++) { await candidats.nth(i).click({ timeout: 20000 }); await page.waitForTimeout(400); }
-  await page.locator('textarea[placeholder*="élu pour changer"]')
-    .fill("Remettre les comptes au clair et rouvrir la porte aux périphéries.");
-  await cliquer(page, /Signer et commencer le pontificat/i, 6000);
-};
 
 /* ---------------------------------------------------------------- parcours */
 
@@ -96,18 +79,13 @@ const signerLePontificat = async (page) => {
  */
 const PARCOURS = [
   { fichier: '01-portail' },
-  { fichier: '02-cle-api',                faire: franchirLePortail },
-  { fichier: '03-accueil',                faire: p => cliquer(p, /Passer — regarder autour/i, 3000) },
-  { fichier: '04-bibliotheque-parties',   faire: p => cliquer(p, /Reprendre votre partie/i) },
-  { fichier: '05-bibliotheque-scenarios', faire: p => cliquer(p, /^Scénarios$/i, 2000) },
-  { fichier: '06-habemus-papam',          faire: rouvrirLaPartie },
-  {                                       faire: signerLePontificat },
-  { fichier: '07-edition-du-tour',        faire: p => cliquer(p, /^Édition du tour$/i) },
-  { fichier: '08-ordres',                 faire: p => cliquer(p, /^Ordres$/i) },
-  { fichier: '09-registre',               faire: p => cliquer(p, /^Registre$/i) },
-  { fichier: '10-college',                faire: p => cliquer(p, /^Collège$/i) },
-  { fichier: '11-caisses',                faire: p => cliquer(p, /^Caisses$/i) },
-  { fichier: '12-correspondance',         faire: p => cliquer(p, /^Correspondance$/i) },
+  { fichier: '02-accueil',         faire: p => cliquer(p, /Passer — regarder autour/i, 3000) },
+  { fichier: '03-edition-du-tour', faire: p => cliquer(p, /^Commencer$/i, 12000) },
+  { fichier: '04-ordres',          faire: p => cliquer(p, /^Ordres$/i) },
+  { fichier: '05-registre',        faire: p => cliquer(p, /^Registre$/i) },
+  { fichier: '06-college',         faire: p => cliquer(p, /^Collège$/i) },
+  { fichier: '07-caisses',         faire: p => cliquer(p, /^Caisses$/i) },
+  { fichier: '08-correspondance',  faire: p => cliquer(p, /^Correspondance$/i) },
 ];
 
 /* ---------------------------------------------------------------- capture  */
