@@ -17,6 +17,7 @@ import { ActionsPanel } from "./actions.jsx";
 import { writeWorldState } from "../../runtime/gameState.js";
 import { inaugurate, isInaugurated } from "../../runtime/inauguration.js";
 import { ensureRegisterBaseline, registerRows } from "../../runtime/register.js";
+import { normalizeChurch, totalFaithful } from "../../runtime/churchFaithful.js";
 import { frontRows } from "../../runtime/fronts.js";
 import { CANDIDATES, SEATS, seatCabinet } from "../../runtime/advisors.js";
 import { CONCENTRATION_CEILING, driveMovement, sourceShares } from "../../runtime/drives.js";
@@ -896,6 +897,22 @@ const Bulletin = ({ onOpenAdvisor, pressFocus = 0 }) => {
 
     const player = game?.country || "";
 
+    // L'état civil du bandeau. Tout est déjà dans la partie : le pape est le
+    // chef de la polity depuis son inauguration, l'an et le jour se comptent
+    // depuis la date de départ, les baptisés sont le registre des fidèles.
+    const pape = world?.polityOverrides?.[player]?.leader || world?.countryStats?.[player]?.leader || "";
+    const depuis = game?.startDate ? dayjs(game.startDate) : null;
+    const aujourdhui = game?.gameDate ? dayjs(game.gameDate) : null;
+    const jourDuPontificat = depuis && aujourdhui && depuis.isValid() && aujourdhui.isValid()
+        ? aujourdhui.diff(depuis, "day") + 1
+        : 0;
+    const anDuPontificat = jourDuPontificat > 0 ? Math.floor((jourDuPontificat - 1) / 365) + 1 : 1;
+    const baptises = useMemo(() => {
+        const c = normalizeChurch(world?.church);
+        const total = c ? totalFaithful(c.faithful) : 0;
+        return total > 0 ? `${(total / 1e9).toFixed(2).replace(".", ",")} Md` : "";
+    }, [world?.church]);
+
     // The edition: what THIS turn printed, and the archive beneath it.
     //
     // Field report: the page sorted every event the game had ever produced and
@@ -992,21 +1009,49 @@ const Bulletin = ({ onOpenAdvisor, pressFocus = 0 }) => {
         >
         <div style={{ margin: "0 auto", maxWidth: "74rem", padding: "1.6rem 1.5rem 3rem" }}>
 
-        {/* The masthead. The name of the sheet, then the dateline rule. */}
-        <header style={{ borderBottom: "4px solid var(--oh-text-strong)", paddingBottom: "0.5rem" }}>
+        {/* Le bandeau, d'après la maquette de la session de design : le nom du
+            journal au centre, son état civil à gauche, celui du pontificat à
+            droite. Un journal se reconnaît à son bandeau avant qu'on l'ait lu ;
+            l'ancien n'avait qu'un titre et n'en était pas un. */}
+        <header style={{ borderBottom: "3px solid var(--oh-text-strong)", paddingBottom: "0.55rem" }}>
+        <div style={{ alignItems: "end", display: "grid", gap: "1rem", gridTemplateColumns: "1fr auto 1fr" }}>
+        <div className="oh-masthead-flank" style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)", lineHeight: 1.5 }}>
+        <div className="oh-label" style={{ color: "var(--oh-text-strong)" }}>
+        N° {game?.round || 1} · An {anDuPontificat} du pontificat
+        </div>
+        <div>Mensuel des affaires de l&apos;Église</div>
+        <div>Édition imprimée par le moteur</div>
+        </div>
+
         <h1
         style={{
             color: "var(--oh-text-strong)",
-            fontFamily: "var(--oh-font-display)",
-            fontSize: "clamp(2.2rem, 5vw, 3.6rem)",
-            fontWeight: 800,
-            letterSpacing: "-0.035em",
-            lineHeight: 0.95,
+            fontFamily: "var(--oh-font-serif)",
+            fontSize: "clamp(2.4rem, 6vw, 4.2rem)",
+            fontWeight: 700,
+            letterSpacing: "-0.025em",
+            lineHeight: 0.92,
             margin: 0,
+            textAlign: "center",
+            whiteSpace: "nowrap",
         }}
         >
         {player || "Bulletin"}
         </h1>
+
+        <div className="oh-masthead-flank" style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)", lineHeight: 1.5, textAlign: "right" }}>
+        <div className="oh-label" style={{ color: "var(--oh-text-strong)" }}>
+        Rome, {fmtDate(game?.gameDate)}
+        </div>
+        {pape && <div>{pape}{jourDuPontificat ? ` · ${jourDuPontificat}ᵉ jour` : ""}</div>}
+        {baptises && <div>{baptises} de baptisés</div>}
+        </div>
+        </div>
+
+        {/* La devise : ce que le journal promet, sous son nom. */}
+        <div style={{ color: "var(--oh-text-dim)", fontFamily: "var(--oh-font-serif)", fontSize: "var(--oh-t-sm)", fontStyle: "italic", marginTop: "0.35rem", textAlign: "center" }}>
+        « Vous êtes le pape. Les comptes ne mentent pas. »
+        </div>
         </header>
 
         {/* Printed above everything, because nothing below it is real. */}
