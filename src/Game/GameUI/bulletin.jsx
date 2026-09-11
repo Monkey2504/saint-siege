@@ -74,7 +74,7 @@ const fmtMoney = (value) => {
 // for a body that in fact holds no capital at all.
 const moneyOf = (sy, usdPerSY) => {
     const n = Number(sy) || 0;
-    if (!(usdPerSY > 0)) return `${fmtSY(n)} SY`;
+    if (!(usdPerSY > 0)) return `${fmtSY(n)} AS`;
     return fmtMoney(n * usdPerSY) ?? "$0";
 };
 
@@ -345,7 +345,7 @@ const fmtCount = (value) => {
 const FRONT_FORMAT = {
     share: (v) => `${Math.round(v)}%`,
     count: fmtCount,
-    money: (v) => `${Math.round(v)} SY`,
+    money: (v) => `${Math.round(v)} AS`,
 };
 
 const Front = ({ row }) => {
@@ -557,7 +557,7 @@ const Press = ({ game, world, actions, focus, onPrinted }) => {
             type="button"
             onClick={print}
             style={{
-                background: "var(--oh-accent)",
+                background: "var(--oh-line-strong)",
                 border: 0,
                 color: "var(--oh-on-accent)",
                 cursor: "pointer",
@@ -1121,8 +1121,8 @@ const Bulletin = ({ onOpenAdvisor, pressFocus = 0 }) => {
             <Situation briefing={briefing} date={game?.startDate || game?.gameDate} />
         ) : (
             <>
-            <SectionHead aside={`${edition.length} ${edition.length === 1 ? "event" : "events"}`}>
-            What happened
+            <SectionHead aside={`${edition.length} ${edition.length === 1 ? "événement" : "événements"}`}>
+            Ce qui est arrivé
             </SectionHead>
             {edition.map((event, index) => (
                 <Story
@@ -1139,8 +1139,8 @@ const Bulletin = ({ onOpenAdvisor, pressFocus = 0 }) => {
             off the inauguration sheet, where the only thing to do is decide. */}
         {!awaitingInauguration && earlier.length > 0 && (
             <div style={{ marginTop: "1.8rem" }}>
-            <SectionHead aside={`${earlier.length} ${earlier.length === 1 ? "story" : "stories"}`}>
-            Earlier
+            <SectionHead aside={`${earlier.length} ${earlier.length === 1 ? "récit" : "récits"}`}>
+            Précédemment
             </SectionHead>
             {earlier.map((event, index) => (
                 <Story
@@ -1153,7 +1153,9 @@ const Bulletin = ({ onOpenAdvisor, pressFocus = 0 }) => {
         )}
         </div>
 
-        {/* Right: what stands ordered, and what it costs. */}
+        {/* Centre : ce qui est ordonné, et ce que le moteur en a jugé. La
+            maquette journal lui donne sa propre colonne, entre les nouvelles et
+            les comptes — c'est la colonne où le joueur agit. */}
         <div style={{ display: "flex", flexDirection: "column", gap: "1.6rem" }}>
         {/* The orders desk itself: compose, take a suggestion, read each
             verdict. One component, the same the map's floating panel shows.
@@ -1165,7 +1167,12 @@ const Bulletin = ({ onOpenAdvisor, pressFocus = 0 }) => {
         <section>
         <ActionsPanel embedded isOpen onClose={() => {}} onOpenAdvisor={onOpenAdvisor} />
         </section>
+        </div>
 
+        {/* Droite : la date d'arrivée, le registre, et ce que le monde a bougé.
+            Ce que la maquette met sous « Prochaine édition », « Le registre »
+            et « Le collège ». */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "1.6rem" }}>
         {/* The presses: how far the next edition runs, and the order to print. */}
         <Press game={game} world={world} actions={actions} focus={pressFocus} onPrinted={reload} />
 
@@ -1201,8 +1208,8 @@ const Bulletin = ({ onOpenAdvisor, pressFocus = 0 }) => {
                 || `${indicators.balance < 0 ? "−" : "+"}${fmtSY(Math.abs(indicators.balance))}`}
             </div>
             <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)", marginTop: "0.35rem" }}>
-            solde de l'année{usdPerSY > 0 ? ` · ${fmtSY(indicators.balance)} SY` : ""}
-            <Movement row={rows.balance} format={(v) => (usdPerSY > 0 ? fmtMoney(v * usdPerSY) : `${fmtSY(v)} SY`)} />
+            solde de l'année{usdPerSY > 0 ? ` · ${fmtSY(indicators.balance)} AS` : ""}
+            <Movement row={rows.balance} format={(v) => (usdPerSY > 0 ? fmtMoney(v * usdPerSY) : `${fmtSY(v)} AS`)} />
             </div>
             </div>
             <div>

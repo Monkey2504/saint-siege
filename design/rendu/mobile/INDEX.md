@@ -1,13 +1,13 @@
 # Rendu réel — mobile (390×844)
 
-Capturé le 2026-09-11 07:10 · commit 7ddcede · source http://localhost:4173
+Capturé le 2026-09-11 07:17 · commit c17c3e8 · source http://localhost:4173
 
 Ces images sont le rendu réel du jeu dans un navigateur, pas une maquette.
 Une session sans navigateur (Claude Design) doit les lire avant de juger le graphisme.
 
 ## Écrans
 
-- `01-portail.png` — capturé, 141 Ko
+- `01-portail.png` — capturé, 140 Ko
 - `02-cle-api.png` — capturé, 88 Ko
 - `03-accueil.png` — capturé, 473 Ko
 - `04-bibliotheque-parties.png` — capturé, 236 Ko
@@ -35,6 +35,6 @@ Toutes les polices annoncées par les tokens sont réellement dessinées ici.
 ## Anomalies relevées pendant la capture
 
 - réseau : www.googletagmanager.com
-- réseau : open-historia-registry.nichojkrol.workers.dev
 - réseau : fonts.googleapis.com
+- réseau : open-historia-registry.nichojkrol.workers.dev
 

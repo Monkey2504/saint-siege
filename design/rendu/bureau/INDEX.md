@@ -1,6 +1,6 @@
 # Rendu réel — bureau (1440×900)
 
-Capturé le 2026-09-11 07:02 · commit 7ddcede · source http://localhost:4173
+Capturé le 2026-09-11 07:16 · commit c17c3e8 · source http://localhost:4173
 
 Ces images sont le rendu réel du jeu dans un navigateur, pas une maquette.
 Une session sans navigateur (Claude Design) doit les lire avant de juger le graphisme.
@@ -12,15 +12,15 @@ Une session sans navigateur (Claude Design) doit les lire avant de juger le grap
 - `03-accueil.jpg` — capturé, 246 Ko
 - `04-bibliotheque-parties.jpg` — capturé, 89 Ko
 - `05-bibliotheque-scenarios.jpg` — capturé, 78 Ko
-- `06-habemus-papam.png` — capturé, 226 Ko
-- `07-edition-du-tour.png` — capturé, 140 Ko
+- `06-habemus-papam.png` — capturé, 243 Ko
+- `07-edition-du-tour.png` — capturé, 170 Ko
 - `08-ordres.png` — capturé, 75 Ko
 - `09-registre.png` — capturé, 54 Ko
 - `10-college.png` — capturé, 387 Ko
 - `11-caisses.png` — capturé, 194 Ko
 - `12-correspondance.png` — capturé, 100 Ko
 
-Total du lot : 2091 Ko.
+Total du lot : 2138 Ko.
 
 ## Polices
 
@@ -35,6 +35,6 @@ Toutes les polices annoncées par les tokens sont réellement dessinées ici.
 ## Anomalies relevées pendant la capture
 
 - réseau : www.googletagmanager.com
-- réseau : open-historia-registry.nichojkrol.workers.dev
 - réseau : fonts.googleapis.com
+- réseau : open-historia-registry.nichojkrol.workers.dev
 

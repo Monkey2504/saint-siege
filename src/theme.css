@@ -310,6 +310,20 @@ button, input, textarea, select {
   align-items: start;
 }
 @media (min-width: 62rem) {
+  /* Trois colonnes, comme la maquette journal : les nouvelles, les ordres, puis
+     la presse et le registre. Un filet vertical les sépare — c'est lui qui fait
+     lire la page comme une feuille imprimée plutôt que comme trois panneaux
+     posés côte à côte. */
+  .oh-bulletin-grid { grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) minmax(0, 1fr); gap: 0; }
+  .oh-bulletin-grid > * + * {
+    border-left: 1px solid var(--oh-line);
+    margin-left: 1.6rem;
+    padding-left: 1.6rem;
+  }
+}
+@media (min-width: 62rem) and (max-width: 86rem) {
+  /* À l'étroit pour trois colonnes, les ordres repassent sous les nouvelles
+     plutôt que d'être écrasés en gouttière. */
   .oh-bulletin-grid { grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr); }
 }
 
