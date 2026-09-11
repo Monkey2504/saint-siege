@@ -46,3 +46,20 @@ export const fmtMoneyFromUsd = (usd) => fmtEur(usdToEur(usd));
 
 /** Le nom de l'unité, tel qu'il paraît en tête d'un cahier. */
 export const NOM_DE_LA_MONNAIE = "euros";
+
+/**
+ * Une quantité du moteur, en années-subsistance. Elle vivait dans journal.jsx,
+ * donc hors d'atteinte du moteur : consequences.js titrait « Finances : en
+ * hausse de 1135 depuis le début du pontificat » — un nombre nu, sans unité,
+ * en manchette de la une. 1135 quoi ? Des euros, des fidèles, des points ?
+ * Elle est ici pour que les deux côtés écrivent une quantité de la même façon.
+ */
+export const fmtSY = (value) => {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return "—";
+  const abs = Math.abs(n);
+  const signe = n < 0 ? "−" : "";
+  if (abs >= 1e6) return `${signe}${decimale(abs / 1e6, 1)} M`;
+  if (abs >= 1e3) return `${signe}${Math.round(abs / 1e3).toLocaleString("fr-FR")} k`;
+  return `${signe}${Math.round(abs)}`;
+};

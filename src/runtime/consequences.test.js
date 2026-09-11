@@ -7,6 +7,7 @@ import {
   DRIVE_STALL_DAYS,
   bequestEvent,
   bequestFor,
+  chiffreDeFront,
   consequencesOf,
 } from "./consequences.js";
 
@@ -174,4 +175,21 @@ test("money that arrives is money the player is told about", () => {
   assert.match(entry.title, /Legs/);
   assert.match(entry.description, /80 AS parviennent au Saint-Siège/);
   assert.match(entry.description, /62\/100/);
+});
+
+// « Finances : en hausse de 1135 depuis le début du pontificat » — lu sur la une
+// le 11 septembre. 1135 quoi ? Les six fronts se mesurent dans trois unités et
+// la manchette les chiffrait toutes les trois nues.
+test("une manchette de front porte son unité, et l'argent passe par l'écriture du moteur", () => {
+  const monde = {
+    registerBaseline: { fronts: { finances: 0, unity: 100, vocations: 1000 } },
+    church: { faithful: {} },
+  };
+  // On ne reconstruit pas un monde entier : on vérifie la seule chose que ce
+  // correctif change, l'écriture d'une quantité selon son unité.
+  assert.equal(chiffreDeFront("share", 42.4), "42 %");
+  assert.equal(chiffreDeFront("count", 1499), "1499");
+  assert.equal(chiffreDeFront("money", 1135), "1 k AS", "l'argent passe par fmtSY, pas par un arrondi nu");
+  assert.equal(chiffreDeFront("money", -2_400_000), "−2,4 M AS");
+  assert.ok(monde);
 });

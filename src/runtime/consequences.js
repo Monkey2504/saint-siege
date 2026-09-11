@@ -33,6 +33,7 @@ import { normalizeGatherings } from "./gatherings.js";
 import { normalizeDrives, driveMovement, overduePledges } from "./drives.js";
 import { normalizeAssembly, standing } from "./factions.js";
 import { frontRows } from "./fronts.js";
+import { fmtSY } from "./money.js";
 
 const finite = (v, d = 0) => (Number.isFinite(Number(v)) ? Number(v) : d);
 const str = (v) => String(v ?? "").trim();
@@ -176,6 +177,15 @@ const collegeFracture = ({ world, to }) => {
   });
 };
 
+// « Finances : en hausse de 1135 depuis le début du pontificat », en manchette
+// de la une. 1135 quoi ? Des euros, des fidèles, des points ? Les six fronts ne
+// se mesurent pas dans la même unité — une part en pourcentage, un effectif en
+// personnes, l'argent en années-subsistance — et la manchette les chiffrait
+// tous les trois de la même façon : nus. L'unité est déjà dans la définition du
+// front (fronts.js), il suffisait de l'écrire.
+const UNITE = Object.freeze({ count: "", money: " AS", share: " %" });
+export const chiffreDeFront = (unit, value) => `${unit === "money" ? fmtSY(value) : Math.round(value)}${UNITE[unit] ?? ""}`;
+
 /** A front that has moved measurably since the pontificate began. */
 const frontMoved = ({ world, player, to }) => {
   const moved = frontRows(world, player)
@@ -186,8 +196,8 @@ const frontMoved = ({ world, player, to }) => {
   const way = row.good ? "dans le bon sens" : "dans le mauvais sens";
   return event({
     date: to,
-    title: `${row.label} : ${row.direction === "up" ? "en hausse de" : "en baisse de"} ${Math.abs(Math.round(row.delta))} depuis le début du pontificat`,
-    description: `${row.label} est à ${Math.round(row.value)}${row.unit === "share" ? "%" : ""}, contre ${Math.round(row.from)}${row.unit === "share" ? "%" : ""} au début de ce pontificat. C'est ${way}. Ce compte est celui du moteur, non un récit à son sujet.`,
+    title: `${row.label} : ${row.direction === "up" ? "en hausse de" : "en baisse de"} ${chiffreDeFront(row.unit, Math.abs(row.delta))} depuis le début du pontificat`,
+    description: `${row.label} est à ${chiffreDeFront(row.unit, row.value)}, contre ${chiffreDeFront(row.unit, row.from)} au début de ce pontificat. C'est ${way}. Ce compte est celui du moteur, non un récit à son sujet.`,
     importance: row.good === false ? "major" : "minor",
     kind: "church",
     playerRelated: true,

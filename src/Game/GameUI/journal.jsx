@@ -7,19 +7,11 @@
  * issue : recopier l'en-tête, et le voir diverger d'une page à l'autre.
  */
 import React from "react";
-import { fmtMoneyFromUsd } from "../../runtime/money.js";
+import { fmtMoneyFromUsd, fmtSY } from "../../runtime/money.js";
 
-/** Une quantité du moteur, en années-subsistance. */
-export const fmtSY = (value) => {
-  const n = Number(value);
-  if (!Number.isFinite(n)) return "—";
-  const abs = Math.abs(n);
-  const signe = n < 0 ? "−" : "";
-  const virgule = (v, c) => v.toFixed(c).replace(".", ",");
-  if (abs >= 1e6) return `${signe}${virgule(abs / 1e6, 1)} M`;
-  if (abs >= 1e3) return `${signe}${Math.round(abs / 1e3).toLocaleString("fr-FR")} k`;
-  return `${signe}${Math.round(abs)}`;
-};
+// L'unité du moteur s'écrit d'un seul endroit — runtime/money.js — parce que le
+// moteur en a besoin lui aussi : ses propres manchettes chiffrent des AS.
+export { fmtSY };
 
 /** Un dénombrement — des personnes, des fidèles — écrit à la française. */
 export const fmtCount = (value) => {
