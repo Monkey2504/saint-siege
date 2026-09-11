@@ -368,7 +368,7 @@ export const Caisses = ({ nav = null }) => {
         <EnTeteDeCahier
           titre="Les Comptes"
           mention={date && date.isValid() ? `Tour ${game?.round || 1} · ${date.format("D MMMM YYYY")}` : null}
-          sousMention={`Unité : ${usdPerSY > 0 ? "dollars" : "années-subsistance (AS)"}`}
+          sousMention={`Unité : ${usdPerSY > 0 ? "euros, convertis des années-subsistance" : "années-subsistance (AS)"}`}
         />
 
         {nav && nav()}

@@ -31,7 +31,7 @@ import { nextEdition } from "../../runtime/nextEdition.js";
 import { useSurface } from "../../runtime/useSurface.js";
 import { simulateAutoJump, simulateTimelineJump } from "../AI/gameplay.js";
 import { CONTENU_TOP } from "./chrome.js";
-import { CahierVide, SectionHead, fmtEntier } from "./journal.jsx";
+import { CahierVide, SectionHead, fmtCount, fmtEntier, fmtMoney, fmtSY, moneyOf } from "./journal.jsx";
 import { ApercuDuCollege } from "./college.jsx";
 
 // Written as a page, not as a panel dressed up as one. Nothing here inherits the
@@ -51,38 +51,14 @@ const fmtDate = (value, pattern = "Do MMMM YYYY") => {
     return parsed.isValid() ? parsed.format(pattern) : String(value);
 };
 
-const fmtSY = (value) => {
-    const n = Number(value);
-    if (!Number.isFinite(n)) return "—";
-    const abs = Math.abs(n);
-    if (abs >= 1e6) return `${(n / 1e6).toFixed(1)}M`;
-    if (abs >= 1e3) return `${Math.round(n / 1e3)}k`;
-    return String(Math.round(n));
-};
+// fmtSY vient de journal.jsx : l'unité du moteur s'écrit d'une seule façon.
 
-// Money is what a front page prints; subsistence-years are the engine's unit and
-// stay on the line beneath, so the two can never quietly disagree.
-const fmtMoney = (value) => {
-    const n = Number(value);
-    if (!Number.isFinite(n) || n === 0) return null;
-    const abs = Math.abs(n);
-    const sign = n < 0 ? "−" : "";
-    if (abs >= 1e9) return `${sign}$${(abs / 1e9).toFixed(1)}B`;
-    if (abs >= 1e6) return `${sign}$${Math.round(abs / 1e6)}M`;
-    if (abs >= 1e3) return `${sign}$${Math.round(abs / 1e3)}k`;
-    return `${sign}$${Math.round(abs)}`;
-};
 
-// A sum in the reader's currency, in SY only when the page has no rate to
-// convert with. Written once because it was written three times: fmtMoney
-// returns null for zero, so each copy fell through to the SY branch and a purse
-// line read "capital 0 SY at 5.1% · $11M in hand" — two units in one sentence,
-// for a body that in fact holds no capital at all.
-const moneyOf = (sy, usdPerSY) => {
-    const n = Number(sy) || 0;
-    if (!(usdPerSY > 0)) return `${fmtSY(n)} AS`;
-    return fmtMoney(n * usdPerSY) ?? "$0";
-};
+// L'argent est ce qu'imprime une première page ; les années-subsistance sont
+// l'unité du moteur et restent sur la ligne du dessous, pour que les deux ne
+// puissent jamais se contredire en silence. Les deux fonctions vivaient ici en
+// double de journal.jsx — deux écritures d'une même somme finissent par diverger
+// — et n'y vivent plus.
 
 
 const Dateline = ({ children, tone = "alert" }) => (
@@ -232,24 +208,27 @@ const Story = ({ event, lead = false, tone }) =>
 // ici n'est inventé : le titre porte le nom qu'il a pris, le chapô est sa
 // profession de foi mot pour mot, l'encadré ne nomme que des chantiers que le
 // monde tient déjà.
-const STANCE_LABEL = { hostile: "contre", supportive: "pour", rival: "rivale", neutral: "réservée" };
 const str = (v) => String(v ?? "").trim();
 
 /**
  * « Ce que cela change », d'après runtime/inauguration.js et rien d'autre.
  *
- * La première version de cet encadré disait « N chantiers répondent à ce qui a
- * été déclaré », et le joueur a écrit « tous à poil » pour s'en voir répondre
- * que la Compagnie de Jésus était pour. Il avait raison de crier : le moteur ne
- * calcule pas cela. `reactionsToDeclaration` retient un chantier de deux façons
- * — parce que le texte NOMME un de ses mots de portée (`hits`), ou parce qu'il
- * n'a aucune portée déclarée et suit alors tout ce que fait le Saint-Siège. Et
- * `stance` est sa position debout, acquise avant le conclave, jamais son avis
- * sur le programme.
+ * Deux versions de cet encadré ont menti au joueur, chacune à sa façon.
  *
- * L'encadré ne nomme donc que les chantiers réellement nommés, avec le mot qui
- * les a accrochés. Quand il n'y en a aucun, il le dit — c'est un renseignement
- * utile : ce qui vient d'être déclaré n'accroche rien de ce que le monde tient.
+ * La première annonçait que N chantiers « répondaient à ce qui a été déclaré »
+ * et les donnait pour, alors que le moteur ne calculait rien de tel. La seconde
+ * montrait honnêtement la position debout de chacun — « (contre) », « (pour) »
+ * — et le joueur l'a refusée trois fois : « je veux que tu arrêtes avec l'idée
+ * que certains sont d'accord et d'autres pas, cela dépend de ce que l'on dit ou
+ * fait. »
+ *
+ * Il a raison, et c'est aussi la meilleure modélisation. Une puissance n'est pas
+ * pour ou contre un pape : elle poursuit quelque chose, et elle juge chaque
+ * phrase par ce que cette phrase fait à sa poursuite. L'encadré ne distribue
+ * donc plus de camps. Il dit que tout le monde lit, il nomme les chantiers dont
+ * le terrain est explicitement en jeu — ceux-là se mettent au travail, c'est le
+ * seul effet mécanique —, et il renvoie le reste à l'édition, où le modèle lit
+ * la déclaration mot pour mot et décide.
  */
 // Les `hits` sont des radicaux — « rich », « financ », « transparen » — et les
 // montrer tels quels donne « (« rich », contre) », qui ne ressemble à rien de ce
@@ -262,41 +241,35 @@ const motEntier = (declaration, radical) => {
 
 const CeQueCelaChange = ({ reactions, declaration }) => {
     const nommes = reactions.filter((r) => Array.isArray(r.hits) && r.hits.length > 0);
-    const veilleurs = reactions.length - nommes.length;
 
     return (
     <>
     <p style={{ margin: "0 0 0.5rem" }}>
-    Votre programme est versé à l&apos;édition, et chaque corps qu&apos;il touche doit y répondre —
-    une déclaration, un geste, une fuite, un serrage de rangs.
+    Votre programme est versé à l&apos;édition. {reactions.length === 1 ? "La puissance" : `Les ${reactions.length} puissances`} qui
+    {reactions.length === 1 ? " se tient" : " se tiennent"} dans ce monde {reactions.length === 1 ? "le lit" : "le lisent"} tel que vous
+    l&apos;avez écrit, et {reactions.length === 1 ? "juge" : "jugent"} sur la phrase : aucune n&apos;est pour ou
+    contre vous d&apos;avance. Ce qu&apos;elles en font paraît dans la prochaine édition — une déclaration,
+    un geste, une fuite, un serrage de rangs, un silence.
     </p>
     {nommes.length > 0 ? (
         <p style={{ margin: "0 0 0.5rem" }}>
-        {nommes.length === 1 ? "Un chantier en cours est accroché par ce que vous avez nommé, " : `${nommes.length} chantiers en cours sont accrochés par ce que vous avez nommé, `}
-        avec la position qu&apos;{nommes.length === 1 ? "il tenait" : "ils tenaient"} déjà :{" "}
+        {nommes.length === 1 ? "Un chantier en cours voit son terrain en jeu et se met au travail : " : `${nommes.length} chantiers en cours voient leur terrain en jeu et se mettent au travail : `}
         {nommes.map((r, i) => (
             <span key={`${r.owner}-${i}`}>
             {i > 0 ? ", " : ""}
             <b style={{ color: "var(--oh-text-strong)" }}>{r.owner}</b>
-            {` (« ${[...new Set(r.hits.map((h) => motEntier(declaration, h)))].join(" », « ")} »`}
-            {STANCE_LABEL[String(r.stance || "").toLowerCase()] ? `, ${STANCE_LABEL[String(r.stance).toLowerCase()]}` : ""}
-            {")"}
+            {` (« ${[...new Set(r.hits.map((h) => motEntier(declaration, h)))].join(" », « ")} »)`}
             </span>
         ))}
         .
         </p>
     ) : (
         <p style={{ margin: "0 0 0.5rem" }}>
-        Aucun des mots employés n&apos;est de ceux que les chantiers en cours surveillent :
-        ce qui répondra répondra sur ce que vous êtes, et non sur ce que vous avez dit.
+        Aucun chantier en cours ne voit son terrain nommé : rien ne se met en mouvement
+        de soi-même, ce qui ne veut pas dire que personne ne répondra.
         </p>
     )}
-    {veilleurs > 0 && (
-        <p style={{ margin: 0 }}>
-        {veilleurs === 1 ? "Un corps suit" : `${veilleurs} corps suivent`} tout ce que fait le
-        Saint-Siège et {veilleurs === 1 ? "répondra" : "répondront"} de toute façon.
-        </p>
-    )}
+
     </>
     );
 };
@@ -495,15 +468,7 @@ const Movement = ({ row, format }) => {
     );
 };
 
-const fmtCount = (value) => {
-    const n = Number(value);
-    if (!Number.isFinite(n)) return "—";
-    const abs = Math.abs(n);
-    if (abs >= 1e9) return `${(n / 1e9).toFixed(2)}B`;
-    if (abs >= 1e6) return `${(n / 1e6).toFixed(1)}M`;
-    if (abs >= 1e3) return `${Math.round(n / 1e3)}k`;
-    return String(Math.round(n));
-};
+// fmtCount vient de journal.jsx : un dénombrement s'écrit d'une seule façon.
 
 // ── The six fronts ───────────────────────────────────────────────────────────
 //
@@ -1408,10 +1373,11 @@ const Bulletin = ({ onOpenAdvisor, pressFocus = 0, nav = null }) => {
             style={{
                 color: indicators.balance < 0 ? "var(--oh-alert)" : "var(--oh-grant)",
                 fontFamily: "var(--oh-font-display)",
-                fontSize: "clamp(2rem, 3.4vw, 2.9rem)",
+                fontSize: "var(--oh-t-xl)",
                 fontWeight: 800,
                 letterSpacing: "-0.035em",
                 lineHeight: 1,
+                whiteSpace: "nowrap",
             }}
             >
             {(usdPerSY > 0 && fmtMoney(indicators.balance * usdPerSY))
@@ -1427,10 +1393,11 @@ const Bulletin = ({ onOpenAdvisor, pressFocus = 0, nav = null }) => {
             style={{
                 color: "var(--oh-text-strong)",
                 fontFamily: "var(--oh-font-display)",
-                fontSize: "clamp(2rem, 3.4vw, 2.9rem)",
+                fontSize: "var(--oh-t-xl)",
                 fontWeight: 800,
                 letterSpacing: "-0.035em",
                 lineHeight: 1,
+                whiteSpace: "nowrap",
             }}
             >
             {indicators.yearsOfPatrimonyLeft == null ? "—" : `${indicators.yearsOfPatrimonyLeft} ans`}
@@ -1457,7 +1424,7 @@ const Bulletin = ({ onOpenAdvisor, pressFocus = 0, nav = null }) => {
             <tr><td>Patrimoine placé</td><td>{money(indicators.endowment)}<Movement row={rows.endowment} format={money} /></td></tr>
             {/* The rate AND what it actually throws off: a percentage of a stock
                 the reader has to go and find is not an income. */}
-            <tr><td>Rendement du patrimoine</td><td>{(indicators.endowmentYield * 100).toFixed(2)} % · {money(indicators.endowmentIncome)} par an<Movement row={rows.endowmentYield} format={(v) => `${(v * 100).toFixed(2)} pt`} /></td></tr>
+            <tr><td>Rendement du patrimoine</td><td>{`${(indicators.endowmentYield * 100).toFixed(2).replace(".", ",")}\u202f%`} · {money(indicators.endowmentIncome)} par an<Movement row={rows.endowmentYield} format={(v) => `${(v * 100).toFixed(2).replace(".", ",")} pt`} /></td></tr>
             <tr><td>Dons reçus</td><td>{money(indicators.transfers)}<Movement row={rows.transfers} format={money} /></td></tr>
             {/* The federation's remittance, on its own line. It used to land in
                 the treasury and nowhere else, so the balance never felt it. */}

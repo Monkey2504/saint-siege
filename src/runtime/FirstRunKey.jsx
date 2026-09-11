@@ -125,7 +125,7 @@ const FirstRunKey = ({ onDone }) => {
         <h1
         style={{
             color: "var(--oh-text-strong)", fontFamily: "var(--oh-font-display)",
-            fontSize: "clamp(1.8rem, 4vw, 2.8rem)", fontWeight: 800, letterSpacing: "-0.03em",
+            fontSize: "var(--oh-t-3xl)", fontWeight: 800, letterSpacing: "-0.03em",
             lineHeight: 1.05, margin: "0 0 0.4rem",
         }}
         >

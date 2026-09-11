@@ -7,6 +7,7 @@
 // bound. Numbers are in subsistence-years (SY): what one person needs to
 // live for a year, the era-neutral unit the engine runs on.
 import React from "react";
+import { fmtEur, usdToEur } from "../../runtime/money.js";
 import {
   annualRevenue, annualSpending, evaluateMonetarySystem, explainShortfall, economyIndicators,
   maxTaxEffort, normalizeEconomy, pledgeableValue, realOutput, taxableBase, velocityOf,
@@ -103,7 +104,7 @@ const EconomyPanel = ({ code, economy, flows, allEconomies, units = null }) => {
 
         {(e.endowment > 0 || e.unfundedLiabilities > 0) && (
           <Identity label="Patrimoine =">
-            <span style={strong}>{fmt(e.endowment)} AS</span>{e.usdPerSY > 0 ? ` ≈ $${fmt(e.endowment * e.usdPerSY)}` : ""}
+            <span style={strong}>{fmt(e.endowment)} AS</span>{e.usdPerSY > 0 ? ` ≈ ${fmtEur(usdToEur(e.endowment * e.usdPerSY)) ?? "0 €"}` : ""}
             {e.unfundedLiabilities > 0 && <span style={term}> − promesses non financées {fmt(e.unfundedLiabilities)} AS{e.usdPerSY > 0 ? ` (≈ ${fmt(e.unfundedLiabilities * e.usdPerSY)})` : ""} = net <span style={i.netPatrimony < 0 ? bad : good}>{fmt(i.netPatrimony)}</span></span>}
             {e.financing === "drawdown" && <span style={warn}> · les déficits sont payés sur le patrimoine{i.yearsOfPatrimonyLeft != null ? ` — épuisé dans ~${i.yearsOfPatrimonyLeft} ans à ce déficit` : ""}</span>}
           </Identity>

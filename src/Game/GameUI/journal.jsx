@@ -7,39 +7,40 @@
  * issue : recopier l'en-tête, et le voir diverger d'une page à l'autre.
  */
 import React from "react";
+import { fmtMoneyFromUsd } from "../../runtime/money.js";
 
 /** Une quantité du moteur, en années-subsistance. */
 export const fmtSY = (value) => {
   const n = Number(value);
   if (!Number.isFinite(n)) return "—";
   const abs = Math.abs(n);
-  if (abs >= 1e6) return `${(n / 1e6).toFixed(1)}M`;
-  if (abs >= 1e3) return `${Math.round(n / 1e3)}k`;
-  return String(Math.round(n));
+  const signe = n < 0 ? "−" : "";
+  const virgule = (v, c) => v.toFixed(c).replace(".", ",");
+  if (abs >= 1e6) return `${signe}${virgule(abs / 1e6, 1)} M`;
+  if (abs >= 1e3) return `${signe}${Math.round(abs / 1e3).toLocaleString("fr-FR")} k`;
+  return `${signe}${Math.round(abs)}`;
 };
 
-/** Un dénombrement — des personnes, des fidèles. */
+/** Un dénombrement — des personnes, des fidèles — écrit à la française. */
 export const fmtCount = (value) => {
   const n = Number(value);
   if (!Number.isFinite(n)) return "—";
   const abs = Math.abs(n);
-  if (abs >= 1e9) return `${(n / 1e9).toFixed(2)}B`;
-  if (abs >= 1e6) return `${(n / 1e6).toFixed(1)}M`;
-  if (abs >= 1e3) return `${Math.round(n / 1e3)}k`;
+  const virgule = (v, c) => v.toFixed(c).replace(".", ",");
+  if (abs >= 1e9) return `${virgule(n / 1e9, 2)} Md`;
+  if (abs >= 1e6) return `${virgule(n / 1e6, 1)} M`;
+  if (abs >= 1e3) return `${Math.round(n / 1e3).toLocaleString("fr-FR")} k`;
   return String(Math.round(n));
 };
 
-/** Une somme en monnaie du lecteur. `null` pour zéro, à dessein. */
-export const fmtMoney = (value) => {
-  const n = Number(value);
-  if (!Number.isFinite(n) || n === 0) return null;
-  const abs = Math.abs(n);
-  const sign = n < 0 ? "−" : "";
-  if (abs >= 1e9) return `${sign}$${(abs / 1e9).toFixed(1)}B`;
-  if (abs >= 1e6) return `${sign}$${Math.round(abs / 1e6)}M`;
-  if (abs >= 1e3) return `${sign}$${Math.round(abs / 1e3)}k`;
-  return `${sign}$${Math.round(abs)}`;
-};
+/**
+ * Une somme en monnaie du lecteur — l'euro. Le moteur ancre ses années-
+ * subsistance en dollars, mais les comptes du Saint-Siège sont tenus en euros
+ * et le préréglage ne les convertit en dollars que pour entrer dans l'unité du
+ * moteur : la conversion inverse rend les montants d'origine. `null` pour zéro,
+ * à dessein. Voir runtime/money.js.
+ */
+export const fmtMoney = fmtMoneyFromUsd;
 
 /**
  * Une somme dans la monnaie du lecteur, en AS seulement quand la page n'a pas
@@ -51,7 +52,7 @@ export const fmtMoney = (value) => {
 export const moneyOf = (sy, usdPerSY) => {
   const n = Number(sy) || 0;
   if (!(usdPerSY > 0)) return `${fmtSY(n)} AS`;
-  return fmtMoney(n * usdPerSY) ?? "$0";
+  return fmtMoney(n * usdPerSY) ?? "0 €";
 };
 
 /**

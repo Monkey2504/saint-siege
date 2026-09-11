@@ -25,6 +25,7 @@
 // not opponents to negotiate with every turn.
 
 import { normalizeEconomy } from "./economy.js";
+import { EUR_USD_2024 } from "./money.js";
 import { anchorUnitValue } from "./economyBridge.js";
 import { normalizeIntents } from "./intents.js";
 import { normalizeOrganizations } from "./organizations.js";
@@ -258,7 +259,11 @@ export const seededIntents = (date = "") => [
 //   ~€21 M. Expenses €527.8 M (personnel 33%, general 36%, grants €127.9 M).
 //   APSA net patrimony €2,597 M (4,234 properties in Italy, ~1,200 abroad).
 //   Pension: ~$664 M unfunded for the Holy See alone (Farrell, 2022 basis).
-export const EUR_USD_2024 = 1.0824;               // ECB annual average, 2024
+// Le taux vit dans runtime/money.js, avec le format de la monnaie du lecteur :
+// il servait ici à entrer dans l'unité du moteur et là-bas à en ressortir, et
+// deux copies d'un même taux finissent par diverger. Réexporté pour que rien
+// n'ait à changer d'import.
+export { EUR_USD_2024 } from "./money.js";
 export const ITALY_GDP_PER_HEAD_USD_2024 = 39_000; // the anchor: the Vatican's economy IS Rome's
 export const HOLY_SEE_ACCOUNTS_2024 = Object.freeze({
   donationsEur: 237e6, governorateEur: 21e6, commercialEur: 109e6,

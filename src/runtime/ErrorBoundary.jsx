@@ -73,7 +73,7 @@ const styles = {
     gap: "1rem",
   },
   title: {
-    fontSize: "clamp(1.3rem, 3vw, 1.8rem)",
+    fontSize: "var(--oh-t-xl)",
     fontWeight: 700,
     letterSpacing: "0.04em",
     color: "var(--oh-alert)",

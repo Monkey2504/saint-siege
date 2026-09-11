@@ -83,7 +83,7 @@ export const Registre = ({ nav }) => {
   const usdPerSY = Number(player ? world?.economies?.[player]?.usdPerSY : 0) || 0;
 
   return (
-    <Feuille surface="press" nav={nav} entete={<EnTeteDeCahier titre="Le Registre" mention={mentionDeTour(game)} sousMention={`Unité : ${usdPerSY > 0 ? "dollars" : "années-subsistance (AS)"}`} />}>
+    <Feuille surface="press" nav={nav} entete={<EnTeteDeCahier titre="Le Registre" mention={mentionDeTour(game)} sousMention={`Unité : ${usdPerSY > 0 ? "euros, convertis des années-subsistance" : "années-subsistance (AS)"}`} />}>
       <Record record={world?.record} treasuries={world?.treasuries} player={player} usdPerSY={usdPerSY} />
     </Feuille>
   );

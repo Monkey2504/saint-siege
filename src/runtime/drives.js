@@ -17,7 +17,7 @@ const round1 = (v) => Math.round(v * 10) / 10;
 
 // USD per unit of the drive's currency, for the conversion into the economy's
 // subsistence-years through economy.usdPerSY. Unknown currencies count as USD.
-const USD_PER = { USD: 1, EUR: 1.0824, GBP: 1.278, CHF: 1.136, JPY: 0.0066, CAD: 0.73, AUD: 0.66 };
+const USD_PER = { USD: 1, EUR: EUR_USD_2024, GBP: 1.278, CHF: 1.136, JPY: 0.0066, CAD: 0.73, AUD: 0.66 };
 const CURRENCY_ALIASES = [
   [/€|\beuros?\b|\beur\b/i, "EUR"],
   [/\$|\bdollars?\b|\busd\b/i, "USD"],
@@ -539,3 +539,5 @@ export const describeDrives = (drives, { player = "", sinceDate = "", asOf = "" 
   lines.push("", DRIVES_RULES);
   return lines.join("\n");
 };
+
+import { EUR_USD_2024 } from "./money.js";

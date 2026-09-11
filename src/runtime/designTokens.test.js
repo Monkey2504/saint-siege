@@ -79,7 +79,11 @@ test("no font size is written outside the scale in the player-facing interface",
   for (const file of files) {
     const lines = fs.readFileSync(file, "utf8").split(/\r?\n/);
     lines.forEach((line, i) => {
-      if (/fontSize: "[0-9.]+(rem|px)"|font-size: [0-9.]+(rem|px)/.test(line) && !/clamp\(/.test(line)) {
+      // Un clamp() écrit dans un composant EST un corps inventé — c'est même la
+      // forme qu'ils prenaient tous : sept valeurs d'affichage sans rapport
+      // entre elles, chacune posée à son point d'usage. Les deux marches
+      // d'affichage de l'échelle portent leur clamp dans theme.css, une fois.
+      if (/fontSize: "[0-9.]+(rem|px)"|font-size: [0-9.]+(rem|px)|fontSize: "clamp\(/.test(line)) {
         offenders.push(`${rel(file)}:${i + 1}: ${line.trim().slice(0, 90)}`);
       }
     });
