@@ -11,7 +11,6 @@
 import { installWebApiRouter } from "./router.js";
 import { ensureSeeded } from "./libraryStore.js";
 import { showHomePage, shouldShowHome } from "./homePage.js";
-import { connectBestNode } from "./nodeConnect.js";
 
 // Everything the player owns lives in this origin's storage: the games and
 // scenarios in IndexedDB, and the ~215MB of map archives in the preload Cache.
@@ -46,8 +45,10 @@ export const installWebBackend = async () => {
   // Home page: connect to the best content node on entry.
   // Once the player has entered this tab session, just connect in the background.
   try {
+    // Plus de connexion à un nœud au chargement : elle allait chercher d'où
+    // descendraient des tuiles de carte que ce jeu ne montre jamais.
+    // resolveContentUrl résout le registre à la première tuile demandée.
     if (shouldShowHome()) showHomePage();
-    else connectBestNode().catch(() => {});
   } catch (error) {
     console.warn("Home page failed:", error.message);
   }

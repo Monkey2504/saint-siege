@@ -1,6 +1,6 @@
 # Rendu réel — bureau (1440×900)
 
-Capturé le 2026-09-11 14:24 · commit 5fe9890 · source http://localhost:4173
+Capturé le 2026-09-11 14:36 · commit 1ef15e6 · source http://localhost:4173
 
 Ces images sont le rendu réel du jeu dans un navigateur, pas une maquette.
 Une session sans navigateur (Claude Design) doit les lire avant de juger le graphisme.
@@ -14,12 +14,12 @@ Une session sans navigateur (Claude Design) doit les lire avant de juger le grap
 - `05-edition-du-tour.jpg` — capturé, 223 Ko
 - `06-ordres.png` — capturé, 128 Ko
 - `07-registre.png` — capturé, 134 Ko
-- `08-college.png` — capturé, 360 Ko
+- `08-college.png` — capturé, 365 Ko
 - `09-caisses.png` — capturé, 131 Ko
-- `10-correspondance.png` — capturé, 84 Ko
-- `11-courrier-ouvert.png` — capturé, 186 Ko
+- `10-correspondance.png` — capturé, 92 Ko
+- `11-courrier-ouvert.png` — capturé, 176 Ko
 
-Total du lot : 1892 Ko.
+Total du lot : 1895 Ko.
 
 ## Polices
 

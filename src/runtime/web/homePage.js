@@ -30,8 +30,6 @@
 //     pas d'application de bureau pour ce jeu, et le lien menait aux versions de
 //     l'amont.
 
-import { connectBestNode } from "./nodeConnect.js";
-
 const ENTERED_KEY = "oh:entered";
 
 // Le papier du journal, et rien d'autre. Tout est en tokens : une seule couleur
@@ -127,9 +125,13 @@ export const showHomePage = () => {
   document.body.append(overlay); // posé tout de suite — pas d'éclair du jeu derrière
   entrerBouton.focus();
 
-  // La connexion à un nœud reste utile à l'éditeur de scénario, qui lui affiche
-  // une carte. Elle tourne en fond et ne retient plus personne à la porte.
-  connectBestNode().catch(() => {});
+  // Aucune connexion à un nœud n'est ouverte ici. Elle l'était à chaque
+  // chargement, pour choisir d'où descendraient des tuiles de carte que ce jeu
+  // ne montre jamais : un appel au registre de l'amont, et un battement de cœur
+  // qui comptait le joueur parmi les utilisateurs d'un nœud communautaire qu'il
+  // n'utilisait pas. resolveContentUrl (web/contentTrust.js) résout le registre
+  // lui-même, à la première tuile réellement demandée — c'est-à-dire quand
+  // l'éditeur de scénario s'ouvre, et jamais avant.
 };
 
 // Si cette porte doit s'ouvrir au chargement (une fois franchie, plus pour cet

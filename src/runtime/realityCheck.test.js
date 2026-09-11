@@ -334,3 +334,30 @@ test("an order about debt or a funded liability meets the budget it draws on", (
   assert.ok(tax.domains.includes("tax"));
   assert.ok(!tax.constraints.some((c) => c.factor === "budget"), "raising revenue is not a new expense");
 });
+
+// J'avais noté que le verdict « bloqué » était inatteignable depuis une
+// trésorerie saine, et je m'étais trompé : il l'est, et pour la raison qui fait
+// ce jeu. Le pape n'a pas d'armée. Trois contraintes seulement franchissent
+// 0,90 — le budget vide (0,92), une portée administrative nulle (0,90 à
+// l'extrême), et l'absence de forces (0,95) — et c'est la troisième qui rend
+// « bloqué » vivant ici : « pas d'armée, un demi-kilomètre carré ».
+//
+// Le vote plafonne à 0,88 et l'opposition à 0,70, à dessein : le Collège
+// contraint un pape régnant, il ne le bloque pas. Ce test garde les deux.
+test("le pape n'a pas d'armée : un ordre militaire est bloqué, une réforme n'est que contrainte", () => {
+  const economie = {
+    treasury: 5e5, revenue: 1.2e6, spending: 1.1e6,
+    administrativeReach: 72, legitimacy: 70, fiscalCredibility: 65, debt: 0, gdp: 1e7,
+  };
+  const ctx = { playerPolity: "Saint-Siège", economy: economie, world: { organizations: [], intents: [], units: [] }, jumpDays: 30 };
+  const juge = (texte) => assessAction({ id: "x", kind: "action", status: "planned", text: texte, title: texte }, ctx);
+
+  const armee = juge("Lever une armée et envahir l'Italie.");
+  assert.equal(armee.verdict, "blocked", "une trésorerie saine ne fait pas apparaître des soldats");
+  assert.ok(armee.constraints.some((c) => c.factor === "forces" && c.severity >= 0.9));
+
+  // Et ce qu'un pape PEUT faire n'est pas bloqué pour autant : c'est contraint,
+  // ce qui est le verdict qui porte tout le jeu.
+  assert.equal(juge("Réformer la Curie romaine.").verdict, "constrained");
+  assert.equal(juge("Vendre le patrimoine immobilier pour les pauvres.").verdict, "constrained");
+});
