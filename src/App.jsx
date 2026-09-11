@@ -17,6 +17,7 @@ import {
   runStartupPreload,
 } from "./runtime/preload.js";
 import { ensureLibraryCatalog, useLibraryState } from "./runtime/library.js";
+import { startNewGame } from "./Game/GameUI/libraryBar.jsx";
 
 const WorldShell = {
   backgroundColor: "#000",
@@ -228,7 +229,17 @@ function GameApp() {
         author wants; somebody who has never played this kind of game needs to be
         told what it is first. */}
     {isReady && !needsKey && !entered && (
-      <Welcome hasSave={Boolean(activeGameId)} onBegin={() => setEntered(true)} />
+      <Welcome
+      hasSave={Boolean(activeGameId)}
+      onBegin={async (reprendre) => {
+        // Les deux boutons menaient au même endroit — la bibliothèque — et un
+        // joueur qui voulait reprendre sa partie tombait sur une liste de
+        // scénarios, d'archives et de clones. « Reprendre » rouvre la partie
+        // active ; « Commencer » en crée une et y entre. Rien entre les deux.
+        if (!reprendre) await startNewGame().catch(() => false);
+        setEntered(true);
+      }}
+      />
     )}
     </>
   );

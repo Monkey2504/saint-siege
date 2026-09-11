@@ -101,11 +101,22 @@ export const openLibraryTab = (tab) => {
   _openLibraryTab?.(tab);
 };
 
+// Set by the mounted LibraryTopBar: start a fresh game on the default scenario
+// and enter it. Returns false when the catalogue has not loaded yet, so the
+// caller can fall back rather than swallow the click.
+let _startNewGame = null;
+export const startNewGame = async () => (_startNewGame ? _startNewGame() : false);
+
 // Whether the main menu is showing. Lives at module scope because the whole UI
 // tree (this component included) remounts whenever the active game changes —
 // per-component state would reset to "open" mid game-start and the menu would
-// pop back over the freshly activated game. The app boots into the menu.
-let menuOpenDefault = true;
+// pop back over the freshly activated game.
+//
+// L'application ne démarre PLUS dessus. Un joueur qui ouvre le jeu veut
+// commencer ou reprendre, pas gérer une bibliothèque : la porte d'entrée est
+// l'écran de bienvenue et ses deux boutons (runtime/Welcome.jsx). La
+// bibliothèque reste atteignable par le ⋮, pour qui vient justement la gérer.
+let menuOpenDefault = false;
 // For background work that should not run for a game the player hasn't
 // actually entered (e.g. pre-game history generation while browsing the menu).
 export const isMainMenuOpen = () => menuOpenDefault;
@@ -1093,6 +1104,19 @@ const LibraryTopBar = () => {
   _openLibraryTab = (tab) => {
     setActiveTab(tab);
     setMenuOpen(true);
+  };
+  // « Commencer », depuis l'écran de bienvenue : une partie neuve sur le
+  // scénario du jeu, et on y entre. Pas de bibliothèque, pas de liste de
+  // scénarios, pas de choix de pays — le scénario nomme déjà le sien.
+  _startNewGame = async () => {
+    // « default » est l'identifiant du scénario livré avec le jeu, des deux
+    // côtés (serveur et web). Écrit en clair plutôt qu'importé de
+    // runtime/web/models.js, qui n'appartient qu'au build web : ce fichier-ci
+    // sert aussi l'application de bureau.
+    const scenario = scenarios.find((sc) => sc.id === "default") ?? scenarios[0];
+    if (!scenario) return false;
+    await startGameForCountry(scenario, "", "");
+    return true;
   };
   const [editorKind, setEditorKind] = useState(null);
   const [editorDetails, setEditorDetails] = useState(null);
