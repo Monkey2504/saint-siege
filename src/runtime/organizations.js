@@ -727,7 +727,18 @@ export const describeOrganizations = (organizations, { playerPolity = "", full =
     }
     const last = o.resolutions.at(-1);
     const head = `${o.name} [${o.kind}${o.status === "dissolved" ? `, dissolved ${o.dissolvedAt || ""}` : ""}]${o.founded ? ` founded ${o.founded}` : ""}${o.seat ? `, seat ${o.seat}` : ""}; ${o.votingRule}${o.leader ? `, led by ${o.leader}` : ""}.`;
-    const members = `  members (${o.members.length}): ${o.members.join(", ") || "none"}${player && o.members.includes(player) ? ` — ${player} is a member` : ""}.`;
+    // La liste est BORNÉE. L'Église catholique compte quarante-quatre membres,
+    // et les énumérer tous coûtait plus de jetons que toutes les chartes réunies
+    // — pour une information dont un tour se sert rarement. Le compte reste
+    // exact, les premiers membres sont nommés, et le joueur est toujours dedans
+    // s'il en fait partie : ce qui manque est une queue de noms que le modèle
+    // peut demander, pas un fait qu'il ne saurait plus.
+    const MEMBRES_NOMMES = 8;
+    const nommes = player && o.members.includes(player)
+      ? [player, ...o.members.filter((m) => m !== player)].slice(0, MEMBRES_NOMMES)
+      : o.members.slice(0, MEMBRES_NOMMES);
+    const reste = o.members.length - nommes.length;
+    const members = `  members (${o.members.length}): ${nommes.join(", ") || "none"}${reste > 0 ? `, +${reste} more` : ""}${player && o.members.includes(player) ? ` — ${player} is a member` : ""}.`;
     const charter = o.charter ? `  charter: ${o.charter}` : "";
     // The reason is the engine's count ("majority: 4 for, 2 against, 1 abstained (7 members)"),
     // so the model sees how the verdict was reached, not just what it was.
