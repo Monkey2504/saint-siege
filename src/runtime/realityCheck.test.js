@@ -36,8 +36,8 @@ test("a weak state: spending under a deficit, a reform beyond the state's reach,
   const ctx = { playerPolity: "Ruritania", economy: weak, world: {}, jumpDays: 365 };
   const build = assessAction(order("Build a national rail network"), ctx);
   assert.equal(build.verdict, "constrained");
-  assert.ok(build.constraints.some((c) => c.factor === "budget" && /short by/.test(c.detail)));
-  assert.ok(build.constraints.some((c) => c.factor === "reach" && /40%/.test(c.detail)));
+  assert.ok(build.constraints.some((c) => c.factor === "budget" && /manque déjà de/.test(c.detail)));
+  assert.ok(build.constraints.some((c) => c.factor === "reach" && /40 %/.test(c.detail)));
   const tax = assessAction(order("Raise a new land tax"), ctx);
   assert.ok(tax.constraints.some((c) => c.factor === "legitimacy" && /35\/100/.test(c.detail)));
 });
@@ -46,7 +46,7 @@ test("nothing to pay with blocks a purchase; no forces blocks an attack — the 
   const broke = normalizeEconomy({ ...solid(), treasury: 0, civilSpending: 1e12, financing: "austerity" });
   const buy = assessAction(order("Purchase new trains for the national railways"), { playerPolity: "X", economy: broke, world: {}, jumpDays: 365 });
   assert.equal(buy.verdict, "blocked");
-  assert.match(buy.constraints[0].detail, /nothing to pay with/);
+  assert.match(buy.constraints[0].detail, /rien pour payer/);
   const attack = assessAction(order("Invade the neighbour"), { playerPolity: "X", economy: solid(), world: { units: [] }, jumpDays: 30 });
   assert.equal(attack.verdict, "blocked");
   assert.equal(attack.constraints[0].factor, "forces");
@@ -69,7 +69,7 @@ test("the pope decides; what resists is the schemes already running and the time
   assert.ok(opposition, "the resistance is real, it is just not a ballot");
   assert.match(opposition.detail, /Bloc des cardinaux des dubia/, "the dubia fight liturgy");
   assert.match(opposition.detail, /Vieille garde/, "the old guard's scheme against restructuring is on the list");
-  assert.match(opposition.detail, /working for you: Compagnie de Jésus/);
+  assert.match(opposition.detail, /travaillent pour vous : Compagnie de Jésus/);
   assert.ok(!/Opus Dei/.test(opposition.detail), "Opus Dei has no stake in liturgy or the Curia: not against");
 
   const time = a.constraints.find((c) => c.factor === "time");
@@ -98,7 +98,7 @@ test("a body that decides by unanimity is scored as such (the enum is \"unanimit
   const a = assessAction(order("Bring the matter before the Security Council"), { playerPolity: "X", economy: solid(), world, jumpDays: 400 });
   const vote = a.constraints.find((c) => c.factor === "vote");
   assert.ok(vote, "the body is named, the player is a member: it must vote");
-  assert.match(vote.detail, /unanimity vote/);
+  assert.match(vote.detail, /vote unanimity/);
   assert.ok(vote.severity >= 0.4, `unanimity adds its own weight: ${vote.severity}`);
 });
 

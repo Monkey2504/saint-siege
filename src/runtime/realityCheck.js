@@ -153,38 +153,38 @@ export const assessAction = (action, ctx = {}) => {
         : e.financing === "austerity" ? Math.max(0, e.treasury)
         : Math.max(0, e.treasury) + Math.max(0, debtCeiling(e) - e.debt);
       if (balance < 0) {
-        const how = e.financing === "drawdown" ? `paid by eating the patrimony (${fmt(e.endowment)} SY left)`
-          : e.financing === "borrow" ? `borrowed at ${pct(interestRate(e))} with ${fmt(Math.max(0, debtCeiling(e) - e.debt))} SY of room`
-          : e.financing === "print" ? "printed, with the inflation that follows"
-          : `unpaid — austerity, ${fmt(Math.max(0, e.treasury))} SY in hand`;
+        const how = e.financing === "drawdown" ? `payée en entamant le patrimoine (${fmt(e.endowment)} AS restants)`
+          : e.financing === "borrow" ? `empruntée à ${pct(interestRate(e))}, avec ${fmt(Math.max(0, debtCeiling(e) - e.debt))} AS de marge`
+          : e.financing === "print" ? "imprimée, avec l'inflation qui suit"
+          : `impayée — austérité, ${fmt(Math.max(0, e.treasury))} AS en main`;
         push("budget", 0.35 + 0.45 * clamp(deficitShare * 4, 0, 1),
-          `the budget is already short by ${fmt(-balance)} SY/yr (${pct(deficitShare)} of revenue); every new expense is ${how}`,
-          "cut a spending line, raise revenue, or state what is dropped to pay for it");
+          `le budget manque déjà de ${fmt(-balance)} AS/an (${pct(deficitShare)} des recettes) ; toute dépense nouvelle est ${how}`,
+          "couper une ligne de dépense, lever des recettes, ou dire ce qu'on abandonne pour la payer");
       }
       if (room !== Infinity && room <= 0) {
-        push("budget", 0.92, "there is nothing to pay with: no treasury, no room to borrow, nothing left to sell", "find the money first — a loan, a donor, an asset sale");
+        push("budget", 0.92, "il n'y a rien pour payer : pas de trésorerie, pas de marge d'emprunt, plus rien à vendre", "trouver l'argent d'abord — un prêt, un donateur, une cession");
       }
       if (e.fiscalCredibility < 35 && e.financing === "borrow") {
-        push("credibility", 0.5, `lenders do not believe this state's promises (credibility ${Math.round(e.fiscalCredibility)}/100): new borrowing is dear or refused`, "a credible budget, a surplus, a guarantor");
+        push("credibility", 0.5, `les prêteurs ne croient pas aux promesses de cet État (crédibilité ${Math.round(e.fiscalCredibility)}/100) : emprunter coûte cher, ou est refusé`, "un budget crédible, un excédent, un garant");
       }
     }
     // --- reach: the state cannot implement where it is not present ---
     if ((has("reform") || has("spending") || has("tax") || has("social") || has("coercion")) && e.administrativeReach < 70) {
       push("reach", clamp((70 - e.administrativeReach) / 70, 0, 1) * 0.9,
-        `the state reaches ${Math.round(e.administrativeReach)}% of its territory; beyond that the order is a text nobody applies`,
-        "administrative capacity first (census, courts, paid officials) — years, not a decree");
+        `l'État atteint ${Math.round(e.administrativeReach)} % de son territoire ; au-delà, l'ordre est un texte que personne n'applique`,
+        "la capacité administrative d'abord (recensement, tribunaux, fonctionnaires payés) — des années, pas un décret");
     }
     // --- legitimacy: an order obeyed only where the state is accepted ---
     if ((has("reform") || has("tax") || has("coercion") || has("personnel")) && e.legitimacy < 55) {
       push("legitimacy", clamp((55 - e.legitimacy) / 55, 0, 1) * 0.85,
-        `legitimacy ${Math.round(e.legitimacy)}/100: a contested authority is resisted, evaded, or waited out`,
-        "win a visible success or a consent (vote, consultation) before the next imposition");
+        `légitimité ${Math.round(e.legitimacy)}/100 : une autorité contestée est combattue, contournée, ou attendue`,
+        "remporter un succès visible, ou un consentement (vote, consultation), avant la prochaine imposition");
     }
     // --- credibility: partners and markets price the past ---
     if ((has("diplomatic") || has("monetary")) && e.fiscalCredibility < 45) {
       push("credibility", clamp((45 - e.fiscalCredibility) / 45, 0, 1) * 0.7,
-        `credibility ${Math.round(e.fiscalCredibility)}/100: counterparts discount this state's word and demand guarantees up front`,
-        "deliver on one existing promise first");
+        `crédibilité ${Math.round(e.fiscalCredibility)}/100 : les partenaires escomptent la parole de cet État et exigent des garanties d'avance`,
+        "tenir d'abord une promesse déjà faite");
     }
   }
 
@@ -208,8 +208,8 @@ export const assessAction = (action, ctx = {}) => {
     const share = voters.length ? against.length / voters.length : 0;
     const need = o.votingRule === "unanimity" ? 1 : o.votingRule === "hegemon" ? 0.35 : 0.5;
     push("vote", clamp(0.2 + share * 0.6 - 0.05 * forIt.length + (o.votingRule === "unanimity" ? 0.2 : 0), 0.1, 0.88),
-      `${o.name} decides by ${o.votingRule} vote of ${voters.length} other members; against you on this: ${against.length} (${against.join(", ") || "none"}); with you: ${forIt.length} (${forIt.join(", ") || "none"}); the rest undeclared${share >= need ? " — as it stands, the vote is lost" : ""}`,
-      "trade, split or outflank the bloc: a concession to one member, a consistory, a rule change put to the body");
+      `${o.name} décide au vote ${o.votingRule} de ${voters.length} autres membres ; contre vous là-dessus : ${against.length} (${against.join(", ") || "aucun"}) ; avec vous : ${forIt.length} (${forIt.join(", ") || "aucun"}) ; les autres ne se sont pas déclarés${share >= need ? " — en l'état, le vote est perdu" : ""}`,
+      "traiter, diviser ou déborder le bloc : une concession à un membre, un consistoire, une règle mise au vote du corps");
   }
   // --- standing opposition: schemes already in motion against THIS kind of order ---
   const relevant = hostile.filter((it) => (INTENT_KIND_DOMAINS[it.kind] ?? []).some((d) => has(d)));
@@ -217,15 +217,15 @@ export const assessAction = (action, ctx = {}) => {
     const strongest = relevant.reduce((m, it) => Math.max(m, it.stage), 0);
     // One early scheme is a warning, not a wall; several far along are a wall.
     push("opposition", clamp(0.15 + 0.08 * relevant.length + 0.25 * (strongest / 100) - 0.05 * Math.min(3, supportive.length), 0.05, 0.7),
-      `${relevant.length} power${relevant.length > 1 ? "s are" : " is"} working against this: ${relevant.map((it) => `${it.owner} (${it.secret ? "in secret, " : ""}${it.kind}, ${it.stage}% along)`).join("; ")}${supportive.length ? `; working for you: ${supportive.map((it) => it.owner).join(", ")}` : ""}`,
-      "act on them before they act on you — expose, buy, or split them; lean on those with you");
+      `${relevant.length} puissance${relevant.length > 1 ? "s travaillent" : " travaille"} contre cela : ${relevant.map((it) => `${it.owner} (${it.secret ? "en secret, " : ""}${it.kind}, ${it.stage}% du chemin)`).join("; ")}${supportive.length ? ` ; travaillent pour vous : ${supportive.map((it) => it.owner).join(", ")}` : ""}`,
+      "agir sur elles avant qu'elles n'agissent sur vous — les exposer, les acheter, les diviser ; s'appuyer sur celles qui vous suivent");
   }
   // --- time ---
   const lag = Math.max(...domains.map((d) => IMPLEMENTATION_LAG_YEARS[d] ?? 0.5));
   if (years > 0 && years < lag) {
     push("time", clamp(0.35 * (1 - years / lag) + 0.15, 0, 0.5),
-      `this kind of order takes about ${lag} year${lag === 1 ? "" : "s"} to show results; this jump covers ${years.toFixed(2)}`,
-      "it is begun this turn, judged in a later one");
+      `ce genre d'ordre met environ ${lag} an${lag === 1 ? "" : "s"} à porter ; ce saut en couvre ${years.toFixed(2)}`,
+      "il est commencé ce tour-ci, jugé à un tour ultérieur");
   }
   // --- forces ---
   // Only an order that actually commits armed force can be stopped for having
@@ -234,7 +234,7 @@ export const assessAction = (action, ctx = {}) => {
   // not understanding the order rather than the world resisting it.
   if (has("military") && ARMED_FORCE.test(withoutLedgerLabels(text))) {
     const units = (Array.isArray(ctx.world?.units) ? ctx.world.units : []).filter((u) => lower(u?.owner ?? u?.ownerCode ?? u?.country) === lower(player));
-    if (!units.length) push("forces", 0.95, "no forces exist on the map under this polity's command", "raise or deploy units first");
+    if (!units.length) push("forces", 0.95, "aucune force n'existe sur la carte sous le commandement de cette puissance", "lever ou déployer des unités d'abord");
   }
 
   constraints.sort((a, b) => b.severity - a.severity);
