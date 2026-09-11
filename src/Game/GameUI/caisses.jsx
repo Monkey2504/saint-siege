@@ -14,13 +14,25 @@ import dayjs from "dayjs";
 import "dayjs/locale/fr";
 import { readGameData, readWorldState } from "../../runtime/gameState.js";
 import { normalizeTreasuries } from "../../runtime/treasuries.js";
-import { normalizeDrives } from "../../runtime/drives.js";
+import { normalizeDrives, usdFromMillions } from "../../runtime/drives.js";
 import { normalizeGatherings } from "../../runtime/gatherings.js";
 import { CONTENU_TOP } from "./chrome.js";
-import { CahierVide, EnTeteDeCahier, SectionHead, fmtCount, moneyOf } from "./journal.jsx";
+import { CahierVide, EnTeteDeCahier, SectionHead, fmtCount, fmtMoney, moneyOf } from "./journal.jsx";
+import { pourcent } from "../../runtime/money.js";
+
+// Une campagne ne compte PAS en années-subsistance. Ses chiffres sont des
+// millions dans sa propre monnaie (runtime/drives.js), et le cahier les passait
+// tous les cinq par moneyOf, qui convertit des AS : « 96 millions d'euros
+// promis » s'imprimait « 143 k€ ». Deux unités portaient le même nom.
+const sommeDeCampagne = (millions, currency) => fmtMoney(usdFromMillions(millions, currency)) ?? "0 €";
 
 const cell = { fontSize: "var(--oh-t-xs)", padding: "0.35rem 0", verticalAlign: "baseline" };
-const chiffre = { ...cell, fontVariantNumeric: "tabular-nums", textAlign: "right", whiteSpace: "nowrap" };
+// Alignées à droite et sans la moindre marge horizontale, les colonnes
+// chiffrées se touchaient : la ligne d'en-têtes se lisait
+// « CAPITALREND.EN MAINREVERSÉ », d'un seul mot. Une gouttière à gauche suffit
+// — à droite, la colonne doit rester collée au bord pour que les unités
+// s'alignent d'une ligne à l'autre.
+const chiffre = { ...cell, fontVariantNumeric: "tabular-nums", paddingLeft: "0.9rem", textAlign: "right", whiteSpace: "nowrap" };
 
 /** Le cours d'une caisse, tracé sur ce que son journal a enregistré. */
 const Courbe = ({ points, ton = "var(--oh-accent)" }) => {
@@ -80,7 +92,7 @@ const Cotations = ({ caisses, usdPerSY, heure }) => {
             <span style={{ fontVariantNumeric: "tabular-nums" }}>{moneyOf(t.capital || t.treasury, usdPerSY)}</span>
             {v != null && (
               <span style={{ color: v >= 0 ? "var(--oh-grant)" : "var(--oh-alert)", marginLeft: "0.35rem" }}>
-                {v >= 0 ? "▲" : "▼"} {Math.abs(v * 100).toFixed(1)} %
+                {v >= 0 ? "▲" : "▼"} {pourcent(Math.abs(v))}
               </span>
             )}
           </span>
@@ -163,7 +175,7 @@ const Analyse = ({ caisses, campagnes, rassemblements, usdPerSY }) => {
       {ouvertes.length > 0 && (
         <p style={{ fontFamily: "var(--oh-font-serif)", fontSize: "var(--oh-t-base)", lineHeight: 1.55, margin: "0 0 0.7rem", maxWidth: "46ch" }}>
           {ouvertes.length} campagne{ouvertes.length > 1 ? "s sont ouvertes" : " est ouverte"} :{" "}
-          {ouvertes.map((d) => `${d.name}, ${moneyOf(d.collected, usdPerSY)} encaissés sur ${moneyOf(d.target, usdPerSY)}`).join(" ; ")}.
+          {ouvertes.map((d) => `${d.name}, ${sommeDeCampagne(d.collected, d.currency)} encaissés sur ${sommeDeCampagne(d.target, d.currency)}`).join(" ; ")}.
         </p>
       )}
 
@@ -217,7 +229,7 @@ const TableCaisses = ({ caisses, usdPerSY }) => {
                   )}
                 </td>
                 <td style={chiffre}>{t.capital > 0 ? moneyOf(t.capital, usdPerSY) : "—"}</td>
-                <td style={chiffre}>{t.margin > 0 ? `${(t.margin * 100).toFixed(1)} %` : "—"}</td>
+                <td style={chiffre}>{t.margin > 0 ? pourcent(t.margin) : "—"}</td>
                 <td style={chiffre}>{moneyOf(t.treasury, usdPerSY)}</td>
                 <td style={{ ...chiffre, color: t.deliveredPerYear > 0 ? "var(--oh-grant)" : "var(--oh-text-dim)" }}>
                   {t.deliveredPerYear > 0 ? moneyOf(t.deliveredPerYear, usdPerSY) : "—"}
@@ -242,7 +254,7 @@ const TableCaisses = ({ caisses, usdPerSY }) => {
   );
 };
 
-const TableCampagnes = ({ campagnes, usdPerSY }) => {
+const TableCampagnes = ({ campagnes }) => {
   const ouvertes = campagnes.filter((d) => d.status === "open");
   if (!campagnes.length) return null;
   return (
@@ -255,7 +267,7 @@ const TableCampagnes = ({ campagnes, usdPerSY }) => {
             <div style={{ alignItems: "baseline", display: "flex", gap: "0.6rem", justifyContent: "space-between" }}>
               <b style={{ fontSize: "var(--oh-t-xs)", fontWeight: 700 }}>{d.name}</b>
               <span style={{ fontSize: "var(--oh-t-xs)", fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" }}>
-                {moneyOf(d.collected, usdPerSY)} / {moneyOf(d.target, usdPerSY)}
+                {sommeDeCampagne(d.collected, d.currency)} / {sommeDeCampagne(d.target, d.currency)}
               </span>
             </div>
             <div style={{ background: "var(--oh-plate-2)", height: "4px", marginTop: "0.25rem", overflow: "hidden" }}>
@@ -263,7 +275,7 @@ const TableCampagnes = ({ campagnes, usdPerSY }) => {
             </div>
             {d.pledged > d.collected && (
               <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)", marginTop: "0.2rem" }}>
-                {moneyOf(d.pledged, usdPerSY)} promis, {Math.round((d.collected / Math.max(1, d.pledged)) * 100)} % encaissés
+                {sommeDeCampagne(d.pledged, d.currency)} promis, {pourcent(d.collected / Math.max(1, d.pledged), 0)} encaissés
               </div>
             )}
           </div>
@@ -385,7 +397,7 @@ export const Caisses = ({ nav = null }) => {
             <Analyse caisses={caisses} campagnes={campagnes} rassemblements={rassemblements} usdPerSY={usdPerSY} />
             <div style={{ display: "flex", flexDirection: "column", gap: "1.4rem" }}>
               <TableCaisses caisses={caisses} usdPerSY={usdPerSY} />
-              <TableCampagnes campagnes={campagnes} usdPerSY={usdPerSY} />
+              <TableCampagnes campagnes={campagnes} />
               <TableRassemblements rassemblements={rassemblements} usdPerSY={usdPerSY} />
             </div>
           </div>

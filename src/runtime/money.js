@@ -63,3 +63,21 @@ export const fmtSY = (value) => {
   if (abs >= 1e3) return `${signe}${Math.round(abs / 1e3).toLocaleString("fr-FR")} k`;
   return `${signe}${Math.round(abs)}`;
 };
+
+/**
+ * Une part, écrite à la française : virgule décimale et espace fine insécable
+ * avant le signe. « 8.0 % » se lisait sur le cahier des comptes, au milieu
+ * d'une page où tout le reste portait déjà la virgule ; le point décimal est de
+ * l'anglais autant que « Settings ». Prend une part (0,08), pas des points.
+ */
+export const pourcent = (part, chiffres = 1) => {
+  // Number(null) vaut zéro : sans ce garde, une part qu'on n'a pas s'imprimait
+  // « 0,0 % », ce qui est une affirmation, là où il faut un tiret.
+  if (part == null || part === "") return "—";
+  const n = Number(part);
+  if (!Number.isFinite(n)) return "—";
+  return `${decimale(n * 100, chiffres)} %`;
+};
+
+/** Un nombre à décimales, à la française. Le point décimal n'est pas français. */
+export const decimaleFr = decimale;

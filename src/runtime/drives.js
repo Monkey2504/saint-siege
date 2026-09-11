@@ -186,12 +186,19 @@ const findDrive = (drives, ref, { strict = false } = {}) => {
   return drives.find((d) => d.name.toLowerCase().includes(key) || key.includes(d.name.toLowerCase())) || null;
 };
 
+// Ce qu'une somme de campagne vaut en dollars. Les chiffres d'une campagne sont
+// des MILLIONS dans sa propre monnaie, jamais des années-subsistance : le cahier
+// des comptes les passait par moneyOf, qui convertit des AS, et « 96 millions
+// d'euros promis » s'imprimait « 143 k€ ». La conversion existait déjà, enfermée
+// dans syFromMillions ; elle sort d'un cran pour que l'affichage s'en serve.
+export const usdFromMillions = (millions, currency) =>
+  num(millions) * 1e6 * (USD_PER[str(currency).toUpperCase()] ?? 1);
+
 // SY the economy books for an amount in the drive's currency.
 export const syFromMillions = (millions, currency, economy) => {
   const usdPerSY = num(economy?.usdPerSY);
   if (!(usdPerSY > 0)) return 0;
-  const usd = num(millions) * 1e6 * (USD_PER[str(currency).toUpperCase()] ?? 1);
-  return usd / usdPerSY;
+  return usdFromMillions(millions, currency) / usdPerSY;
 };
 
 // The only lever. Returns the drives after the ops, the SY each owner's
