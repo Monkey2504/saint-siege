@@ -2056,318 +2056,12 @@ const LibraryTopBar = () => {
 
   return (
     <>
-      {/* In-game the full-width top bar is gone — the map gets the space. What
-          remains is a compact floating cluster beside the ⋮ settings button: a
-          small sleek pill with the session summary, plus Exit Game and ⏻.
-          Below the settings menu and date widget (z 9998/9999) so opening
-          either covers it instead of the other way around. */}
-      {!menuOpen && !isMobile && (
-        <div
-          style={{
-            alignItems: "center",
-            display: "flex",
-            fontFamily: "inherit",
-            gap: "0.45rem",
-            left: "5rem",
-            position: "fixed",
-            top: "0.5rem",
-            zIndex: 9997,
-          }}
-        >
-          <div
-            style={{
-              ...surfaceStyle,
-              borderRadius: "999px",
-              color: "var(--oh-text)",
-              fontSize: "var(--oh-t-xs)",
-              fontWeight: 600,
-              // Shrinks to nothing before it can reach under the date widget
-              // on narrow desktop windows (the widget owns the top right).
-              maxWidth: "min(34rem, max(0rem, calc(100vw - 44rem)))",
-              overflow: "hidden",
-              padding: "0.5rem 0.85rem",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {summaryText}
-          </div>
-          <button
-            onClick={() => setMenuOpen(true)}
-            title="Leave this game and return to the main menu"
-            type="button"
-            style={{ ...actionButtonStyle, ...surfaceStyle, borderRadius: "999px", fontSize: "var(--oh-t-xs)", minHeight: "0", padding: "0.5rem 0.85rem" }}
-          >
-            ⌂ Quitter la partie
-          </button>
-          {/* Shut the server down (phones/Termux have no terminal handy). Hidden
-              on the hosted website (web build) — there's no local server to stop
-              there, and the compile-time flag strips this from that bundle. */}
-          {!import.meta.env.VITE_OH_WEB && (
-            <button
-              onClick={handleShutdownServer}
-              title="Exit: shut down the Open Historia server"
-              type="button"
-              style={{
-                ...actionButtonStyle,
-                ...surfaceStyle,
-                background: "var(--oh-alert-soft)",
-                borderColor: "var(--oh-alert-soft)",
-                borderRadius: "999px",
-                color: "var(--oh-text-strong)",
-                fontSize: "var(--oh-t-xs)",
-                minHeight: "0",
-                minWidth: "0",
-                padding: "0.5rem 0.7rem",
-              }}
-            >
-              ⏻
-            </button>
-          )}
-        </div>
-      )}
+      {/* Le résumé de session, la sortie et l'arrêt du serveur vivaient dans
+          un bandeau flottant en haut à gauche. La maquette journal commence par
+          le bandeau du journal : rien ne doit se poser dessus. Ils sont passés
+          dans le menu ⋮, qui est déjà la porte de la bibliothèque — et « quitter
+          la partie » n'y a plus d'objet, puisque l'ouvrir revient au même. */}
 
-      {/* Phones: the date widget spans the whole top row, so Exit Game and ⏻
-          stack in the left gutter under the ⋮ settings button instead. */}
-      {!menuOpen && isMobile && (
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            fontFamily: "inherit",
-            gap: "0.45rem",
-            left: "0.5rem",
-            position: "fixed",
-            top: "5rem",
-            zIndex: 9997,
-          }}
-        >
-          <button
-            onClick={() => setMenuOpen(true)}
-            title="Leave this game and return to the main menu"
-            type="button"
-            style={{ ...actionButtonStyle, ...surfaceStyle, borderRadius: "12px", fontSize: "var(--oh-t-base)", height: "2.6rem", minHeight: "0", minWidth: "0", padding: 0, width: "2.6rem" }}
-          >
-            ⌂
-          </button>
-          {!import.meta.env.VITE_OH_WEB && (
-            <button
-              onClick={handleShutdownServer}
-              title="Exit: shut down the Open Historia server"
-              type="button"
-              style={{
-                ...actionButtonStyle,
-                ...surfaceStyle,
-                background: "var(--oh-alert-soft)",
-                borderColor: "var(--oh-alert-soft)",
-                borderRadius: "12px",
-                color: "var(--oh-text-strong)",
-                fontSize: "var(--oh-t-base)",
-                height: "2.6rem",
-                minHeight: "0",
-                minWidth: "0",
-                padding: 0,
-                width: "2.6rem",
-              }}
-            >
-              ⏻
-            </button>
-          )}
-        </div>
-      )}
-
-      {serverDown && (
-        <div
-          style={{
-            alignItems: "center",
-            background: "var(--oh-plate)",
-            color: "var(--oh-text-strong)",
-            display: "flex",
-            flexDirection: "column",
-            fontFamily: "inherit",
-            gap: "0.8rem",
-            inset: 0,
-            justifyContent: "center",
-            padding: "1rem",
-            position: "fixed",
-            textAlign: "center",
-            zIndex: 20000,
-          }}
-        >
-          <div style={{ fontSize: "var(--oh-t-xl)" }}>⏻</div>
-          <div style={{ fontSize: "var(--oh-t-md)", fontWeight: 800 }}>Server stopped</div>
-          <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)", maxWidth: "22rem" }}>
-            You can close this tab now. Run the launcher (or <code>node server/server.js</code>) to start it again.
-          </div>
-        </div>
-      )}
-
-      {isMapEditorOpen && (
-        <div style={{ position: "fixed", inset: 0, zIndex: 10050 }}>
-          <Suspense
-            fallback={
-              <div style={{ position: "fixed", inset: 0, background: "var(--oh-plate)", color: "var(--oh-text)", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "inherit" }}>
-                Loading map editor…
-              </div>
-            }
-          >
-            <MapEditor
-              onClose={() => {
-                setIsMapEditorOpen(false);
-                setMapEditorScenario(null);
-                setMapEditorSeed(null);
-              }}
-              scenarioName={mapEditorScenario?.name}
-              initialMap={mapEditorSeed}
-              onApplyToScenario={
-                mapEditorScenario ? (seed) => applyMapToScenario(mapEditorScenario, seed) : undefined
-              }
-            />
-          </Suspense>
-        </div>
-      )}
-
-      {countryPicker && (
-        <div
-          onClick={() => { setCountryPicker(null); setPlayGameId(null); setDifficultyPick(null); setCustomRegionData(null); setPickerOwnerOverrides(null); }}
-          style={{ position: "fixed", inset: 0, zIndex: 10060, background: "rgba(0,0,0,0.55)", display: "flex", alignItems: "center", justifyContent: "center" }}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            style={{ ...surfaceStyle, borderRadius: 16, width: difficultyPick ? "min(440px, 92vw)" : "min(640px, 92vw)", maxHeight: "80vh", display: "flex", flexDirection: "column", padding: "1rem", color: "var(--oh-text-strong)", fontFamily: "inherit", overflow: difficultyPick ? "visible" : "auto" }}
-          >
-            {difficultyPick ? (
-              <>
-                <div style={{ fontWeight: 800, fontSize: "var(--oh-t-base)" }}>Choisissez la difficulté</div>
-                <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)", margin: "0.15rem 0 0.7rem" }}>
-                  Avec quelle force le monde doit-il résister ?
-                </div>
-                {selectedCountryOption && (
-                  <div style={{ alignItems: "center", display: "flex", fontSize: "var(--oh-t-sm)", fontWeight: 700, gap: "0.5rem", marginBottom: "0.7rem" }}>
-                    <span aria-hidden="true" style={{ fontSize: "var(--oh-t-lg)" }}>
-                      {flagEmojiFromGid(selectedCountryOption.code) || "🏳️"}
-                    </span>
-                    <span>{selectedCountryOption.name}</span>
-                  </div>
-                )}
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.5rem", overflowY: "auto" }}>
-                  {DIFFICULTY_LEVELS.map((level) => (
-                    <button
-                      key={level.id}
-                      type="button"
-                      onClick={() => pickDifficulty(level.id)}
-                      style={{
-                        ...actionButtonStyle,
-                        alignItems: "center",
-                        background: "var(--oh-plate-2)",
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "0.2rem",
-                        padding: "0.75rem 0.5rem",
-                      }}
-                    >
-                      <span style={{ fontSize: "var(--oh-t-lg)", lineHeight: 1 }}>{level.emoji}</span>
-                      <span style={{ fontWeight: 700 }}>{level.label}</span>
-                      <span style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)", textAlign: "center" }}>{level.blurb}</span>
-                    </button>
-                  ))}
-                </div>
-                <button type="button" onClick={() => setDifficultyPick(null)} style={{ ...actionButtonStyle, marginTop: "0.6rem" }}>
-                  Back
-                </button>
-              </>
-            ) : (
-              <>
-                <div style={{ fontWeight: 800, fontSize: "var(--oh-t-base)" }}>
-                  {pickerTab === "faction" ? "Create your faction" : "Choose your country"}
-                </div>
-                <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)", margin: "0.15rem 0 0.6rem" }}>
-                  Starting “{countryPicker.name}”
-                </div>
-                {/* Refining an existing game (Apply-&-Play) only swaps the country;
-                    inventing a faction is a fresh-game concern, so the tabs show
-                    only for a true new game. */}
-                {!playGameId && (
-                  <div style={{ display: "flex", gap: "0.4rem", marginBottom: "0.7rem" }}>
-                    <button
-                      type="button"
-                      onClick={() => setPickerTab("country")}
-                      style={{
-                        ...actionButtonStyle,
-                        flex: 1,
-                        fontWeight: 700,
-                        background: pickerTab === "country" ? "var(--oh-accent-soft)" : "var(--oh-plate-2)",
-                        borderColor: pickerTab === "country" ? "var(--oh-accent-soft)" : undefined,
-                      }}
-                    >
-                      Pick a country
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setPickerTab("faction")}
-                      style={{
-                        ...actionButtonStyle,
-                        flex: 1,
-                        fontWeight: 700,
-                        background: pickerTab === "faction" ? "var(--oh-accent-soft)" : "var(--oh-plate-2)",
-                        borderColor: pickerTab === "faction" ? "var(--oh-accent-soft)" : undefined,
-                      }}
-                    >
-                      Create a faction
-                    </button>
-                  </div>
-                )}
-                {pickerTab === "faction" && !playGameId ? (
-                  <FactionCreator
-                    regionsGeojson={customRegionData}
-                    busy={isBusy}
-                    onCreate={(faction) => pickFaction(faction)}
-                    onCancel={() => { setCountryPicker(null); setPickerTab("country"); setCustomRegionData(null); setPickerOwnerOverrides(null); }}
-                  />
-                ) : (
-                  <>
-                    <button
-                      type="button"
-                      onClick={() => pickCountry("")}
-                      style={{ ...actionButtonStyle, justifyContent: "flex-start", background: "var(--oh-accent-soft)", marginBottom: "0.4rem" }}
-                    >
-                      {playGameId ? "Keep scenario default" : "Scenario default"}
-                    </button>
-                    <Suspense
-                      fallback={
-                        <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)", padding: "3rem 0", textAlign: "center" }}>
-                          Loading map…
-                        </div>
-                      }
-                    >
-                      <CountryPickerMap
-                        countryOptions={countryOptions}
-                        regionsGeojson={customRegionData}
-                        ownerOverrides={pickerOwnerOverrides}
-                        onPickCountry={(code) => pickCountry(code)}
-                      />
-                    </Suspense>
-                    <button type="button" onClick={() => { setCountryPicker(null); setPlayGameId(null); setCustomRegionData(null); setPickerOwnerOverrides(null); }} style={{ ...actionButtonStyle, marginTop: "0.6rem" }}>
-                      {playGameId ? "Terminé" : "Annuler"}
-                    </button>
-                  </>
-                )}
-              </>
-            )}
-          </div>
-        </div>
-      )}
-
-      <input
-        ref={importScenarioInputRef}
-        accept=".json,application/json,.zip,application/zip"
-        onChange={handleImportScenarioFile}
-        style={{ display: "none" }}
-        type="file"
-      />
-
-      {/* The Main Menu: a full page over everything in-game. Opens on app start
-          (module default) and via Exit Game; closes only by entering a game. */}
       {menuOpen && (
         <div
           style={{
@@ -2440,6 +2134,35 @@ const LibraryTopBar = () => {
             </div>
 
             <div style={{ alignItems: "center", display: "flex", gap: "0.55rem", justifyContent: "flex-end" }}>
+              {/* Ce qu'on jouait, dit là où l'on vient le quitter. */}
+              {summaryText && !isMobile && (
+                <span
+                  style={{
+                    color: "var(--oh-text-dim)",
+                    fontSize: "var(--oh-t-xs)",
+                    marginRight: "auto",
+                    maxWidth: "28rem",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {summaryText}
+                </span>
+              )}
+              {/* Arrêter le serveur (un téléphone ou Termux n'a pas de terminal
+                  sous la main). Absent du site hébergé : il n'y a pas de serveur
+                  local à arrêter, et le drapeau de compilation le retire. */}
+              {!import.meta.env.VITE_OH_WEB && (
+                <button
+                  onClick={handleShutdownServer}
+                  title="Arrêter le serveur Open Historia"
+                  type="button"
+                  style={{ ...actionButtonStyle, background: "var(--oh-alert-soft)", borderColor: "var(--oh-alert-soft)", color: "var(--oh-text-strong)" }}
+                >
+                  ⏻
+                </button>
+              )}
               {activeTab !== "community" && (
                 <button onClick={() => refreshLibraryCatalog({ force: true }).catch(() => {})} style={actionButtonStyle} type="button">
                   {isMobile ? "⟳" : "Rafraîchir"}

@@ -10,6 +10,7 @@
  * ligne, en regard des cahiers.
  */
 import React from "react";
+import { openLibraryTab } from "./libraryBar.jsx";
 
 export const BarreDesCahiers = ({ sections, current, onSelect, apercu = "" }) => (
   <nav
@@ -56,10 +57,31 @@ export const BarreDesCahiers = ({ sections, current, onSelect, apercu = "" }) =>
         );
       })}
     </div>
-    {apercu && (
-      <span className="oh-cahiers-apercu" style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)", whiteSpace: "nowrap" }}>
-        {apercu}
-      </span>
-    )}
+    <div style={{ alignItems: "baseline", display: "flex", gap: "0.9rem" }}>
+      {apercu && (
+        <span className="oh-cahiers-apercu" style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)", whiteSpace: "nowrap" }}>
+          {apercu}
+        </span>
+      )}
+      {/* La porte de la bibliothèque. Elle flottait sur la page ; depuis que la
+          feuille part du bord de l'écran, elle passait dessous et le joueur se
+          retrouvait enfermé dans sa partie. Elle est ici, au bout de la ligne. */}
+      <button
+        type="button"
+        onClick={() => openLibraryTab("games")}
+        title="Votre bibliothèque"
+        style={{
+          background: "none",
+          border: 0,
+          color: "var(--oh-text-dim)",
+          cursor: "pointer",
+          fontSize: "var(--oh-t-sm)",
+          lineHeight: 1,
+          padding: "0 0 0 0.2rem",
+        }}
+      >
+        ⋮
+      </button>
+    </div>
   </nav>
 );
