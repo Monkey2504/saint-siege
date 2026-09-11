@@ -32,6 +32,35 @@ import {
 // Usage: import { sendMessage, sendDiplomaticMessage, startChat, startDiplomaticChat, loadHistory, loadDiplomaticHistory, buildDiplomaticSystemPrompt } from './main.jsx'
 
 const GEMINI_DEFAULT_MODEL = "gemini-3.5-flash-lite";
+
+// Ce que ce modèle a déjà refusé, appris une fois pour la session.
+//
+// Mesuré sur le projet du joueur, palier gratuit, Gemini 3.5 Flash Lite :
+// requêtes par minute 13/15, requêtes par jour 284/500 — et JETONS PAR MINUTE
+// 339 950 pour un plafond de 250 000. C'est la seule des trois qui saute, et
+// voici pourquoi elle saute si vite.
+//
+// Un 400 fait retomber l'appel sur deux reprises — sans le budget de réflexion,
+// puis avec le schéma dans l'invite plutôt qu'en outil. Chaque reprise renvoie
+// la charge ENTIÈRE : le schéma du tour pèse à lui seul ~11 500 jetons, les
+// blocs invariants ~10 000. Un tour qui essuie deux refus envoie donc trois
+// fois le même paquet dans la même minute.
+//
+// Or les deux drapeaux vivaient DANS callGemini : ils repartaient à faux à
+// chaque appel. Un modèle qui refuse le budget de réflexion le refusait donc à
+// tous les tours, et le jeu repayait le même 400 et la même reprise, pour
+// toujours, sans jamais rien apprendre. Ici, le refus n'est retenu que s'il est
+// CONFIRMÉ — c'est-à-dire si la reprise sans cette partie a réussi — et il ne
+// survit pas au rechargement de la page : une erreur passagère coûte au pire
+// une session un peu moins ambitieuse, jamais un 400 par tour.
+const GEMINI_REFUS = new Map();
+const refusDe = (model) => GEMINI_REFUS.get(model) ?? { thinking: false, toolSchema: false };
+const retenirLeRefus = (model, quoi) => {
+    const avant = refusDe(model);
+    if (avant[quoi]) return;
+    GEMINI_REFUS.set(model, { ...avant, [quoi]: true });
+    console.warn(`[ai] Retenu pour ${model} : ne plus envoyer ${quoi === "thinking" ? "le budget de réflexion" : "le schéma comme outil"}.`);
+};
 const ANTHROPIC_DEFAULT_MODEL = "claude-haiku-4-5";
 const OPENAI_API_ENDPOINT = "https://api.openai.com/v1";
 const ANTHROPIC_API_ENDPOINT = "https://api.anthropic.com/v1";
@@ -613,7 +642,13 @@ async function callGemini(systemPrompt, history, {
                 contents: history,
                 generationConfig: {
                     maxOutputTokens: Math.max(1, Number(maxTokens) || 8192),
-                    ...(getReasoningEnabled() ? { thinkingConfig: { thinkingBudget: 8192 } } : {}),
+                    // Cette branche lève sur un 400 sans rien réessayer : si ce
+                    // modèle a déjà refusé le budget de réflexion ailleurs, le
+                    // lui renvoyer ici coûte une requête pour rien, et le joueur
+                    // n'a pas de réponse du tout.
+                    ...(getReasoningEnabled() && !refusDe(model).thinking
+                        ? { thinkingConfig: { thinkingBudget: 8192 } }
+                        : {}),
                 },
                 ...customParams,
             }),
@@ -628,10 +663,14 @@ async function callGemini(systemPrompt, history, {
         return streamed;
     }
 
-    // Set when the provider refuses the request outright: each names one part
-    // of the body to leave out on the next attempt (see the 400 handler).
-    let dropThinking = false;
-    let dropToolSchema = false;
+    // Ce que le fournisseur refuse : chacun nomme une partie du corps à laisser
+    // de côté. On PART de ce que ce modèle a déjà refusé cette session, pour ne
+    // pas repayer le même 400 — et la même charge entière — à chaque tour.
+    const appris = refusDe(model);
+    let dropThinking = appris.thinking;
+    let dropToolSchema = appris.toolSchema;
+    const aDemarreSansReflexion = dropThinking;
+    const aDemarreSansOutil = dropToolSchema;
 
     for (let attempt = 1; attempt <= retries; attempt++) {
         // With the tool dropped, the schema still has to reach the model, so
@@ -725,6 +764,12 @@ async function callGemini(systemPrompt, history, {
         }
 
         const data = await response.json();
+        // La requête est passée. Si elle n'est passée qu'après avoir laissé de
+        // côté une partie du corps, c'est cette partie que le modèle refuse :
+        // on le retient, et le tour suivant ne la renverra pas pour rien. Un
+        // drapeau qu'on portait DÉJÀ en entrant n'apprend rien de neuf.
+        if (dropThinking && !aDemarreSansReflexion) retenirLeRefus(model, "thinking");
+        if (dropToolSchema && !aDemarreSansOutil) retenirLeRefus(model, "toolSchema");
         // Why the model stopped. Thrown away until now, which left a quarter of
         // the turns in a campaign falling back with nothing said but "response
         // did not contain parseable JSON" — a sentence that cannot tell a reply
