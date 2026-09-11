@@ -160,7 +160,7 @@ const ActionItem = ({ action, onDelete, realityContext }) => {
             alignItems: "center",
             background: hovered ? "var(--oh-alert-soft)" : "none",
             border: "none",
-            borderRadius: "6px",
+            borderRadius: "var(--oh-r-flat)",
             // Red on a red tint cannot reach 4.5:1: the tint is the warning, the
             // glyph goes to ink while hovered.
             color: hovered ? "var(--oh-text-strong)" : "var(--oh-alert)",
@@ -190,10 +190,10 @@ const SuggestionCard = ({ topic, onQueue, queuedIds }) => {
     return (
         <div
         style={{
-            background: "var(--oh-plate-2)",
+            background: "transparent",
             border: "1px solid var(--oh-line)",
             borderLeft: contested ? "4px solid var(--oh-caution)" : "1px solid var(--oh-line)",
-            borderRadius: "12px",
+            borderRadius: "var(--oh-r-flat)",
             display: "flex",
             flexDirection: "column",
             gap: "0.55rem",
@@ -224,7 +224,7 @@ const SuggestionCard = ({ topic, onQueue, queuedIds }) => {
                 style={{
                     background: isQueued ? "var(--oh-grant-soft)" : "var(--oh-accent-soft)",
                     border: isQueued ? "1px solid var(--oh-grant)" : "1px solid var(--oh-accent-soft)",
-                    borderRadius: "10px",
+                    borderRadius: "var(--oh-r-flat)",
                     color: "var(--oh-text-strong)",
                     cursor: "pointer",
                     fontFamily: "inherit",
@@ -493,7 +493,7 @@ const ActionsPanel = ({ isOpen, onClose, onOpenAdvisor, embedded = false }) => {
                 : {
                     backgroundColor: "var(--oh-plate)",
                     border: "1px solid var(--oh-line)",
-                    borderRadius: "16px",
+                    borderRadius: "var(--oh-r-flat)",
                     bottom: isOpen ? "4.25rem" : "-30rem",
                     boxShadow: "-4px 0 24px rgba(0,0,0,0.4), inset 0 1px 0 var(--oh-line)",
                 }),
@@ -539,7 +539,7 @@ const ActionsPanel = ({ isOpen, onClose, onOpenAdvisor, embedded = false }) => {
         style={{
             background: "none",
             border: "none",
-            borderRadius: "6px",
+            borderRadius: "var(--oh-r-flat)",
             color: "var(--oh-text-dim)",
             cursor: "pointer",
             fontSize: "var(--oh-t-md)",
@@ -578,9 +578,9 @@ const ActionsPanel = ({ isOpen, onClose, onOpenAdvisor, embedded = false }) => {
         type="button"
         onClick={onOpenAdvisor}
         style={{
-            background: "var(--oh-accent-soft)",
-            border: "1px solid var(--oh-accent-soft)",
-            borderRadius: "10px",
+            background: "transparent",
+            border: "1px solid var(--oh-accent)",
+            borderRadius: "var(--oh-r-flat)",
             color: "var(--oh-accent)",
             cursor: "pointer",
             fontSize: "var(--oh-t-xs)",
@@ -607,9 +607,9 @@ const ActionsPanel = ({ isOpen, onClose, onOpenAdvisor, embedded = false }) => {
         onClick={refreshSuggestions}
         style={{
             alignItems: "center",
-            background: "var(--oh-plate-2)",
+            background: "transparent",
             border: "1px solid var(--oh-line)",
-            borderRadius: "10px",
+            borderRadius: "var(--oh-r-flat)",
             color: "var(--oh-text)",
             cursor: "pointer",
             display: "flex",
@@ -729,9 +729,9 @@ const ActionsPanel = ({ isOpen, onClose, onOpenAdvisor, embedded = false }) => {
         onChange={(event) => setInputValue(event.target.value)}
         onKeyDown={handleKeyDown}
         style={{
-            background: "var(--oh-plate-2)",
+            background: "transparent",
             border: "1px solid var(--oh-line)",
-            borderRadius: "10px",
+            borderRadius: "var(--oh-r-flat)",
             boxSizing: "border-box",
             color: "var(--oh-text)",
             fontFamily: "inherit",
@@ -761,7 +761,7 @@ const ActionsPanel = ({ isOpen, onClose, onOpenAdvisor, embedded = false }) => {
             alignItems: "center",
             background: "none",
             border: "none",
-            borderRadius: "8px",
+            borderRadius: "var(--oh-r-flat)",
             color: isImproving || inputValue.trim() ? "var(--oh-accent)" : "var(--oh-accent)",
             cursor: isImproving || inputValue.trim() ? "pointer" : "default",
             display: "flex",
@@ -786,7 +786,7 @@ const ActionsPanel = ({ isOpen, onClose, onOpenAdvisor, embedded = false }) => {
             alignItems: "center",
             background: inputValue.trim() && !isSubmitting && !isImproving ? "var(--oh-accent)" : "var(--oh-accent-soft)",
             border: "none",
-            borderRadius: "10px",
+            borderRadius: "var(--oh-r-flat)",
             color: inputValue.trim() && !isSubmitting && !isImproving ? "var(--oh-on-accent)" : "var(--oh-text)",
             cursor: inputValue.trim() && !isSubmitting && !isImproving ? "pointer" : "not-allowed",
             display: "flex",
@@ -847,7 +847,7 @@ const Actions = ({ onOpenAdvisor, hovered, setHovered, isOpen, onToggle }) => {
             : isOpen
             ? "1px solid var(--oh-accent-soft)"
             : "1px solid var(--oh-line)",
-            borderRadius: "10px",
+            borderRadius: "var(--oh-r-flat)",
             boxShadow: hovered
             ? "inset 0 1px 0 var(--oh-line), 0 2px 8px rgba(0,0,0,0.4)"
             : "inset 0 1px 0 var(--oh-line), inset 0 -1px 0 var(--oh-plate-2), 0 2px 6px rgba(0,0,0,0.35)",
