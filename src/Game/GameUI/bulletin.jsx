@@ -33,6 +33,7 @@ import { useSurface } from "../../runtime/useSurface.js";
 import { simulateAutoJump, simulateTimelineJump } from "../AI/gameplay.js";
 import { CONTENU_TOP } from "./chrome.js";
 import { CahierVide, SectionHead, fmtCount, fmtEntier, fmtMoney, fmtSY, moneyOf } from "./journal.jsx";
+import { ligneDeRegistre } from "../../runtime/registerWords.js";
 import { ApercuDuCollege } from "./college.jsx";
 
 // Written as a page, not as a panel dressed up as one. Nothing here inherits the
@@ -871,9 +872,9 @@ const Record = ({ record, treasuries, player, usdPerSY }) => {
                 <td>
                 <span style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)", display: "block" }}>
                 {fmtDate(row.date, "D MMM YYYY")}
-                {row.polity && row.polity !== player ? ` · ${bodies.get(row.polity.toLowerCase()) || row.polity}` : ""}
+                {row.polity && row.polity !== player ? ` · ${bodies.get(row.polity.toLowerCase()) || ligneDeRegistre(row.polity)}` : ""}
                 </span>
-                {row.what}
+                {ligneDeRegistre(row.what)}
                 </td>
                 <td style={{ color: row.amount < 0 ? "var(--oh-alert)" : "var(--oh-grant)", fontWeight: 700, whiteSpace: "nowrap" }}>
                 {row.amount < 0 ? "−" : "+"}{amountOf(row)}

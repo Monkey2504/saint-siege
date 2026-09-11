@@ -60,9 +60,9 @@ test("a purse earns, keeps its share, and hands the rest down the federation", (
   assert.ok(Math.abs(africa.treasury) < 1e-6, "a body retaining nothing keeps nothing");
 
   // Every movement left a row for the record.
-  assert.ok(out.rows.some((r) => /return on its placed capital/.test(r.what)));
+  assert.ok(out.rows.some((r) => /rendement de son capital placé/.test(r.what)));
   assert.ok(out.rows.some((r) => r.polity === "Nigeria" && r.amount > 0));
-  assert.ok(out.rows.some((r) => r.amount < 0 && /distributed to/.test(r.what)));
+  assert.ok(out.rows.some((r) => r.amount < 0 && /reversé à/.test(r.what)));
 });
 
 test("the solidarity key really sends more to the poorer member", () => {
@@ -267,7 +267,7 @@ test("an order to place idle cash turns treasury into capital, and nothing else"
   const t = out.world.treasuries[0];
   assert.equal(t.capital, 900);
   assert.equal(t.treasury, 0);
-  assert.match(out.rows[0].what, /cash placed as capital/);
+  assert.match(out.rows[0].what, /liquidités placées en capital/);
 
   // An order about nothing of the sort moves nothing.
   assert.deepEqual(treasuryMovesFromOrder({ id: "q", text: "Publier les comptes de l'APSA." }, { treasuries: world.treasuries }), []);

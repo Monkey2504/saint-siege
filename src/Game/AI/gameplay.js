@@ -2145,7 +2145,7 @@ const applySimulationResult = async ({
           ...worldWithImpacts.economies,
           [who]: { ...economy, treasury: (Number.isFinite(Number(economy?.treasury)) ? Number(economy.treasury) : 0) + left },
         };
-        rows.push({ date: nextGame.gameDate, polity: who, kind: "money", what: "legacies and unsolicited gifts", amount: left, unit: "SY", source: "step:bequests" });
+        rows.push({ date: nextGame.gameDate, polity: who, kind: "money", what: "legs et dons non sollicités", amount: left, unit: "SY", source: "step:bequests" });
         const entry = bequestEvent({ amount: left, player: who, date: nextGame.gameDate, economy });
         if (entry) {
           const normalized = normalizeEventEntry({ ...entry, id: `bequest-${nextGame.round}` }, turnEvents.length + battleEvents.length);
@@ -2156,13 +2156,13 @@ const applySimulationResult = async ({
 
     if (flow && Number(flow.years) > 0) {
       if (Math.round(Number(flow.balance) || 0) !== 0) {
-        rows.push({ date: nextGame.gameDate, polity: who, kind: "money", what: Number(flow.balance) < 0 ? "budget shortfall over the period" : "budget surplus over the period", amount: Number(flow.balance), unit: "SY", source: "step:balance" });
+        rows.push({ date: nextGame.gameDate, polity: who, kind: "money", what: Number(flow.balance) < 0 ? "déficit du budget sur la période" : "excédent du budget sur la période", amount: Number(flow.balance), unit: "SY", source: "step:balance" });
       }
       if (Number(flow.drawn) > 0) {
-        rows.push({ date: nextGame.gameDate, polity: who, kind: "patrimony", what: "patrimony sold to pay the bills", amount: -Number(flow.drawn), unit: "SY", source: "step:drawdown" });
+        rows.push({ date: nextGame.gameDate, polity: who, kind: "patrimony", what: "patrimoine vendu pour payer les factures", amount: -Number(flow.drawn), unit: "SY", source: "step:drawdown" });
       }
       if (Number(flow.borrowed) > 0) {
-        rows.push({ date: nextGame.gameDate, polity: who, kind: "money", what: "borrowed", amount: Number(flow.borrowed), unit: "SY", source: "step:borrowing" });
+        rows.push({ date: nextGame.gameDate, polity: who, kind: "money", what: "emprunté", amount: Number(flow.borrowed), unit: "SY", source: "step:borrowing" });
       }
     }
     if (rows.length) worldWithImpacts.record = appendRecord(worldWithImpacts.record, rows);

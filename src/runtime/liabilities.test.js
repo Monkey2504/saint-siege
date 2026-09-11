@@ -31,7 +31,7 @@ test("an order to ring-fence a liability moves it only as far as real capital ba
   const out = applyLiabilityMoves(w, moves, { player: "Saint-Siège" });
   assert.equal(out.world.economies["Saint-Siège"].unfundedLiabilities, 0, "640,000 of free capital covers all 400,000");
   assert.equal(out.world.treasuries.find((t) => t.body === "Une Seule Église").assumedLiabilities, 400_000);
-  assert.ok(out.rows.some((r) => /assumed an unfunded promise/.test(r.what)));
+  assert.ok(out.rows.some((r) => /a repris une promesse non financée/.test(r.what)));
 });
 
 test("a carrier with too little capital takes what it can, and the rest stays where it was", () => {
@@ -157,7 +157,7 @@ test("capital standing behind a promise stops being distributable", () => {
   // 240,000 of the 640,000 still earns: 12,000 a year on top of the 500 already
   // in hand, four fifths of which is handed on.
   assert.ok(Math.abs(paidAfter - (500 + 240_000 * 0.05) * 0.8) < 1e-6, `got ${paidAfter}`);
-  assert.ok(after.rows.some((r) => /consumed what that capital earned/.test(r.what)), "the record says why");
+  assert.ok(after.rows.some((r) => /a mangé ce que ce capital rapportait/.test(r.what)), "le registre dit pourquoi");
 });
 
 // The two-move version of the same trick: ring-fence the hole onto a body one

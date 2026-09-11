@@ -517,7 +517,7 @@ export const applyOrganizationMoves = (world, moves, { player = "" } = {}) => {
         date,
       });
       const founded = list[find(list, name)];
-      rows.push({ date, polity: str(player) || name, kind: "standing", what: `founded ${name}`, amount: founded.members.length, unit: "members", source: `order:found:${founded.kind}` });
+      rows.push({ date, polity: str(player) || name, kind: "standing", what: `a fondé ${name}`, amount: founded.members.length, unit: "members", source: `order:found:${founded.kind}` });
       continue;
     }
 
@@ -533,7 +533,7 @@ export const applyOrganizationMoves = (world, moves, { player = "" } = {}) => {
       }
       const had = org.members.length;
       run({ op: "dissolve", organization: org.name, date });
-      rows.push({ date, polity: org.name, kind: "standing", what: "dissolved", amount: -had, unit: "members", source: "order:dissolve" });
+      rows.push({ date, polity: org.name, kind: "standing", what: "dissous", amount: -had, unit: "members", source: "order:dissolve" });
       continue;
     }
 
