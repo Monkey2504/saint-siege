@@ -350,7 +350,10 @@ const Correspondence = ({ nav = null }) => {
         <button
         type="button"
         onClick={() => setComposing(true)}
-        style={{ background: "var(--oh-accent)", border: 0, color: "var(--oh-on-accent)", cursor: "pointer", fontFamily: "var(--oh-font-label)", fontSize: "var(--oh-t-xs)", fontWeight: 700, letterSpacing: "var(--oh-label-track)", padding: "0.7rem 1rem", textTransform: "var(--oh-label-case)" }}
+        // Le seul aplat bleu de la page, au milieu d'un journal qui n'imprime
+        // qu'en noir. La maquette veut un bouton plat, à l'encre : c'est ce qui
+        // le distingue des autres, pas sa couleur.
+        style={{ background: "var(--oh-text-strong)", border: 0, borderRadius: "var(--oh-r-flat)", color: "var(--oh-on-accent)", cursor: "pointer", fontFamily: "var(--oh-font-label)", fontSize: "var(--oh-t-xs)", fontWeight: 700, letterSpacing: "var(--oh-label-track)", padding: "0.7rem 1rem", textTransform: "var(--oh-label-case)" }}
         >
         Nouvelle lettre
         </button>

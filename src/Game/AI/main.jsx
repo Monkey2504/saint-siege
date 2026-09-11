@@ -5,7 +5,7 @@ import { describeLetter, describeStanding, readLetter } from "../../runtime/lett
 import { LEDGER_HONESTY_RULE, checkLedgerClaims, describeLedgerCorrections } from "../../runtime/claimCheck.js";
 import { economyIndicators } from "../../runtime/economy.js";
 import { toGeminiSchema } from "./geminiSchema.js";
-import { retryDelayFromRateLimit } from "./rateLimit.js";
+import { diagnosticDeQuota, retryDelayFromRateLimit } from "./rateLimit.js";
 import { VOICE_RULES, describeVoice, voiceFor } from "../../runtime/voices.js";
 import { yearOf } from "../../runtime/economyBridge.js";
 const LF = String.fromCharCode(10);
@@ -387,10 +387,10 @@ async function providerFetch(url, options = {}) {
         if (!PAGE_IS_LOCAL && !aborted && error instanceof TypeError && isLocalEndpoint(url)) {
             const site = typeof window !== "undefined" ? window.location.origin : "this site";
             throw new Error(
-                `${origin} refused the browser's request. A local AI server has to allow this site's ` +
-                `origin before ${site} can use it: restart Ollama with OLLAMA_ORIGINS=${site} ` +
-                `(LM Studio: turn on CORS in its server settings), then try again. ` +
-                `The desktop app needs no such setup.`,
+                `${origin} a refusé la requête du navigateur. Un serveur d'IA local doit autoriser ` +
+                `l'origine de ce site avant que ${site} puisse s'en servir : relancez Ollama avec ` +
+                `OLLAMA_ORIGINS=${site} (LM Studio : activez CORS dans les réglages de son serveur), ` +
+                `puis réessayez. L'application de bureau n'a besoin de rien de tel.`,
             );
         }
         throw error;
@@ -541,13 +541,13 @@ async function resolveModel(provider, { endpoint = "", headers = {}, fallbackMod
     }
 
     if (!providerSupportsModelDiscovery(provider)) {
-        throw new Error(`Go to **settings** and enter a model for ${providerLabel}.`);
+        throw new Error(`Ouvrez les **réglages** et indiquez un modèle pour ${providerLabel}.`);
     }
 
     const normalizedEndpoint = normalizeEndpoint(endpoint);
 
     if (!normalizedEndpoint) {
-        throw new Error(`Go to **settings** and enter an endpoint for ${providerLabel}.`);
+        throw new Error(`Ouvrez les **réglages** et indiquez une adresse pour ${providerLabel}.`);
     }
 
     try {
@@ -555,14 +555,14 @@ async function resolveModel(provider, { endpoint = "", headers = {}, fallbackMod
 
         if (!response.ok) {
             const payload = await readErrorPayload(response);
-            throw new Error(extractErrorMessage(payload, `Could not load models from ${providerLabel}.`));
+            throw new Error(extractErrorMessage(payload, `Impossible de lire la liste des modèles de ${providerLabel}.`));
         }
 
         const data = await response.json();
         const discoveredModel = pickLikelyChatModel(data?.data ?? []);
 
         if (!discoveredModel) {
-            throw new Error(`No models were returned by ${providerLabel}.`);
+            throw new Error(`${providerLabel} n'a renvoyé aucun modèle.`);
         }
 
         console.log(`Auto-detected ${providerLabel} model:`, discoveredModel);
@@ -571,7 +571,7 @@ async function resolveModel(provider, { endpoint = "", headers = {}, fallbackMod
     } catch (error) {
         if (signal?.aborted) throw signal.reason ?? error;
         console.warn(`Could not auto-detect model for ${providerLabel}:`, error);
-        throw new Error(`Could not auto-detect a model for ${providerLabel}. Enter a model manually in **settings**.`);
+        throw new Error(`Aucun modèle n'a pu être détecté pour ${providerLabel}. Indiquez-en un à la main dans les **réglages**.`);
     }
 }
 
@@ -588,7 +588,7 @@ async function callGemini(systemPrompt, history, {
     const apiKey = settings.apiKey.trim();
 
     if (!apiKey) {
-        throw new Error("Go to **settings** and paste your Gemini API key - you can get it at https://aistudio.google.com/app/apikey");
+        throw new Error("Ouvrez les **réglages** et collez votre clé Gemini — elle s'obtient sur https://aistudio.google.com/app/apikey");
     }
 
     const model = await resolveModel("gemini", {
@@ -621,10 +621,10 @@ async function callGemini(systemPrompt, history, {
         });
         if (!response.ok) {
             const payload = await readErrorPayload(response);
-            throw new Error(extractErrorMessage(payload, `Gemini API request failed (${response.status})`));
+            throw new Error(extractErrorMessage(payload, `Gemini a refusé la requête (${response.status}).`));
         }
         const streamed = await streamTextSSE(response, geminiStreamDelta, onChunk);
-        if (!streamed) throw new Error("Gemini response did not contain text.");
+        if (!streamed) throw new Error("La réponse de Gemini ne contenait aucun texte.");
         return streamed;
     }
 
@@ -682,15 +682,18 @@ async function callGemini(systemPrompt, history, {
                 await sleep(waitMs, signal);
                 continue;
             }
-            // A daily cap names no delay worth waiting out, so name the quota
-            // that actually ran out instead of blaming the balance for all of them.
-            const freeTier = /free_tier/i.test(details);
-            throw new Error(`Gemini returned 429. ${freeTier ? "The free-tier quota for this model is used up." : "Your balance or quota appears to be exhausted."} ${details}`.trim());
+            // Un plafond journalier ne nomme aucun délai qu'il vaille la peine
+            // d'attendre : on dit alors laquelle des trois limites a sauté,
+            // plutôt que d'accuser le portefeuille dans les trois cas. Google
+            // la nomme lui-même dans la charge utile ; quand il ne la nomme
+            // pas, on garde ses propres mots sans rien inventer.
+            const diagnostic = diagnosticDeQuota(payload);
+            throw new Error(`Gemini a refusé la requête (429). ${diagnostic || "Votre solde ou votre quota semble épuisé."} ${details}`.trim());
         }
 
         if (response.status === 503) {
             if (attempt === retries || !canRetryBeforeDeadline(deadline, retryDelay)) {
-                throw new Error(`Gemini is temporarily unavailable after ${retries} attempts. Try again in a minute.`);
+                throw new Error(`Gemini reste indisponible après ${retries} tentatives. Réessayez dans une minute.`);
             }
 
             console.warn(`Gemini is busy. Retrying in ${retryDelay / 1000}s... (attempt ${attempt}/${retries})`);
@@ -718,7 +721,7 @@ async function callGemini(systemPrompt, history, {
                     continue;
                 }
             }
-            throw new Error(extractErrorMessage(payload, `Gemini API request failed (${response.status})`));
+            throw new Error(extractErrorMessage(payload, `Gemini a refusé la requête (${response.status}).`));
         }
 
         const data = await response.json();
@@ -735,7 +738,7 @@ async function callGemini(systemPrompt, history, {
         const text = joinGeminiParts(data?.candidates?.[0]?.content?.parts);
 
         if (!text) {
-            throw new Error("Gemini response did not contain text.");
+            throw new Error("La réponse de Gemini ne contenait aucun texte.");
         }
 
         return text;
@@ -870,7 +873,7 @@ async function callOpenAIStyleChatCompletions({
         if (response.status === 429 || response.status === 503) {
             if (attempt === retries || !canRetryBeforeDeadline(deadline, retryDelay)) {
                 const payload = await readErrorPayload(response);
-                throw new Error(extractErrorMessage(payload, `${providerLabel} is busy right now. Try again in a moment.`));
+                throw new Error(extractErrorMessage(payload, `${providerLabel} est occupé pour l'instant. Réessayez dans un moment.`));
             }
 
             console.warn(`${providerLabel} is busy. Retrying in ${retryDelay / 1000}s... (attempt ${attempt}/${retries})`);
@@ -881,7 +884,7 @@ async function callOpenAIStyleChatCompletions({
 
         if (!response.ok) {
             const payload = await readErrorPayload(response);
-            throw new Error(extractErrorMessage(payload, `${providerLabel} request failed (${response.status})`));
+            throw new Error(extractErrorMessage(payload, `${providerLabel} a refusé la requête (${response.status}).`));
         }
 
         // Advisor/chat streaming: forward tokens to the UI as they arrive. Guard
@@ -889,7 +892,7 @@ async function callOpenAIStyleChatCompletions({
         // JSON) safely falls through to the buffered path below.
         if (onChunk && !tool && String(response.headers.get("content-type") || "").includes("text/event-stream")) {
             const streamed = await streamTextSSE(response, openaiStreamDelta, onChunk);
-            if (!streamed) throw new Error(`${providerLabel} response did not contain text.`);
+            if (!streamed) throw new Error(`La réponse de ${providerLabel} ne contenait aucun texte.`);
             return streamed;
         }
 
@@ -911,7 +914,7 @@ async function callOpenAIStyleChatCompletions({
         }
 
         if (!text) {
-            throw new Error(`${providerLabel} response did not contain text.`);
+            throw new Error(`La réponse de ${providerLabel} ne contenait aucun texte.`);
         }
 
         return text;
@@ -923,7 +926,7 @@ async function callOpenAI(systemPrompt, history, opts = {}) {
     const apiKey = settings.apiKey.trim();
 
     if (!apiKey) {
-        throw new Error("Go to **settings** and paste your OpenAI API key.");
+        throw new Error("Ouvrez les **réglages** et collez votre clé OpenAI.");
     }
 
     const headers = {
@@ -957,7 +960,7 @@ async function callOpenAICompatible(systemPrompt, history, opts = {}) {
     const endpoint = normalizeEndpoint(settings.endpoint);
 
     if (!endpoint) {
-        throw new Error("Go to **settings**, select OpenAI Compatible, and enter your endpoint (for example http://localhost:11434/v1).");
+        throw new Error("Ouvrez les **réglages**, choisissez « OpenAI Compatible », et indiquez votre adresse (par exemple http://localhost:11434/v1).");
     }
 
     const headers = {
@@ -1008,7 +1011,7 @@ async function callAnthropic(systemPrompt, history, {
     const apiKey = settings.apiKey.trim();
 
     if (!apiKey) {
-        throw new Error("Go to **settings** and paste your Anthropic API key.");
+        throw new Error("Ouvrez les **réglages** et collez votre clé Anthropic.");
     }
 
     const model = await resolveModel("anthropic", {
@@ -1060,7 +1063,7 @@ async function callAnthropic(systemPrompt, history, {
         if (response.status === 429 || response.status === 503) {
             if (attempt === retries || !canRetryBeforeDeadline(deadline, retryDelay)) {
                 const payload = await readErrorPayload(response);
-                throw new Error(extractErrorMessage(payload, "Anthropic is busy right now. Try again in a moment."));
+                throw new Error(extractErrorMessage(payload, "Anthropic est occupé pour l'instant. Réessayez dans un moment."));
             }
 
             console.warn(`Anthropic is busy. Retrying in ${retryDelay / 1000}s... (attempt ${attempt}/${retries})`);
@@ -1085,7 +1088,7 @@ async function callAnthropic(systemPrompt, history, {
 
         if (onChunk && !tool && String(response.headers.get("content-type") || "").includes("text/event-stream")) {
             const streamed = await streamTextSSE(response, anthropicStreamDelta, onChunk);
-            if (!streamed) throw new Error("Anthropic response did not contain text.");
+            if (!streamed) throw new Error("La réponse d'Anthropic ne contenait aucun texte.");
             return streamed;
         }
 
@@ -1098,7 +1101,7 @@ async function callAnthropic(systemPrompt, history, {
         const text = extractAnthropicText(data);
 
         if (!text) {
-            throw new Error("Anthropic response did not contain text.");
+            throw new Error("La réponse d'Anthropic ne contenait aucun texte.");
         }
 
         return text;
@@ -1118,7 +1121,7 @@ async function callAnthropicCompatible(systemPrompt, history, {
     const endpoint = normalizeEndpoint(settings.endpoint);
 
     if (!endpoint) {
-        throw new Error("Go to **settings**, select Anthropic Compatible, and enter your endpoint (a self-hosted Anthropic Messages API proxy).");
+        throw new Error("Ouvrez les **réglages**, choisissez « Anthropic Compatible », et indiquez votre adresse (un relais Anthropic Messages hébergé par vous).");
     }
 
     const apiKey = settings.apiKey.trim();
@@ -1165,7 +1168,7 @@ async function callAnthropicCompatible(systemPrompt, history, {
         if (response.status === 429 || response.status === 503) {
             if (attempt === retries || !canRetryBeforeDeadline(deadline, retryDelay)) {
                 const payload = await readErrorPayload(response);
-                throw new Error(extractErrorMessage(payload, "The Anthropic-compatible endpoint is busy right now. Try again in a moment."));
+                throw new Error(extractErrorMessage(payload, "L'adresse compatible Anthropic est occupée pour l'instant. Réessayez dans un moment."));
             }
 
             console.warn(`Anthropic-compatible endpoint is busy. Retrying in ${retryDelay / 1000}s... (attempt ${attempt}/${retries})`);
@@ -1189,7 +1192,7 @@ async function callAnthropicCompatible(systemPrompt, history, {
 
         if (onChunk && !tool && String(response.headers.get("content-type") || "").includes("text/event-stream")) {
             const streamed = await streamTextSSE(response, anthropicStreamDelta, onChunk);
-            if (!streamed) throw new Error("Anthropic-compatible response did not contain text.");
+            if (!streamed) throw new Error("La réponse de l'adresse compatible Anthropic ne contenait aucun texte.");
             return streamed;
         }
 
@@ -1202,7 +1205,7 @@ async function callAnthropicCompatible(systemPrompt, history, {
         const text = extractAnthropicText(data);
 
         if (!text) {
-            throw new Error("Anthropic-compatible response did not contain text.");
+            throw new Error("La réponse de l'adresse compatible Anthropic ne contenait aucun texte.");
         }
 
         return text;
@@ -1605,7 +1608,7 @@ export async function sendDiplomaticMessage(playerMessage, speakingAs, countries
             raw = await callAI(freshPrompt, [...diplomaticHistory, { role: "user", parts: [{ text: `[It is now ${speakingAs}'s turn to respond to the above. Respond only as the leader of ${speakingAs}, in at least two sentences.\n\n${letter}]` }] }], { ...aiOpts, languageMode: "chat" });
             parsed = { reply: String(raw ?? "").trim(), reaction: parsed.reaction };
         }
-        if (!parsed.reply.trim()) throw new Error(`${speakingAs} sent no reply this time.`);
+        if (!parsed.reply.trim()) throw new Error(`${speakingAs} n'a rien répondu cette fois-ci.`);
         const { reply, reaction } = parsed;
         diplomaticHistory.push({ role: "model", parts: [{ text: `[${speakingAs}]: ${reply}` }] });
         return { reply, reaction };

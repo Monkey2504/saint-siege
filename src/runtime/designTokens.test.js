@@ -111,7 +111,10 @@ test("no font size is written outside the scale in the player-facing interface",
 // This test does not force French (a proper noun or a code name may be anything);
 // it forbids reintroducing the old rule by catching the English boilerplate that
 // used to be everywhere in these files.
-const ENGLISH_UI_TELLS = /(?:>|")\s*(?:Cancel|Close|Save|Delete|Send|Search|Loading|Settings|Back|Next|Confirm|Continue)\s*(?:<|")/;
+// La liste s'allonge d'un mot chaque fois qu'un mot anglais se fait prendre sur
+// une capture. Ceux-ci viennent du 11 septembre : « ORDER · PLANNED » au-dessus
+// d'un ordre écrit en français, et « Fallback » en marge d'un événement.
+const ENGLISH_UI_TELLS = /(?:>|")\s*(?:Cancel|Close|Save|Delete|Send|Search|Loading|Settings|Back|Next|Confirm|Continue|Order|Outreach|Fallback|Update|Reload|Restart|Dismiss|Retry|Done)\s*(?:<|")/;
 
 test("interface strings are in the player's own language, not waiting on a translator", () => {
   const offenders = [];
@@ -147,6 +150,10 @@ const ON_ACCENT_ALLOWED = [
   // y est la seule encre lisible, et le système n'a pas de token pour « encre
   // sur fond sombre ».
   { file: "GameUI/chat.jsx", pattern: /playerInput\.trim\(\) \? "var\(--oh-on-accent\)"/ },
+  // « Nouvelle lettre », dans la colonne des correspondants : même rôle que le
+  // bouton d'envoi ci-dessus, donc même aplat noir. Il était le seul aplat bleu
+  // d'un journal qui n'imprime qu'à l'encre.
+  { file: "GameUI/correspondence.jsx", pattern: /background: "var\(--oh-text-strong\)"/ },
   { file: "theme.css", pattern: /./ },
 ];
 

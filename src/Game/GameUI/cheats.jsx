@@ -255,7 +255,7 @@ const CheatsPanel = ({ open, onClose, onOpenForces }) => {
         {clickMode && (
             <div style={{ alignItems: "center", display: "flex", gap: "0.6rem", background: "var(--oh-plate)", border: "1px solid var(--oh-accent-soft)", borderRadius: 12, boxShadow: "0 6px 24px rgba(0,0,0,0.5)", color: "var(--oh-text-strong)", fontFamily: "inherit", fontSize: "var(--oh-t-xs)", left: "50%", padding: "0.6rem 0.9rem", position: "fixed", top: PANEL_TOP, transform: "translateX(-50%)", zIndex: 10070 }}>
             <span>{clickMode.label}</span>
-            <button type="button" onClick={endClickMode} style={{ ...primaryButtonStyle, padding: "0.3rem 0.6rem" }}>Done</button>
+            <button type="button" onClick={endClickMode} style={{ ...primaryButtonStyle, padding: "0.3rem 0.6rem" }}>Terminé</button>
             </div>
         )}
 

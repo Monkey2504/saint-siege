@@ -110,6 +110,18 @@ normalizeActionEntry({
     status: "planned",
 });
 
+// Le moteur garde ses clés en anglais — un ordre est « order », un état est
+// « planned » — et la ligne de tête les recopiait telles quelles : le joueur
+// lisait ORDER · PLANNED au-dessus d'un ordre qu'il venait d'écrire en français.
+// Une table d'affichage laisse les clés intactes et donne au lecteur les mots
+// de sa langue ; un état inconnu retombe sur sa clé plutôt que de disparaître.
+const LIBELLE_GENRE = Object.freeze({ action: "Ordre", chat: "Lettre" });
+const LIBELLE_ETAT = Object.freeze({
+    cancelled: "retiré",
+    planned: "en cours",
+    resolved: "jugé",
+});
+
 const ActionItem = ({ action, onDelete, realityContext }) => {
     const [hovered, setHovered] = React.useState(false);
     const normalized = normalizeActionEntry(action);
@@ -143,7 +155,7 @@ const ActionItem = ({ action, onDelete, realityContext }) => {
         >
         <div style={{ flex: 1, minWidth: 0 }}>
         <div className="oh-label" style={{ color: "var(--oh-text-dim)", marginBottom: "0.2rem" }}>
-        {normalized.kind === "chat" ? "Outreach" : "Order"} · {normalized.status}
+        {LIBELLE_GENRE[normalized.kind] || LIBELLE_GENRE.action} · {LIBELLE_ETAT[normalized.status] || normalized.status}
         </div>
         {showTitle && (
             <div style={{ color: "var(--oh-text-strong)", fontSize: "var(--oh-t-base)", fontWeight: 600, marginBottom: "0.1rem" }}>
@@ -688,7 +700,7 @@ const ActionsPanel = ({ isOpen, onClose, onOpenAdvisor, embedded = false }) => {
                 padding: "0.6rem 0.8rem",
             }}
             >
-            This order raises money but names no figure. Say what it seeks — “raise 500 million euros” — or the ledger has no number to follow, and nothing it brings in can ever be counted.
+            Cet ordre lève de l&apos;argent mais ne nomme aucun chiffre. Dites ce qu&apos;il cherche — « lever 500 millions d&apos;euros » — sinon le registre n&apos;a aucun nombre à suivre, et rien de ce qu&apos;il rapportera ne pourra jamais être compté.
             </div>
         )}
 

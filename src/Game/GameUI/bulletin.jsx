@@ -1250,7 +1250,21 @@ const Bulletin = ({ onOpenAdvisor, pressFocus = 0, nav = null }) => {
             {/* Un quota épuisé se répare avec une autre clé, et ce bandeau était
                 le seul endroit où le joueur apprenait le problème sans pouvoir
                 rien y faire — le champ vivait derrière le menu des réglages. Il
-                est ici, sous la raison qui le rend nécessaire. */}
+                est ici, sous la raison qui le rend nécessaire.
+
+                Mais le champ tout seul disait : votre clé est morte. « Comment
+                je peux parler et dire des bêtises si je n'ai plus API ? » Le
+                bandeau lit `simulationHistory[0]` — la DERNIÈRE édition
+                imprimée, pas l'état du moment. Un compteur par minute se
+                rouvre tout seul, les lettres continuent de partir pendant ce
+                temps, et le bandeau reste affiché jusqu'au prochain tour
+                réussi. Il faut le dire, sinon le joueur change une clé qui
+                n'avait rien. */}
+            <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)", marginTop: "0.4rem" }}>
+            Ceci rapporte la dernière édition imprimée, pas l&apos;état de cette minute : une limite
+            atteinte se rouvre d&apos;elle-même, et le bandeau ne disparaîtra qu&apos;au prochain tour
+            réussi. Changez de clé seulement si la raison ci-dessus met la clé en cause.
+            </div>
             <ChampDeCle />
             </div>
         )}
