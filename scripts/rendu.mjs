@@ -158,6 +158,17 @@ const reprendreSurLaPartieJouee = async (page) => {
   await siPresent(page, /Reprendre votre partie/i, 5000);
 };
 
+/** Ouvre la première lettre du Courrier : le fil ne se voit pas depuis la liste. */
+const ouvrirLaPremiereLettre = async (page) => {
+  const premiere = page.locator('[data-surface] button, [data-surface] [role="button"]')
+    .filter({ hasText: /Chemin synodal|Bloc des cardinaux|Compagnie de Jésus|Curie|Opus Dei|Vieille garde/ })
+    .first();
+  await premiere.click({ timeout: 20000 });
+  await page.waitForTimeout(3000);
+  await page.evaluate(() => { document.querySelectorAll('*').forEach((n) => { if (n.scrollTop) n.scrollTop = 0; }); });
+  await page.waitForTimeout(300);
+};
+
 /* ---------------------------------------------------------------- parcours */
 
 /**
@@ -184,6 +195,11 @@ const PARCOURS = [
   { fichier: '08-college',           faire: p => cliquer(p, /^Collège$/i) },
   { fichier: '09-caisses',           faire: p => cliquer(p, /^Caisses$/i) },
   { fichier: '10-correspondance',    faire: p => cliquer(p, /^Correspondance$/i) },
+
+  // Et la lettre OUVERTE. Le brief de la session de design est net : « le
+  // Courrier rempli est l'ancien chat repeint », et cela ne se voit QUE lettre
+  // ouverte. Une liste de correspondants ne montre pas le fil.
+  { fichier: '11-courrier-ouvert',   faire: ouvrirLaPremiereLettre },
 ];
 
 /* ---------------------------------------------------------------- capture  */

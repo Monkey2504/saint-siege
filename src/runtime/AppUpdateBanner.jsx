@@ -41,12 +41,14 @@ const text = { flex: 1, minWidth: 0 };
 const sub = { display: "block", fontWeight: 400, fontSize: "var(--oh-t-xs)", color: "var(--oh-text-dim)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" };
 const btn = {
   flex: "0 0 auto",
-  background: "var(--oh-accent)",
+  background: "var(--oh-text-strong)",
   border: "0",
-  borderRadius: "9px",
+  borderRadius: "var(--oh-r-flat)",
   color: "var(--oh-on-accent)",
   cursor: "pointer",
-  font: "700 0.82rem system-ui, sans-serif",
+  font: "700 0.82rem var(--oh-font-label), system-ui, sans-serif",
+  letterSpacing: "var(--oh-label-track)",
+  textTransform: "uppercase",
   padding: "0.45rem 0.9rem",
 };
 const dismissBtn = {
@@ -268,12 +270,12 @@ export default function AppUpdateBanner() {
   // download, so the honest thing to say is what the player can still do.
   const desktopStatus = () => {
     if (!desktop.auto || progress?.state === "error") {
-      return updating ? "Opening the download…" : "Download the new version and run it — your games are kept.";
+      return updating ? "Ouverture du téléchargement…" : "Téléchargez la nouvelle version et lancez-la — vos parties sont gardées.";
     }
-    if (progress?.state === "ready") return "Downloaded. Restart to finish — your games are kept.";
-    if (progress?.state === "downloading") return `Downloading the update… ${progress.percent || 0}%`;
-    if (progress?.state === "checking") return "Fetching the update…";
-    return "Installs itself in the background — your games are kept.";
+    if (progress?.state === "ready") return "Téléchargée. Redémarrez pour finir — vos parties sont gardées.";
+    if (progress?.state === "downloading") return `Téléchargement de la mise à jour… ${progress.percent || 0} %`;
+    if (progress?.state === "checking") return "Recherche de la mise à jour…";
+    return "S'installe toute seule en arrière-plan — vos parties sont gardées.";
   };
   const ready = Boolean(desktop && desktop.auto && progress?.state === "ready");
   // Anything the updater is still working through, by the same rule the poll uses —
@@ -284,31 +286,31 @@ export default function AppUpdateBanner() {
   return (
     <div style={bar} role="status" aria-live="polite">
       <div style={text}>
-        A new version of Open Historia is ready.
+        Une nouvelle version du jeu est prête.
         <span style={sub}>
           {desktop
             ? desktopStatus()
             : isWeb
-            ? (updating ? "Reloading…" : "Reload to get the latest fixes. Your games are saved.")
+            ? (updating ? "Rechargement…" : "Rechargez pour obtenir les dernières corrections. Vos parties sont gardées.")
             : updating
-              ? "Downloading… open the finished download to install and reopen."
-              : latest.notes || `Build ${latest.build} · tap Update to download and install.`}
+              ? "Téléchargement… ouvrez le fichier une fois fini pour installer et rouvrir."
+              : latest.notes || `Version ${latest.build} · touchez « Mettre à jour » pour télécharger et installer.`}
         </span>
       </div>
       {ready ? (
         <button type="button" style={btn} onClick={onRestart}>
-          Restart now
+          Redémarrer maintenant
         </button>
       ) : isWeb || desktop || latest.apk ? (
         <button type="button" style={btn} onClick={onUpdate} disabled={updating || busy}>
           {busy
             ? `${progress.percent || 0}%`
             : updating
-              ? (isWeb ? "Reloading…" : desktop ? "Opening…" : "Downloading…")
-              : "Update now"}
+              ? (isWeb ? "Rechargement…" : desktop ? "Ouverture…" : "Téléchargement…")
+              : "Mettre à jour"}
         </button>
       ) : null}
-      <button type="button" style={dismissBtn} onClick={onDismiss} aria-label="Dismiss update notice">
+      <button type="button" style={dismissBtn} onClick={onDismiss} aria-label="Masquer l'avis de mise à jour">
         ×
       </button>
     </div>

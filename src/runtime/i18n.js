@@ -3,9 +3,42 @@
 // UI language: chosen in Settings, stored on the SERVER (shared by every
 // device that plays through it — desktop browser and the Android app see the
 // same choice) and mirrored in localStorage so boot doesn't wait on a fetch.
-// "en" (the authored language) means no translation work happens at all.
+// La langue par défaut est celle dans laquelle le jeu est ÉCRIT : aucune
+// traduction n'a lieu quand le joueur la lit.
 const STORAGE_KEY = "ui_language";
-export const DEFAULT_LANGUAGE = "en";
+
+/**
+ * Le français, et c'est le cœur d'un défaut qui a duré une journée entière.
+ *
+ * Cette constante disait « en ». Elle ne dit pas quelle langue on préfère :
+ * elle dit dans quelle langue le jeu est écrit — et cette édition est écrite en
+ * français, en dur, depuis que `runtime/designTokens.test.js` l'exige (« les
+ * chaînes d'interface sont FRANÇAISES dans la source ; cette règle demandait
+ * l'inverse, et elle avait tort »).
+ *
+ * Ce que « en » produisait : un joueur qui n'a jamais ouvert les Réglages n'a
+ * rien de stocké, `getStoredLanguage()` rendait donc « en », et
+ * `chatLanguageDirective()` — qui force la consigne, même pour l'anglais —
+ * collait À LA FIN de chaque invite de chat, la position la plus forte :
+ *
+ *     « LANGUAGE: The player reads English (en). Write ALL natural-language
+ *       text in English… Reply in English regardless of the language of
+ *       earlier messages. »
+ *
+ * Le jeu demandait donc explicitement l'anglais au modèle, par-dessus le bloc
+ * [Langue] français posé ailleurs. Un cardinal répondait « Most Holy Father,
+ * while material provisions are governed by the Providence that feeds the
+ * birds… » à un pape qui écrivait en français, dans une interface entièrement
+ * française. Quatre passes de francisation n'y pouvaient rien : elles
+ * traduisaient l'écran, pendant qu'une ligne disait au modèle le contraire.
+ *
+ * En français, `languageDirective("fr")` rend maintenant une chaîne vide pour
+ * les tâches ordinaires — rien à demander, le jeu est déjà dans cette langue —
+ * et le chat, qui force, épingle le français au lieu de l'anglais. Un joueur
+ * qui choisit l'anglais dans les Réglages passe alors par le traducteur : c'est
+ * l'autre langue qui se dégrade, et non la sienne.
+ */
+export const DEFAULT_LANGUAGE = "fr";
 
 // What the advisor and diplomatic chats reply in, so the interface can be read
 // in one language and the chats held in another. Defaults to the UI language —

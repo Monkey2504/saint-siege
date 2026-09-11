@@ -382,7 +382,17 @@ const Correspondence = ({ nav = null }) => {
             <div style={{ minWidth: 0 }}>
             <div style={{ color: "var(--oh-text-strong)", fontFamily: "var(--oh-font-display)", fontSize: "var(--oh-t-lg)", fontWeight: 800, letterSpacing: "-0.03em", lineHeight: 1 }}>{activeNames}</div>
             <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)", marginTop: "0.4rem" }}>
-            {(activeChat.countries ?? []).length > 1 ? `${(activeChat.countries ?? []).length} à la table` : kindOf(activeChat) === "current" ? "un courant du collège" : kindOf(activeChat) === "body" ? "un organisme de l'époque" : "un État"}
+            {(activeChat.countries ?? []).length > 1
+                ? `${(activeChat.countries ?? []).length} à la table`
+                // Un correspondant que l'assemblée connaît EST un courant du
+                // collège : il y tient des sièges. Le brief l'a relevé — « le
+                // Chemin synodal n'est pas un État » — et c'était le défaut par
+                // défaut : faute de savoir, on écrivait « un État ». Le monde
+                // sait, et c'est lui qu'on lit.
+                : activeStanding ? "un courant du collège"
+                : kindOf(activeChat) === "current" ? "un courant du collège"
+                : kindOf(activeChat) === "body" ? "un organisme de l'époque"
+                : "un État"}
             {activeStanding ? ` · ${activeStanding.seats} ${activeStanding.seats === 1 ? "électeur" : "électeurs"}` : ""}
             </div>
             </div>
@@ -390,7 +400,7 @@ const Correspondence = ({ nav = null }) => {
             {activeStanding && (
                 <div>Opinion <b style={{ color: toneVar(activeStanding.tone) }}>{activeStanding.approval > 0 ? "+" : ""}{activeStanding.approval}, {activeStanding.mood}</b></div>
             )}
-            <div>{chatMessageCount(activeChat)} exchanged · {fmtDate(gameDate)}</div>
+            <div>{chatMessageCount(activeChat)} {chatMessageCount(activeChat) === 1 ? "lettre échangée" : "lettres échangées"} · {fmtDate(gameDate)}</div>
             </div>
             </div>
             <ConversationView

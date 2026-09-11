@@ -44,14 +44,21 @@ const useLetterheads = (names) => {
                     // same on read; this covers a world read before that).
                     leader: String(world.polityOverrides?.[name]?.leader ?? "").trim() || String(stats.leader ?? "").trim(),
                     government: String(stats.government ?? "").trim(),
-                    // What it is KNOWN to care about: its public character
-                    // (tags) plus the subjects its OPENLY declared aims name.
-                    // A secret scheme contributes nothing here — not its plan,
-                    // not its subject, not the fact that it exists.
-                    remit: [...new Set([
-                        ...(world.countryTags?.[name] ?? []).filter((t) => t && t !== "church-faction"),
-                        ...own.filter((it) => !it.secret).flatMap((it) => it.scope),
-                    ])].slice(0, 8),
+                    // `remit` a été RETIRÉ, et la donnée avec lui.
+                    //
+                    // Elle affichait au joueur les clés internes du moteur : les
+                    // tags du pays et les mots de portée des intentions, tels
+                    // quels. Le Chemin synodal allemand se présentait par
+                    // « progressive · synodal · reformist · synod · allemagne ·
+                    // germany · german · diacon » — la moitié en anglais, tout
+                    // en minuscules, sans un mot de français. Le brief de la
+                    // session de design : « Ce sont les clés internes du moteur.
+                    // Ne jamais les afficher. Si un résumé de position est
+                    // utile, c'est une phrase rédigée. »
+                    //
+                    // Ce que la fiche dit maintenant vient de `note` (la lore du
+                    // pays, écrite) et de `declared` (les objectifs déclarés,
+                    // rédigés). Les deux sont des phrases.
                     declared: own.filter((it) => !it.secret).map((it) => it.summary),
                 };
             }
@@ -68,7 +75,7 @@ const useLetterheads = (names) => {
 // is exposed, and the engine keeps it out of here on purpose.
 const Letterhead = ({ name, head, flagUrl }) => {
     if (!head) return null;
-    const hasAnything = head.note || head.leader || head.government || head.declared.length || head.remit?.length;
+    const hasAnything = head.note || head.leader || head.government || head.declared.length;
     if (!hasAnything) return null;
     return (
         <div className="oh-plate" style={{ padding: "0.8rem 0.95rem 0.75rem", alignSelf: "stretch" }}>
@@ -87,20 +94,14 @@ const Letterhead = ({ name, head, flagUrl }) => {
             </div>
         )}
         <div className="oh-rule" style={{ margin: "0.55rem 0 0.45rem" }} />
-        {head.remit?.length > 0 && (
-            <div style={{ fontSize: "var(--oh-t-xs)", lineHeight: 1.4, marginBottom: "0.35rem" }}>
-            <span className="oh-label" style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)" }}>Its ground</span>
-            <div data-no-translate style={{ color: "var(--oh-text-strong)", marginTop: "0.1rem" }}>{head.remit.join(" · ")}</div>
-            </div>
-        )}
         <div style={{ fontSize: "var(--oh-t-xs)", lineHeight: 1.4 }}>
-        <span className="oh-label" style={{ color: "var(--oh-alert)", fontSize: "var(--oh-t-2xs)" }}>What it says it wants</span>
+        <span className="oh-label" style={{ color: "var(--oh-alert)", fontSize: "var(--oh-t-2xs)" }}>Ce qu&apos;il dit vouloir</span>
         {head.declared.length ? (
             <ul style={{ margin: "0.2rem 0 0", paddingLeft: "1.1rem", color: "var(--oh-text-strong)" }}>
             {head.declared.map((line, i) => <li key={i}>{line}</li>)}
             </ul>
         ) : (
-            <div style={{ color: "var(--oh-text-dim)", marginTop: "0.15rem" }}>Nothing declared. What it really wants, you will have to make it say — or infer from what it fights.</div>
+            <div style={{ color: "var(--oh-text-dim)", marginTop: "0.15rem" }}>Rien de déclaré. Ce qu&apos;il veut vraiment, il faudra le lui faire dire — ou le déduire de ce qu&apos;il combat.</div>
         )}
         </div>
         </div>
@@ -378,7 +379,7 @@ const MessageBubble = ({ msg }) => {
             </span>
             {received && (
                 <span style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)", fontStyle: "italic", textAlign: "right", whiteSpace: "nowrap" }}>
-                Dispatch<br />received {received}
+                Lettre<br />reçue le {received}
                 </span>
             )}
             </div>
@@ -607,7 +608,7 @@ const CountrySelectorModal = ({
         </div>
         <div style={{ position: "relative", display: "flex", alignItems: "center", marginTop: "0.75rem" }}>
         <span style={{ position: "absolute", left: "0.75rem", color: "var(--oh-text-strong)", display: "flex", pointerEvents: "none" }}><SearchIcon /></span>
-        <input type="text" placeholder="Search countries..." value={search} onChange={e => setSearch(e.target.value)}
+        <input type="text" placeholder="Chercher…" value={search} onChange={e => setSearch(e.target.value)}
         style={{ width: "100%", padding: "0.55rem 0.85rem 0.55rem 2.2rem", borderRadius: "10px", border: "1px solid var(--oh-line)", background: "var(--oh-plate-2)", color: "var(--oh-text-strong)", fontSize: "var(--oh-t-xs)", outline: "none", boxSizing: "border-box", fontFamily: "inherit" }}
         onFocus={e => e.target.style.borderColor = "var(--oh-accent-soft)"}
         onBlur={e => e.target.style.borderColor = "var(--oh-line)"} />
@@ -906,13 +907,17 @@ const ConversationView = ({ chat, playerCountry, gameDate, onDelete, onBack, onM
             </div>
             )}
 
-            <div style={{ flex: 1, overflowY: "auto", overflowX: "visible", scrollbarWidth: "none", padding: page ? "1rem 0" : "0.75rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
+            <div style={{ flex: 1, overflowY: "auto", overflowX: "visible", scrollbarWidth: "none", padding: page ? "1rem 0" : "0.75rem", display: "flex", flexDirection: "column", gap: "1rem",
+                // Une lettre se lit dans une colonne. Sans cette mesure, le fil
+                // courait jusqu'au bord sur quinze cents pixels, et « Opinion 0,
+                // réservé » se faisait couper au passage.
+                ...(page ? { maxWidth: "62ch" } : null) }}>
             {countries.map((c) => (
                 <Letterhead key={c.name} name={c.name} head={letterheads[c.name]} flagUrl={letterheadFlags[c.name] ?? null} />
             ))}
             {messages.length === 0 && !isLoading && (
                 <p style={{ fontSize: page ? "var(--oh-t-md)" : "var(--oh-t-sm)", color: "var(--oh-text-dim)", fontStyle: "italic", textAlign: page ? "left" : "center", marginTop: page ? "0.5rem" : "1.5rem", maxWidth: page ? "48ch" : undefined, lineHeight: 1.5 }}>
-                {page ? `Nothing has been written to ${addressee} yet. Your letter opens the exchange; the answer comes in its own voice, on its own terms.` : "Begin the diplomatic conversation."}
+                {page ? `Rien n'a encore été écrit à ${addressee}. Votre lettre ouvre l'échange ; la réponse vient dans sa propre voix, à ses propres conditions.` : "Ouvrez la conversation."}
                 </p>
             )}
             {messages.map((msg, i) => <MessageBubble key={i} msg={msg} chatCountries={countries} />)}
@@ -949,9 +954,9 @@ const ConversationView = ({ chat, playerCountry, gameDate, onDelete, onBack, onM
                 )}
                 </div>
             ) : phase === "player" && !isLoading ? (
-                <div style={{ padding: page ? "1rem 0 1.2rem" : "1rem", borderTop: "1px solid var(--oh-line)", display: "flex", alignItems: page ? "flex-end" : "center", gap: "0.5rem", flexShrink: 0 }}>
+                <div style={{ padding: page ? "1rem 0 1.2rem" : "1rem", borderTop: "1px solid var(--oh-line)", display: "flex", alignItems: page ? "flex-end" : "center", gap: "0.5rem", flexShrink: 0, ...(page ? { maxWidth: "62ch" } : null) }}>
                 <textarea
-                placeholder={page ? `Write to ${addressee}… (Shift+Enter for a new line)` : "Send a diplomatic message…"}
+                placeholder={page ? `Répondre à ${addressee}… (Maj+Entrée pour une nouvelle ligne)` : "Écrire une lettre…"}
                 rows={1} value={playerInput}
                 onChange={e => setPlayerInput(e.target.value)}
                 onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handlePlayerSubmit(); } }}
@@ -961,7 +966,7 @@ const ConversationView = ({ chat, playerCountry, gameDate, onDelete, onBack, onM
                 onBlur={e => e.target.style.borderColor = "var(--oh-line)"}
                 />
                 <button onClick={handlePlayerSubmit} disabled={!playerInput.trim()}
-                style={{ backgroundColor: playerInput.trim() ? "var(--oh-accent)" : "var(--oh-accent-soft)", color: playerInput.trim() ? "var(--oh-on-accent)" : "var(--oh-text-strong)", border: "none", borderRadius: "10px", width: page ? "auto" : "2.5rem", height: page ? "auto" : "2.5rem", padding: page ? "0.8rem 1.4rem" : 0, display: "flex", alignItems: "center", justifyContent: "center", cursor: playerInput.trim() ? "pointer" : "not-allowed", flexShrink: 0, fontFamily: page ? "var(--oh-font-label)" : "inherit", fontSize: page ? "var(--oh-t-xs)" : "var(--oh-t-base)", fontWeight: 700, letterSpacing: page ? "var(--oh-label-track)" : undefined, textTransform: page ? "var(--oh-label-case)" : undefined, transition: "background-color 0.2s" }}
+                style={{ backgroundColor: playerInput.trim() ? "var(--oh-text-strong)" : "var(--oh-plate-2)", color: playerInput.trim() ? "var(--oh-on-accent)" : "var(--oh-text-dim)", border: "none", borderRadius: page ? "var(--oh-r-flat)" : "10px", width: page ? "auto" : "2.5rem", height: page ? "auto" : "2.5rem", padding: page ? "0.8rem 1.4rem" : 0, display: "flex", alignItems: "center", justifyContent: "center", cursor: playerInput.trim() ? "pointer" : "not-allowed", flexShrink: 0, fontFamily: page ? "var(--oh-font-label)" : "inherit", fontSize: page ? "var(--oh-t-xs)" : "var(--oh-t-base)", fontWeight: 700, letterSpacing: page ? "var(--oh-label-track)" : undefined, textTransform: page ? "var(--oh-label-case)" : undefined, transition: "background-color 0.2s" }}
                 onMouseEnter={e => { if (playerInput.trim()) e.currentTarget.style.backgroundColor = "var(--oh-accent)"; }}
                 onMouseLeave={e => { if (playerInput.trim()) e.currentTarget.style.backgroundColor = "var(--oh-accent)"; }}
                 >{page ? "Envoyer" : "🚀"}</button>

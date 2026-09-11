@@ -141,6 +141,12 @@ const ON_ACCENT_ALLOWED = [
   // d'autre token pour « encre sur fond sombre ». Même cas que le bouton de
   // presse du bulletin, déjà admis plus haut.
   { file: "GameUI/caisses.jsx", pattern: /color: "var\(--oh-on-accent\)"/ },
+  // Le bouton d'envoi d'une lettre : un aplat noir, comme METTRE SOUS PRESSE
+  // dont il partage le rôle — l'action principale de la page. Il était arrondi
+  // et bleu, ce qui en faisait le seul bouton de ce genre du journal. Du blanc
+  // y est la seule encre lisible, et le système n'a pas de token pour « encre
+  // sur fond sombre ».
+  { file: "GameUI/chat.jsx", pattern: /playerInput\.trim\(\) \? "var\(--oh-on-accent\)"/ },
   { file: "theme.css", pattern: /./ },
 ];
 
