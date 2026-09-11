@@ -881,7 +881,7 @@ const EditorDrawer = ({
                   })}
                 </div>
                 <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)", marginTop: "0.4rem" }}>
-                  Uncheck types that don't fit the era — e.g. no Air Force in 1200. Players can only deploy the checked types.
+                  Décochez les types qui ne collent pas à l'époque — pas d'aviation en 1200, par exemple. Les joueurs ne peuvent déployer que les types cochés.
                 </div>
               </div>
             )}
@@ -1028,7 +1028,7 @@ const EditorDrawer = ({
       {editorSection === "bundles" && kind === "scenario" && (
         <div style={{ background: "var(--oh-plate-2)", border: "1px solid var(--oh-line)", borderRadius: "18px", marginBottom: "0.95rem", padding: "0.9rem" }}>
           <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)", lineHeight: 1.5, marginBottom: "0.85rem" }}>
-            Download the scenario as one self-contained file — custom map geometry, cities and basemap all travel with it, ready to share or re-import. The <strong>.zip</strong> carries a custom basemap as a real image file (smaller, and the form the community hub expects); the <strong>JSON</strong> packs everything into one text file.
+            Téléchargez le scénario en un seul fichier autonome — sa géométrie propre, ses villes et son fond de carte voyagent avec lui, prêts à être partagés ou réimportés. Le <strong>.zip</strong> porte un fond de carte comme vraie image (plus léger, et c'est la forme qu'attend le hub) ; le <strong>JSON</strong> empaquette tout dans un seul fichier texte.
           </div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: "0.55rem" }}>
             <button onClick={() => onExportBundle("light", "zip")} style={actionButtonStyle} type="button">

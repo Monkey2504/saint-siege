@@ -132,21 +132,13 @@ const MOTS_OUTILS_ANGLAIS = /\b(the|and|your|you|with|from|this|that|which|what|
 // paraissent quand le traducteur ne peut pas tourner.
 const ANGLAIS_LEGITIME = [/FirstRunKey\.jsx$/, /welcomeText\.js$/, /outageNotice\.js$/];
 
-// Et ce qui est encore anglais SANS être décidé. Ces cinq écrans ne sont pas le
-// journal : ce sont les outils autour. Les traduire est du travail, et pour
-// l'un d'eux — le hub communautaire, qui n'affiche que des tickets GitHub de
-// l'amont, en anglais — ce serait du travail pour rien. La question est posée à
-// François ; d'ici sa réponse, la règle couvre le JEU et nomme ce qu'elle ne
-// couvre pas, plutôt que d'échouer en bloc et de ne plus rien garder du tout.
-//
-// Une ligne retirée d'ici est une promesse tenue. N'en ajoutez pas.
-const EN_ATTENTE_DE_DECISION = [
-  /GameUI\/settings\.jsx$/,      // les Réglages — là où se colle la clé
-  /GameUI\/cheats\.jsx$/,        // le banc d'essai
-  /GameUI\/communityHub\.jsx$/,  // le hub de l'amont : des tickets GitHub anglais
-  /GameUI\/libraryBar\.jsx$/,    // la bibliothèque
-  /GameUI\/FactionCreator\.jsx$/, // le créateur de puissance
-];
+// J'avais mis cinq écrans de côté — les Réglages, le banc d'essai, la
+// bibliothèque, le créateur de puissance, le hub communautaire — en reposant à
+// François une question à laquelle il avait déjà répondu. Sa réponse : « j'ai dû
+// répondre des milliards de fois, je veux TOUT en français ». Il avait raison.
+// La liste est vide et le reste : ce tableau n'existe plus que pour dire
+// pourquoi il ne faut pas le recréer.
+const EN_ATTENTE_DE_DECISION = [];
 
 // Une ligne de CODE n'est pas une phrase à l'écran. Ni une trace de console,
 // qui va au journal du navigateur et jamais sous les yeux du joueur.
