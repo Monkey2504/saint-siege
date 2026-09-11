@@ -40,6 +40,10 @@ const LIGNE_DE_REGISTRE = new Map([
   ["was talked round by those already with you", "a été retourné par ceux qui vous sont déjà acquis"],
   ["was talked round by those already against you", "a été retourné par ceux qui vous sont déjà contraires"],
   ["the whole room", "toute la salle"],
+  // Nées en français : elles ne sont ici que pour que la table reste le
+  // catalogue de ce que le registre peut dire.
+  ["dons perdus avec les fidèles", "dons perdus avec les fidèles"],
+  ["dons gagnés avec les fidèles", "dons gagnés avec les fidèles"],
 ]);
 
 /**

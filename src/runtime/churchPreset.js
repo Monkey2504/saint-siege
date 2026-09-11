@@ -29,7 +29,7 @@ import { EUR_USD_2024 } from "./money.js";
 import { anchorUnitValue } from "./economyBridge.js";
 import { normalizeIntents } from "./intents.js";
 import { normalizeOrganizations } from "./organizations.js";
-import { FAITHFUL_2023, normalizeChurch } from "./churchFaithful.js";
+import { FAITHFUL_2023, normalizeChurch, totalFaithful } from "./churchFaithful.js";
 import { normalizeExtraRegions } from "./extraRegions.js";
 import { seatAssembly } from "./factions.js";
 import { normalizeChurchBody } from "./fronts.js";
@@ -275,6 +275,39 @@ export const holySeeRecurringRevenueEur = () => {
   return A.donationsEur + A.governorateEur + A.commercialEur + A.realEstateEur + A.recurringFinancialEur;
 };
 
+/**
+ * Ce qu'un baptisé donne au Saint-Siège en une année.
+ *
+ * 237 millions d'euros de dons pour 1,406 milliard de fidèles : seize centimes
+ * par tête et par an. Le chiffre surprend, et c'est le vrai — le Denier de
+ * Saint-Pierre ne lève que 57,6 millions à lui seul, le reste vient des
+ * diocèses et des fondations, et tout cela repose sur le même corps de
+ * croyants.
+ */
+export const DONS_PAR_FIDELE_EUR = HOLY_SEE_ACCOUNTS_2024.donationsEur / totalFaithful(FAITHFUL_2023);
+
+/**
+ * Les transferts que perçoit le Saint-Siège, pour un état donné de l'Église.
+ *
+ * La faute que cela répare : `transfers` était posé une fois au préréglage et
+ * ne bougeait plus. Les fidèles, eux, bougent à chaque tour — la démographie
+ * réelle, et la légitimité du pontificat (churchFaithful.js). Une Église
+ * pouvait donc se vider de cent millions de baptisés sans qu'un euro manque
+ * aux comptes, ce qui est exactement l'inverse de ce que le jeu promet : « en
+ * fonction de ce que l'on dit ou fait, cela doit avoir une influence ».
+ *
+ * Les dons suivent les fidèles. Le Gouvernorat (musées, timbres, monnaie) et
+ * les revenus propres (immobilier de rapport, éditions, services) ne les
+ * suivent pas : ils viennent de visiteurs et de locataires, pas de baptisés.
+ * Un pape qui vide l'Église perd donc ses dons, et garde ses loyers — ce qui
+ * est plus juste, et plus dur, qu'une chute proportionnelle de tout.
+ */
+export const transfersForChurchEur = (church) => {
+  const A = HOLY_SEE_ACCOUNTS_2024;
+  const fideles = totalFaithful(normalizeChurch(church)?.faithful);
+  return DONS_PAR_FIDELE_EUR * fideles + A.governorateEur + A.commercialEur;
+};
+
 // No tax (the State taxes neither residents nor employees), ~500 residents
 // inside the walls (458 citizens + non-citizens; the ~4,000 employees live in
 // Italy and are a COST), a patrimony that yields, donations and sales that
@@ -297,7 +330,7 @@ export const holySeeEconomy = () => {
     ...anchored,
     endowment: sy(A.patrimonyEur),
     endowmentYield: (A.realEstateEur + A.recurringFinancialEur) / A.patrimonyEur,
-    transfers: sy(A.donationsEur + A.governorateEur + A.commercialEur),
+    transfers: sy(transfersForChurchEur({ faithful: FAITHFUL_2023 })),
     // The engine charges its own administration at 10% of revenue at full reach.
     civilSpending: sy(A.expensesEur - 0.10 * revenueEur),
     unfundedLiabilities: (A.unfundedPensionUsd) / anchored.usdPerSY,

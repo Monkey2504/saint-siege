@@ -27,7 +27,7 @@ import { ensureGatheringsFromOrders, holdDueGatherings, realizedMargin, runNatio
 import { reconcileBodies } from "../../runtime/bodyCheck.js";
 import { markDeclarationAnswered } from "../../runtime/inauguration.js";
 import { buildRealityAssessments } from "./promptContext.js";
-import { HOLY_SEE } from "../../runtime/churchPreset.js";
+import { EUR_USD_2024, HOLY_SEE, transfersForChurchEur } from "../../runtime/churchPreset.js";
 import { applyEconomyChange, daysBetween, describeEconomy, anchorUnitValue, describeSeedForRefinement, ensureEconomyMovesFromOrders, pinStatSheetToEngine, refineSeed, repinCountryStats, stepWorldEconomies } from "../../runtime/economyBridge.js";
 import { composeTaskSystemPrompt } from "./promptAssembly.js";
 import { echoesExistingMessage, renderOpenChatsForPrompt } from "../../runtime/chatEcho.js";
@@ -2171,6 +2171,36 @@ const applySimulationResult = async ({
   // Holy See's standing over the same elapsed time (null ledger → untouched).
   if (normalizeWorldState(worldAfterImpacts).church) {
     worldWithImpacts.church = stepFaithful(normalizeWorldState(worldAfterImpacts).church, { years: elapsed / 365.25, legitimacy: advanced.economies?.[HOLY_SEE]?.legitimacy, date: nextGame.gameDate });
+
+    // Et les dons suivent les fidèles.
+    //
+    // `transfers` était posé une fois au préréglage et ne bougeait plus. Les
+    // fidèles, eux, bougent à chaque tour — la démographie réelle, la
+    // légitimité du pontificat, et les exodes que le modèle enregistre par
+    // faithfulOps. Une Église pouvait donc perdre cent millions de baptisés
+    // sans qu'un euro manque aux comptes, ce qui est l'inverse de ce que ce
+    // jeu promet : ce que le pape dit et fait doit se voir dans la caisse.
+    //
+    // Recalculé ICI, après le pas ET après les faithfulOps déjà appliqués aux
+    // événements, pour que la ligne du registre du tour suivant porte la
+    // conséquence. Le Gouvernorat et les revenus propres ne suivent pas : ils
+    // viennent de visiteurs et de locataires, pas de baptisés.
+    const economieDuPape = worldWithImpacts.economies?.[HOLY_SEE] ?? advanced.economies?.[HOLY_SEE];
+    if (economieDuPape && Number(economieDuPape.usdPerSY) > 0) {
+      const transfersAS = (transfersForChurchEur(worldWithImpacts.church) * EUR_USD_2024) / Number(economieDuPape.usdPerSY);
+      const avant = Number(economieDuPape.transfers) || 0;
+      if (Math.abs(transfersAS - avant) > 1) {
+        worldWithImpacts.economies = {
+          ...worldWithImpacts.economies,
+          [HOLY_SEE]: { ...economieDuPape, transfers: transfersAS },
+        };
+        worldWithImpacts.record = appendRecord(worldWithImpacts.record, [{
+          date: nextGame.gameDate, polity: HOLY_SEE, kind: "money",
+          what: transfersAS < avant ? "dons perdus avec les fidèles" : "dons gagnés avec les fidèles",
+          amount: transfersAS - avant, unit: "SY", source: "step:fideles",
+        }]);
+      }
+    }
 
     // The other five fronts (runtime/fronts.js). The clergy ages at its real
     // rate, the abuse files move at whatever pace the curia has been set, and
