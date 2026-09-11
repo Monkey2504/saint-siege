@@ -422,8 +422,8 @@ const AdvisorPanel = ({ isAdvisorOpen, onClose, width, onResize, fullPage = fals
         )}
         {/* Header: tabs to flip between the advisor chat and national stats. */}
         <div style={{ alignItems: "center", borderBottom: "1px solid var(--oh-line)", display: "flex", padding: "0 0.75rem 0 0.35rem" }}>
-        <TabButton icon="🧭" label="Advisor" active={activeTab === "advisor"} onClick={() => setActiveTab("advisor")} />
-        <TabButton icon="📊" label="Stats" active={activeTab === "stats"} onClick={() => setActiveTab("stats")} />
+        <TabButton icon="🧭" label="Conseiller" active={activeTab === "advisor"} onClick={() => setActiveTab("advisor")} />
+        <TabButton icon="📊" label="Comptes" active={activeTab === "stats"} onClick={() => setActiveTab("stats")} />
         <div style={{ flex: 1 }} />
         {activeTab === "advisor" && (
             <button
@@ -453,7 +453,7 @@ const AdvisorPanel = ({ isAdvisorOpen, onClose, width, onResize, fullPage = fals
         <div style={{ padding: fullPage ? "1.2rem 1.5rem" : "0.75rem", flex: 1, minHeight: 0, overflowY: "auto", display: "flex", flexDirection: "column", gap: "1rem", scrollbarWidth: "none", margin: fullPage ? "0 auto" : undefined, maxWidth: fullPage ? "62rem" : undefined, width: "100%" }}>
         {messages.length === 0 && (
             <p style={{ fontSize: "var(--oh-t-xs)", color: "var(--oh-text-dim)", marginTop: 0 }}>
-            No messages yet. Ask your advisor something!
+            Aucun message pour l'instant. Posez une question à votre conseiller.
             </p>
         )}
 

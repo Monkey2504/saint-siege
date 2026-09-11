@@ -201,9 +201,9 @@ export const College = () => {
             plus whoever you sit with, and that count lives in its own panel —
             printing a second, different threshold here said two contradictory
             things about winning a vote on one screen. */}
-        <b style={{ color: "var(--oh-grant)" }}>{room.with}</b> think well of you ·{" "}
-        <b style={{ color: "var(--oh-text-dim)" }}>{room.undecided}</b> undecided ·{" "}
-        <b style={{ color: "var(--oh-caution)" }}>{room.against}</b> against
+        <b style={{ color: "var(--oh-grant)" }}>{room.with}</b> vous sont acquis ·{" "}
+        <b style={{ color: "var(--oh-text-dim)" }}>{room.undecided}</b> indécis ·{" "}
+        <b style={{ color: "var(--oh-caution)" }}>{room.against}</b> contre
         </span>
         </div>
 
@@ -216,7 +216,7 @@ export const College = () => {
         <div>
         <Hemicycle electors={assembly.electors} axis={axis} colours={colours} selected={selected} onSelect={setSelected} byMood={byMood} />
         <p style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)", lineHeight: 1.5, margin: "0.3rem 0 0" }}>
-        One mark, one elector. Nobody belongs to a party: the same hundred and sixty people regroup by doctrine, by region or by role, which is why a reform popular on one axis can fail on another.
+        Une marque, un électeur. Personne n'appartient à un parti : les mêmes cent soixante personnes se regroupent par doctrine, par région ou par charge, et c'est pourquoi une réforme populaire sur un axe échoue sur un autre.
         </p>
         </div>
 
@@ -315,10 +315,10 @@ export const College = () => {
         }}>Le leur dire</button>
         {sent && <span style={{ color: "var(--oh-grant)", fontSize: "var(--oh-t-xs)" }}>Versé au dossier. Livré et jugé à la prochaine édition.</span>}
         <button type="button" onClick={() => setTick((t) => t + 1)}
-        style={{ background: "transparent", border: "none", color: "var(--oh-text-dim)", cursor: "pointer", fontSize: "var(--oh-t-xs)", marginLeft: "auto" }}>Refresh</button>
+        style={{ background: "transparent", border: "none", color: "var(--oh-text-dim)", cursor: "pointer", fontSize: "var(--oh-t-xs)", marginLeft: "auto" }}>Rafraîchir</button>
         </div>
         <p style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)", lineHeight: 1.55, margin: "0.9rem 0 0", maxWidth: "72ch" }}>
-        Nobody in this room begins against you. Every opinion here was earned by what you actually did, and the figures behind it are the engine&apos;s own. A speech is worth what your standing is worth and reaches only those still listening; claims the ledger contradicts lose ground rather than winning it. The room is carried by governing well, and only steadied by speaking.
+        Personne ici ne commence contre vous. Chaque opinion a été gagnée par ce que vous avez fait, et les chiffres qui la portent sont ceux du moteur. Un discours vaut ce que vaut votre crédit et n'atteint que ceux qui écoutent encore ; une affirmation que les comptes démentent fait perdre du terrain au lieu d'en gagner. La salle se gagne en gouvernant bien, et le discours ne fait que l'affermir.
         </p>
         </section>
         </div>

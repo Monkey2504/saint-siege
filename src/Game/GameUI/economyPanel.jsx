@@ -77,107 +77,107 @@ const EconomyPanel = ({ code, economy, flows, allEconomies, units = null }) => {
 
   return (
     <>
-      <div style={title}>⚙️ Engine — computed, not narrated</div>
+      <div style={title}>⚙️ Le moteur — calculé, non raconté</div>
       <div style={box}>
         <div style={{ ...line, color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)" }}>
-          All figures in subsistence-years (SY): one SY is what one person needs to live for a year. Read each line as the identity it is.
+          Tous les chiffres en années-subsistance (AS) : une AS est ce qu'il faut à une personne pour vivre un an. Chaque ligne est une identité — lisez-la comme telle.
         </div>
 
-        <Identity label="Output =">
-          <span style={strong}>{fmt(output)} SY/yr</span> = {fmt(i.population)} people × <span style={strong}>{i.outputPerCapita} SY/head</span>
-          <span style={term}> (land, capital and know-how per head; trend growth {pct(i.trendGrowth)})</span>
+        <Identity label="Production =">
+          <span style={strong}>{fmt(output)} AS/an</span> = {fmt(i.population)} personnes × <span style={strong}>{i.outputPerCapita} AS/tête</span>
+          <span style={term}> (terre, capital et savoir-faire par tête ; croissance tendancielle {pct(i.trendGrowth)})</span>
         </Identity>
 
-        <Identity label="Assessed base =">
-          output × reach {Math.round(e.administrativeReach)}% × (in kind {Math.round(inKind * 100)}%) = <span style={strong}>{fmt(base)} SY</span>
-          <span style={term}> — {pct(i.reachedShareOfOutput)} of output is within the state's hand at all</span>
+        <Identity label="Base imposable =">
+          production × portée {Math.round(e.administrativeReach)}% × (en nature {Math.round(inKind * 100)}%) = <span style={strong}>{fmt(base)} AS</span>
+          <span style={term}> — {pct(i.reachedShareOfOutput)} de la production est seulement à portée de l'État</span>
         </Identity>
 
-        <Identity label="Revenue =">
-          base × rate {pct(e.taxRate)} = {fmt(i.taxRevenue)}
-          {i.endowmentIncome > 0 && <> + patrimony {fmt(e.endowment)} × {pct(e.endowmentYield)} = {fmt(i.endowmentIncome)}</>}
-          {i.transfers > 0 && <> + transfers/donations {fmt(i.transfers)}</>}
-          {" "}= <span style={strong}>{fmt(revenue)} SY/yr</span>
-          <span style={term}> ({pct(i.taxTakeOfOutput)} of output{i.nonTaxShare > 0 ? `, ${pct(i.nonTaxShare)} of it not from taxing anyone` : ""}; this society bears up to {pct(effort)} of the base{e.atWar ? " at war" : ""})</span>
+        <Identity label="Recettes =">
+          base × taux {pct(e.taxRate)} = {fmt(i.taxRevenue)}
+          {i.endowmentIncome > 0 && <> + patrimoine {fmt(e.endowment)} × {pct(e.endowmentYield)} = {fmt(i.endowmentIncome)}</>}
+          {i.transfers > 0 && <> + transferts et dons {fmt(i.transfers)}</>}
+          {" "}= <span style={strong}>{fmt(revenue)} AS/an</span>
+          <span style={term}> ({pct(i.taxTakeOfOutput)} de la production{i.nonTaxShare > 0 ? `, dont ${pct(i.nonTaxShare)} ne vient de l'impôt de personne` : ""} ; cette société supporte jusqu'à {pct(effort)} de la base{e.atWar ? " en guerre" : ""})</span>
         </Identity>
 
         {(e.endowment > 0 || e.unfundedLiabilities > 0) && (
-          <Identity label="Patrimony =">
-            <span style={strong}>{fmt(e.endowment)} SY</span>{e.usdPerSY > 0 ? ` ≈ $${fmt(e.endowment * e.usdPerSY)}` : ""}
-            {e.unfundedLiabilities > 0 && <span style={term}> − unfunded promises {fmt(e.unfundedLiabilities)} SY{e.usdPerSY > 0 ? ` (≈ $${fmt(e.unfundedLiabilities * e.usdPerSY)})` : ""} = net <span style={i.netPatrimony < 0 ? bad : good}>{fmt(i.netPatrimony)}</span></span>}
-            {e.financing === "drawdown" && <span style={warn}> · deficits are paid out of the patrimony{i.yearsOfPatrimonyLeft != null ? ` — gone in ~${i.yearsOfPatrimonyLeft} years at this deficit` : ""}</span>}
+          <Identity label="Patrimoine =">
+            <span style={strong}>{fmt(e.endowment)} AS</span>{e.usdPerSY > 0 ? ` ≈ $${fmt(e.endowment * e.usdPerSY)}` : ""}
+            {e.unfundedLiabilities > 0 && <span style={term}> − promesses non financées {fmt(e.unfundedLiabilities)} AS{e.usdPerSY > 0 ? ` (≈ ${fmt(e.unfundedLiabilities * e.usdPerSY)})` : ""} = net <span style={i.netPatrimony < 0 ? bad : good}>{fmt(i.netPatrimony)}</span></span>}
+            {e.financing === "drawdown" && <span style={warn}> · les déficits sont payés sur le patrimoine{i.yearsOfPatrimonyLeft != null ? ` — épuisé dans ~${i.yearsOfPatrimonyLeft} ans à ce déficit` : ""}</span>}
           </Identity>
         )}
 
-        <Identity label="Spending =">
-          army {fmt(e.militaryUpkeep)} + civil {fmt(e.civilSpending)} + administration + interest {pct(i.interestRate)} × debt {fmt(e.debt)} = <span style={strong}>{fmt(spending)} SY/yr</span>
+        <Identity label="Dépenses =">
+          armée {fmt(e.militaryUpkeep)} + civil {fmt(e.civilSpending)} + administration + intérêts {pct(i.interestRate)} × dette {fmt(e.debt)} = <span style={strong}>{fmt(spending)} AS/an</span>
           {upkeep && upkeep.required > 0 && (
-            <span style={upkeep.shortfall > 0 ? warn : term}> · forces in being require {fmt(upkeep.required)} SY/yr, funded at {pct(upkeep.fundedShare)}{upkeep.shortfall > 0 ? ` — the unfunded share loses ${pct(attritionOver(upkeep.shortfall, 1))} of its strength a year` : ""}</span>
+            <span style={upkeep.shortfall > 0 ? warn : term}> · les forces en place exigent {fmt(upkeep.required)} AS/an, financées à {pct(upkeep.fundedShare)}{upkeep.shortfall > 0 ? ` — la part non financée perd ${pct(attritionOver(upkeep.shortfall, 1))} de sa force par an` : ""}</span>
           )}
         </Identity>
 
-        <Identity label="Balance =">
-          <span style={i.balance < 0 ? bad : good}>{i.balance < 0 ? "−" : "+"}{fmt(Math.abs(i.balance))} SY/yr</span>
-          {i.arrearsShare > 0 && <span style={bad}> · in arrears: {pct(i.arrearsShare)} of a year's revenue unpaid ({fmt(i.arrears)} SY) — legitimacy bleeding</span>}
-          {e.debt > 0 && <span style={term}> · debt {i.debtOfOutput}× output, ceiling {fmt(i.debtCeiling)}; r − g = {pct(i.rMinusG)} {i.rMinusG < 0 ? "(growth outruns interest: a stable debt share sustains itself)" : "(interest outruns growth: debt compounds unless the primary balance covers it)"}</span>}
+        <Identity label="Solde =">
+          <span style={i.balance < 0 ? bad : good}>{i.balance < 0 ? "−" : "+"}{fmt(Math.abs(i.balance))} AS/an</span>
+          {i.arrearsShare > 0 && <span style={bad}> · en arriérés : {pct(i.arrearsShare)} d'une année de recettes impayée ({fmt(i.arrears)} AS) — la légitimité saigne</span>}
+          {e.debt > 0 && <span style={term}> · dette {i.debtOfOutput}× la production, plafond {fmt(i.debtCeiling)} ; r − g = {pct(i.rMinusG)} {i.rMinusG < 0 ? "(la croissance dépasse les intérêts : une part de dette stable se soutient d'elle-même)" : "(les intérêts dépassent la croissance : la dette s'accumule tant que le solde primaire ne la couvre pas)"}</span>}
         </Identity>
 
         {!verdict.affordable && verdict.constraints[0] && (
           <div style={{ ...line, ...warn, marginTop: "0.5rem" }}>
-            <span style={{ fontWeight: 700 }}>Binding constraint: {verdict.constraints[0].factor}.</span> {verdict.constraints[0].detail}
+            <span style={{ fontWeight: 700 }}>Contrainte déterminante : {FACTEUR_LABEL[verdict.constraints[0].factor] || verdict.constraints[0].factor}.</span> {verdict.constraints[0].detail}
           </div>
         )}
 
-        <Identity label="Prices:">
-          M × V = P × Y → money {fmt(i.effectiveMoney)} × velocity {velocityOf(e).toFixed(2)} ÷ output ⇒ implied <span style={strong}>{i.impliedPriceLevel}</span>, walking from {i.priceLevel}
-          <span style={term}> · expected inflation {pct(i.expectedInflation)}{i.policyRate != null ? `, policy rate ${pct(i.policyRate)}` : ""}</span>
+        <Identity label="Prix :">
+          M × V = P × Y → monnaie {fmt(i.effectiveMoney)} × vitesse {velocityOf(e).toFixed(2)} ÷ production ⇒ implicite <span style={strong}>{i.impliedPriceLevel}</span>, en marche depuis {i.priceLevel}
+          <span style={term}> · inflation attendue {pct(i.expectedInflation)}{i.policyRate != null ? `, taux directeur ${pct(i.policyRate)}` : ""}</span>
         </Identity>
 
-        <Identity label="Money:">
-          {sys.label ? `"${sys.label}" — ` : ""}{sys.backing === "none" ? "unbacked" : sys.backing === "commodity" ? "commodity-backed" : "backed by claims on future revenue"}, issued by {sys.issuer}, rule {sys.rule}, {sys.convertibility > 0 ? `convertible ${Math.round(sys.convertibility * 100)}%` : "not convertible"}
-          {i.backingRatio != null && <span style={term}> · reserve cover {pct(i.backingRatio)} ({fmt(e.reserves)} SY{e.usdPerSY > 0 ? ` ≈ $${fmt(e.reserves * e.usdPerSY)}` : ""} held)</span>}
-          {e.claimsOutstanding > 0 && <span style={term}> · claims {fmt(e.claimsOutstanding)} SY at {Math.round(i.claimsPrice * 100)}% of face against {fmt(pledgeableValue(e))} pledgeable</span>}
+        <Identity label="Monnaie :">
+          {sys.label ? `"${sys.label}" — ` : ""}{sys.backing === "none" ? "sans contrepartie" : sys.backing === "commodity" ? "gagée sur une matière" : "gagée sur des créances à venir"}, émise par {EMETTEUR_LABEL[sys.issuer] || sys.issuer}, règle {REGLE_LABEL[sys.rule] || sys.rule}, {sys.convertibility > 0 ? `convertible à ${Math.round(sys.convertibility * 100)}%` : "non convertible"}
+          {i.backingRatio != null && <span style={term}> · couverture des réserves {pct(i.backingRatio)} ({fmt(e.reserves)} AS{e.usdPerSY > 0 ? ` ≈ ${fmt(e.reserves * e.usdPerSY)}` : ""} détenus)</span>}
+          {e.claimsOutstanding > 0 && <span style={term}> · créances {fmt(e.claimsOutstanding)} AS à {Math.round(i.claimsPrice * 100)}% du nominal contre {fmt(pledgeableValue(e))} mobilisables</span>}
         </Identity>
         {money.binding && money.binding.severity > 0.3 && (
           <div style={{ ...line, ...(money.binding.severity > 0.7 ? bad : warn), marginTop: "0.35rem" }}>
-            <span style={{ fontWeight: 700 }}>Monetary verdict: {money.binding.factor}.</span> {money.binding.detail}
+            <span style={{ fontWeight: 700 }}>Verdict monétaire : {FACTEUR_LABEL[money.binding.factor] || money.binding.factor}.</span> {money.binding.detail}
           </div>
         )}
         {currencyPosition && (
-          <Identity label="Trade:">
+          <Identity label="Commerce :">
             {currencyPosition}
           </Identity>
         )}
 
         {flows && flows.years > 0 && (
-          <Identity label="Last period:">
+          <Identity label="Période précédente :">
             inflation {pct(flows.inflation)}
-            {flows.borrowed > 0 && `, borrowed ${fmt(flows.borrowed)}`}
-            {flows.minted > 0 && `, created ${fmt(flows.minted)} of new money`}
-            {flows.claimsIssued > 0 && `, issued ${fmt(flows.claimsIssued)} of claims`}
-            {flows.tradeLoss > 0 && `, lost ${pct(flows.tradeLoss)} of output to cut trade`}
-            {Math.abs(flows.depreciation) > 0.02 && `, currency ${flows.depreciation > 0 ? "weakened" : "strengthened"} ${pct(Math.abs(flows.depreciation))}`}
+            {flows.borrowed > 0 && `, emprunté ${fmt(flows.borrowed)}`}
+            {flows.minted > 0 && `, créé ${fmt(flows.minted)} de monnaie nouvelle`}
+            {flows.claimsIssued > 0 && `, émis ${fmt(flows.claimsIssued)} de créances`}
+            {flows.tradeLoss > 0 && `, perdu ${pct(flows.tradeLoss)} de production par rupture du commerce`}
+            {Math.abs(flows.depreciation) > 0.02 && `, monnaie ${flows.depreciation > 0 ? "affaiblie de" : "renforcée de"} ${pct(Math.abs(flows.depreciation))}`}
             {Array.isArray(flows.events) && flows.events.length > 0 && ` · ${flows.events.join(", ").replace(/-/g, " ")}`}
           </Identity>
         )}
 
-        <div style={{ ...title, marginTop: "0.7rem" }}>Capacities — what reforms move</div>
-        <Capacity label="Technology" value={e.technology} />
-        <Capacity label="Administrative reach" value={e.administrativeReach} />
-        <Capacity label="Monetization" value={e.monetization} />
-        <Capacity label="Market integration" value={e.marketIntegration} />
-        <Capacity label="Financial depth" value={e.financialDepth} />
-        <Capacity label="Fiscal credibility" value={e.fiscalCredibility} />
-        <Capacity label="Legitimacy" value={e.legitimacy} />
-        <Capacity label="Openness" value={e.openness} />
+        <div style={{ ...title, marginTop: "0.7rem" }}>Capacités — ce que les réformes déplacent</div>
+        <Capacity label="Technologie" value={e.technology} />
+        <Capacity label="Portée administrative" value={e.administrativeReach} />
+        <Capacity label="Monétisation" value={e.monetization} />
+        <Capacity label="Intégration du marché" value={e.marketIntegration} />
+        <Capacity label="Profondeur financière" value={e.financialDepth} />
+        <Capacity label="Crédibilité fiscale" value={e.fiscalCredibility} />
+        <Capacity label="Légitimité" value={e.legitimacy} />
+        <Capacity label="Ouverture" value={e.openness} />
         {e.innovations.length > 0 && (
           <div style={{ ...line, marginTop: "0.5rem" }}>
-            <span style={term}>Innovations: </span>
+            <span style={term}>Innovations : </span>
             {e.innovations.map((n) => `${n.name} (${Math.round(n.adoption * 100)}%)`).join(", ")}
           </div>
         )}
         <div style={{ ...line, color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)", marginTop: "0.6rem" }}>
-          {code}: the simulation narrates these figures and moves only the capacities and policy; output, prices and debt follow from them.
+          {code} : la simulation raconte ces chiffres et ne déplace que les capacités et la politique ; production, prix et dette en découlent.
         </div>
       </div>
     </>
@@ -186,18 +186,33 @@ const EconomyPanel = ({ code, economy, flows, allEconomies, units = null }) => {
 
 // The reforming-pope mode's live count of Catholics, per continent — the
 // engine's ledger (see runtime/churchFaithful.js), not the model's prose.
-const CONTINENT_LABEL = { africa: "Africa", americas: "Americas", asia: "Asia", europe: "Europe", oceania: "Oceania" };
+// Émetteur et règle monétaire sont eux aussi des clés (economy.js les valide
+// contre ISSUERS et RULES) : mêmes tables d'affichage, mêmes clés intactes.
+const EMETTEUR_LABEL = { mint: "l'hôtel des monnaies", banks: "les banques", treasury: "le trésor", market: "le marché" };
+const REGLE_LABEL = {
+  discretionary: "discrétionnaire", taylor: "règle de Taylor", fixed: "croissance fixe",
+  peg: "ancrage de change", growthLinked: "indexée sur la croissance",
+};
+
+// Le `factor` d'une contrainte est une clé (React, et les invites du moteur) :
+// on le rend lisible à l'affichage sans jamais la changer.
+export const FACTEUR_LABEL = {
+  reach: "la portée de l'État", monetization: "la monétisation", taxRate: "le taux d'imposition",
+  credit: "le crédit", futureClaims: "les créances à venir", issuance: "l'émission",
+};
+
+const CONTINENT_LABEL = { africa: "Afrique", americas: "Amériques", asia: "Asie", europe: "Europe", oceania: "Océanie" };
 export const FaithfulPanel = ({ church }) => {
   const c = normalizeChurch(church);
   if (!c) return null;
   const total = totalFaithful(c.faithful);
   return (
     <>
-      <div style={title}>✝️ Faithful — living ledger</div>
+      <div style={title}>✝️ Les fidèles — registre vivant</div>
       <div style={box}>
         <div style={line}>
           <span style={strong} data-no-translate>{(total / 1e9).toFixed(3)} milliard</span>
-          <span style={term}> Catholics{c.asOf ? ` as of ${c.asOf}` : ""} — recomputed every turn by the engine (real demography × the Holy See's legitimacy)</span>
+          <span style={term}> catholiques{c.asOf ? ` au ${c.asOf}` : ""} — recalculés à chaque tour par le moteur (démographie réelle × légitimité du Saint-Siège)</span>
         </div>
         {CONTINENTS.map((k) => (
           <div key={k} style={{ alignItems: "center", display: "grid", gap: "0.5rem", gridTemplateColumns: "6rem 1fr 7rem", marginTop: "0.3rem" }}>
@@ -210,7 +225,7 @@ export const FaithfulPanel = ({ church }) => {
         ))}
         {c.log.length > 0 && (
           <div style={{ ...line, marginTop: "0.5rem" }}>
-            <span style={term}>Recorded movements: </span>
+            <span style={term}>Mouvements enregistrés : </span>
             {c.log.slice(-3).map((s, idx) => <div key={idx} data-no-translate style={{ ...line, color: "var(--oh-text)" }}>{s}</div>)}
           </div>
         )}
@@ -220,8 +235,8 @@ export const FaithfulPanel = ({ church }) => {
 };
 
 const STATUS_LABEL = {
-  proposed: "proposed", subscribing: "selling", building: "building", operating: "operating",
-  failed: "sale failed", cancelled: "cancelled",
+  proposed: "proposé", subscribing: "en souscription", building: "en construction", operating: "en service",
+  failed: "souscription échouée", cancelled: "annulé",
 };
 const STATUS_COLOR = {
   proposed: "var(--oh-text-dim)", subscribing: "var(--oh-accent)", building: "var(--oh-caution)",
@@ -237,9 +252,9 @@ const ProjectRow = ({ p }) => {
         <span style={{ ...line, color: STATUS_COLOR[p.status] || term.color, fontWeight: 700, fontSize: "var(--oh-t-2xs)" }}>{STATUS_LABEL[p.status] || p.status}</span>
       </div>
       <div style={{ ...line, color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)" }}>
-        {p.sector} · {fmt(p.cost)} SY · promised {pct(p.expectedYield)}/yr, {p.buildYears} yr build
-        {p.status === "operating" && <> · realised <span style={good}>{pct(p.realizedYield)}/yr</span></>}
-        {p.status === "building" && p.delayYears > 0 && <> · <span style={warn}>{p.delayYears.toFixed(1)} yr late</span></>}
+        {p.sector} · {fmt(p.cost)} AS · promis {pct(p.expectedYield)}/an, {p.buildYears} an(s) de construction
+        {p.status === "operating" && <> · réalisé <span style={good}>{pct(p.realizedYield)}/an</span></>}
+        {p.status === "building" && p.delayYears > 0 && <> · <span style={warn}>{p.delayYears.toFixed(1)} an(s) de retard</span></>}
       </div>
       {(p.status === "subscribing" || p.status === "building") && (
         <div style={{ backgroundColor: "var(--oh-plate-2)", borderRadius: "999px", height: "5px", marginTop: "0.25rem", overflow: "hidden" }}>
@@ -270,39 +285,39 @@ export const ProgramPanel = ({ code, program, economy }) => {
     <>
       <div style={title}>📜 Programme — {prog.name}</div>
       <div style={box}>
-        <Identity label="Token price =">
-          basket <span style={strong}>{fmt(value)} SY</span> (marked on cash actually earned) ÷ <span style={strong}>{fmt(prog.tokensOutstanding)} tokens</span> = <span style={strong}>{price.toFixed(3)}</span>
+        <Identity label="Prix du jeton =">
+          panier <span style={strong}>{fmt(value)} AS</span> (valorisé sur l'encaisse réellement gagnée) ÷ <span style={strong}>{fmt(prog.tokensOutstanding)} jetons</span> = <span style={strong}>{price.toFixed(3)}</span>
         </Identity>
-        <Identity label="Record:">
-          {Math.round(prog.score)}/100 · largest delivered {fmt(prog.largestCompleted)} SY · next project ceiling <span style={strong}>{fmt(cap)} SY</span>
+        <Identity label="Bilan :">
+          {Math.round(prog.score)}/100 · plus grand livré {fmt(prog.largestCompleted)} AS · plafond du prochain projet <span style={strong}>{fmt(cap)} AS</span>
         </Identity>
-        <Identity label="Governance:">
-          audit {prog.governance.independentAudit ? <span style={good}>independent</span> : <span style={bad}>political</span>},{" "}
-          ledger {prog.governance.publicLedger ? <span style={good}>public</span> : <span style={bad}>private</span>},{" "}
-          disbursement {prog.governance.milestoneDisbursement ? <span style={good}>by milestone</span> : <span style={bad}>discretionary</span>}
+        <Identity label="Gouvernance :">
+          audit {prog.governance.independentAudit ? <span style={good}>indépendant</span> : <span style={bad}>politique</span>},{" "}
+          registre {prog.governance.publicLedger ? <span style={good}>public</span> : <span style={bad}>privé</span>},{" "}
+          décaissement {prog.governance.milestoneDisbursement ? <span style={good}>par jalon</span> : <span style={bad}>discrétionnaire</span>}
         </Identity>
         {prog.currencyB && (
-          <Identity label="Currency B:">
-            {prog.currencyBLabel || "indexed to the cost of living"} · A/B channel {prog.conversion.managed ? `managed at ${prog.conversion.officialRate}` : "free"}
-            {prog.conversion.blackMarketPremium > 0.05 && <> · <span style={bad}>black-market premium {pct(prog.conversion.blackMarketPremium)}</span></>}
+          <Identity label="Monnaie B :">
+            {prog.currencyBLabel || "indexée sur le coût de la vie"} · canal A/B {prog.conversion.managed ? `tenu à ${prog.conversion.officialRate}` : "libre"}
+            {prog.conversion.blackMarketPremium > 0.05 && <> · <span style={bad}>prime au marché noir {pct(prog.conversion.blackMarketPremium)}</span></>}
           </Identity>
         )}
         {prog.goldBuyback.enabled && (
-          <Identity label="Gold buyback:">
-            above {pct(prog.goldBuyback.thresholdShareOfOutput)} of output · {fmt(prog.goldBuyback.boughtTotal)} SY bought
-            {prog.goldBuyback.unfunded > 0 && <> · <span style={warn}>{fmt(prog.goldBuyback.unfunded)} SY unfunded</span></>}
+          <Identity label="Rachat d'or :">
+            au-delà de {pct(prog.goldBuyback.thresholdShareOfOutput)} de la production · {fmt(prog.goldBuyback.boughtTotal)} AS rachetés
+            {prog.goldBuyback.unfunded > 0 && <> · <span style={warn}>{fmt(prog.goldBuyback.unfunded)} AS non financés</span></>}
           </Identity>
         )}
         {burden > 0 && (
-          <Identity label="Social coupling:">
-            needs {fmt(burden)} SY/yr · realised productive cash {fmt(cover)} SY/yr {cover >= burden ? <span style={good}>covered</span> : <span style={bad}>NOT covered</span>}
+          <Identity label="Charge sociale :">
+            exige {fmt(burden)} AS/an · encaisse productive réalisée {fmt(cover)} AS/an {cover >= burden ? <span style={good}>couverte</span> : <span style={bad}>NON couverte</span>}
           </Identity>
         )}
-        <div style={{ ...title, marginTop: "0.7rem" }}>Projects</div>
-        {visible.length === 0 && <div style={{ ...line, color: "var(--oh-text-dim)", marginTop: "0.3rem" }}>None proposed yet.</div>}
+        <div style={{ ...title, marginTop: "0.7rem" }}>Projets</div>
+        {visible.length === 0 && <div style={{ ...line, color: "var(--oh-text-dim)", marginTop: "0.3rem" }}>Aucun projet proposé pour l'instant.</div>}
         {visible.map((p) => <ProjectRow key={p.id} p={p} />)}
         <div style={{ ...line, color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)", marginTop: "0.6rem" }}>
-          {code}: a token is a claim on this basket's cash, never on ownership or control of what it built.
+          {code} : un jeton est une créance sur l'encaisse de ce panier, jamais sur la propriété ni le contrôle de ce qu'il a bâti.
         </div>
       </div>
     </>
