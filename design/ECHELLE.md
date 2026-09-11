@@ -132,11 +132,11 @@ pas partout :
 - **Elle ne touche pas au Conseiller**, qui n'a pas encore été repris d'après la
   maquette (note de cabinet numérotée, situation en trois points, ordres proposés
   avec des boutons « Verser »).
-- **Les tableaux des Caisses n'ont jamais été vus remplis.** Une partie neuve
-  n'ouvre aucune bourse, et l'état de démonstration ne peut pas être injecté :
-  en mode web, `window.fetch` est détourné et l'état vient d'IndexedDB. Les
-  captures de `design/rendu/` montrent donc ce cahier vide, et c'est une limite
-  de la capture, pas du cahier.
+- **Les tableaux des Caisses n'ont toujours pas été vus remplis.** Une partie
+  neuve n'ouvre aucune bourse : il faudrait jouer plusieurs tours pour qu'une
+  ligne y tombe, et le parcours de capture s'arrête au premier. Ce que
+  `design/rendu/` montre de ce cahier est donc son état vide, qui est un état
+  réel — pas une limite de la capture.
 
 ## Ce que le brief du 11 septembre a ajouté
 

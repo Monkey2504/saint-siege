@@ -55,12 +55,14 @@ commit touchant le style ne montre pas l'état du jeu — l'`INDEX.md` porte la 
 et le commit précisément pour qu'on puisse s'en apercevoir.
 
 Le parcours capturé est celui du joueur qui ouvre le jeu pour la première fois :
-l'écran de la clé, l'accueil, puis les six cahiers d'une partie neuve. La feuille
-d'investiture (HABEMUS PAPAM) n'y est pas : elle ne paraît que pour une partie
-d'Église, et `vite preview` répond 500 sur `/api/runtime/json/game`, si bien que
-le scénario n'est jamais chargé et que le monde reste sans pays. Les captures
-montrent donc des cahiers vides — utile pour juger les états vides, insuffisant
-pour juger une partie en cours.
+le portail, l'écran de la clé, l'accueil, la feuille d'investiture, puis les six
+cahiers d'une partie signée.
+
+**Construire avec `npm run build:web`, jamais avec `vite build`.** Sans
+`--mode web`, le backend IndexedDB n'est pas installé : `/api/library` répond
+500, aucun scénario n'est chargé, le monde reste sans pays et toutes les pages
+paraissent vides. Une session de code a perdu une passe entière à prendre cela
+pour un défaut du jeu.
 
 Un workflow qui ferait ce travail à chaque poussée sur `main` existe, mais hors
 du dépôt : François le garde de côté. L'installer suppose d'abord de retirer la
