@@ -361,3 +361,43 @@ test("le pape n'a pas d'armée : un ordre militaire est bloqué, une réforme n'
   assert.equal(juge("Réformer la Curie romaine.").verdict, "constrained");
   assert.equal(juge("Vendre le patrimoine immobilier pour les pauvres.").verdict, "constrained");
 });
+
+// « J'ai testé deux ordres idiots — je veux que les évêques portent des
+// mini-jupes à l'église — l'ordre est passé. »
+//
+// Il était passé, et tout passait : onze chantiers en jeu, aucun ne se
+// déclenchait jamais. Deux causes.
+//
+// La portée ne suffisait pas : il fallait EN PLUS que le genre du chantier
+// recouvre le domaine détecté par un classifieur séparé — deux vocabulaires
+// sans rapport, et ils se contredisaient. Mesuré : « supprimer le célibat » ne
+// réveillait les cardinaux des dubia que sous le genre ECONOMIC, et « ouvrir un
+// audit » ne réveillait le gardien du coffre que sous POLITICAL. Inversés.
+//
+// Et un chantier NEUTRE était invisible : le filtre ne lisait que « hostile » et
+// « supportive ».
+test("un chantier se déclenche sur sa portée, quel que soit son genre", () => {
+  const economie = { treasury: 5e5, revenue: 1.2e6, spending: 1.1e6, administrativeReach: 72, legitimacy: 70, fiscalCredibility: 65 };
+  const chantier = (kind, stance, scope) => ({
+    ownerType: "polity", owner: "Bloc d'essai", target: "Saint-Siège",
+    kind, stance, secret: false, stage: 50, scope, summary: "s", triggerHint: "t",
+  });
+  const opposition = (texte, it) => {
+    const a = assessAction({ id: "x", kind: "action", status: "planned", text: texte, title: texte }, {
+      playerPolity: "Saint-Siège", economy: economie,
+      world: { organizations: [], intents: [it], units: [] }, jumpDays: 30,
+    });
+    return (a.constraints || []).find((c) => c.factor === "opposition") || null;
+  };
+
+  const celibat = "Supprimer le célibat des prêtres.";
+  assert.ok(opposition(celibat, chantier("political", "hostile", ["célibat"])), "le genre du chantier ne doit plus décider à la place de sa portée");
+  assert.ok(opposition("Ouvrir les comptes à un audit externe.", chantier("economic", "hostile", ["audit"])), "un audit réveille le gardien du coffre");
+
+  // Un corps neutre poursuit une chose : il réagit à ce qui touche son terrain.
+  assert.ok(opposition(celibat, chantier("political", "neutral", ["célibat"])), "un chantier neutre n'est plus muet");
+  // Un corps qui vous suit n'est pas une opposition.
+  assert.equal(opposition(celibat, chantier("political", "supportive", ["célibat"])), null);
+  // Et une portée qui ne correspond pas ne réveille toujours personne.
+  assert.equal(opposition("Demain au menu ce sera tartiflette.", chantier("political", "hostile", ["célibat"])), null);
+});

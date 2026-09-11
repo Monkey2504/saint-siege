@@ -191,13 +191,25 @@ export const assessAction = (action, ctx = {}) => {
   // --- bodies that must vote, and who inside them is against you ---
   const orgs = normalizeOrganizations(ctx.world?.organizations);
   const intents = normalizeIntents(ctx.world?.intents).filter((it) => it.status === "active" && it.owner !== player);
-  // Schemes aimed at the player — but opposition is SPECIFIC: only a HOSTILE
-  // scheme counts, and one with a scope counts only against orders that
-  // touch its scope. A supportive scheme is a vote in favour and a hand on the
-  // player's side; a neutral one is a power minding its own line.
+  // Schemes aimed at the player. L'opposition reste SPÉCIFIQUE — un chantier ne
+  // compte que contre un ordre qui tombe dans sa portée — mais deux erreurs la
+  // rendaient muette, et onze chantiers sur onze ne se déclenchaient jamais.
+  //
+  // La première : un chantier NEUTRE était invisible. Le filtre ne lisait que
+  // « hostile » et « supportive », si bien que la Commission pour la protection
+  // des mineurs et le Dicastère pour le Clergé — neutres à dessein, parce qu'un
+  // corps poursuit une chose au lieu d'être pour ou contre le pape — étaient
+  // narrativement présents et mécaniquement morts. Un corps neutre qui voit le
+  // pape bouger sur son terrain réagit ; c'est ce que le pape dit ou fait qui
+  // décide dans quel sens, et c'est précisément la règle qu'il fallait tenir.
   const targeting = intents.filter((it) => !it.target || it.target === player);
   const inScope = (it) => !it.scope.length || it.scope.some((k) => lower(text).includes(k));
+  // Deux listes, et pas une : un corps neutre RÉAGIT à ce qui touche son
+  // terrain, mais il ne vote pas contre vous pour autant. Les confondre
+  // ferait d'une commission qui poursuit sa mission une voix hostile au
+  // consistoire, ce qu'elle n'est pas.
   const hostile = targeting.filter((it) => it.stance === "hostile" && inScope(it));
+  const concernes = targeting.filter((it) => it.stance !== "supportive" && inScope(it));
   const supportive = targeting.filter((it) => it.stance === "supportive");
   const named = orgs.filter((o) => lower(text).includes(lower(o.name)) && isMember(o, player));
   for (const o of named) {
@@ -212,12 +224,24 @@ export const assessAction = (action, ctx = {}) => {
       "traiter, diviser ou déborder le bloc : une concession à un membre, un consistoire, une règle mise au vote du corps");
   }
   // --- standing opposition: schemes already in motion against THIS kind of order ---
-  const relevant = hostile.filter((it) => (INTENT_KIND_DOMAINS[it.kind] ?? []).some((d) => has(d)));
+  // La seconde erreur : une portée qui correspond ne suffisait pas. Il fallait
+  // EN PLUS que le genre du chantier (political, economic…) recouvre le domaine
+  // que le classifieur détecte dans l'ordre — deux vocabulaires sans rapport,
+  // et ils se contredisaient. Mesuré : « supprimer le célibat » ne réveillait
+  // les cardinaux des dubia que si on leur donnait le genre ECONOMIC, et
+  // « ouvrir un audit » ne réveillait le gardien du coffre que sous le genre
+  // POLITICAL. Ils étaient inversés, parce que le classifieur vient du jeu de
+  // guerre d'origine et ne connaît ni « célibat », ni « audit », ni « abus ».
+  //
+  // La portée EST le test de sujet : elle est écrite à la main, corps par
+  // corps, dans les mots de ce corps. Le genre ne sert plus qu'aux chantiers
+  // qui n'ont pas de portée, où il n'y a pas d'autre signal.
+  const relevant = concernes.filter((it) => it.scope.length || (INTENT_KIND_DOMAINS[it.kind] ?? []).some((d) => has(d)));
   if (relevant.length) {
     const strongest = relevant.reduce((m, it) => Math.max(m, it.stage), 0);
     // One early scheme is a warning, not a wall; several far along are a wall.
     push("opposition", clamp(0.15 + 0.08 * relevant.length + 0.25 * (strongest / 100) - 0.05 * Math.min(3, supportive.length), 0.05, 0.7),
-      `${relevant.length} puissance${relevant.length > 1 ? "s travaillent" : " travaille"} contre cela : ${relevant.map((it) => `${it.owner} (${it.secret ? "en secret, " : ""}${it.kind}, ${it.stage}% du chemin)`).join("; ")}${supportive.length ? ` ; travaillent pour vous : ${supportive.map((it) => it.owner).join(", ")}` : ""}`,
+      `${relevant.length} puissance${relevant.length > 1 ? "s ont" : " a"} un chantier sur ce terrain : ${relevant.map((it) => `${it.owner} (${it.secret ? "en secret, " : ""}${it.stance === "hostile" ? "contre vous" : "sur sa propre ligne"}, ${it.stage}% du chemin)`).join("; ")}${supportive.length ? ` ; travaillent pour vous : ${supportive.map((it) => it.owner).join(", ")}` : ""}`,
       "agir sur elles avant qu'elles n'agissent sur vous — les exposer, les acheter, les diviser ; s'appuyer sur celles qui vous suivent");
   }
   // --- time ---
