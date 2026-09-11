@@ -17,7 +17,7 @@ import { normalizeTreasuries } from "../../runtime/treasuries.js";
 import { normalizeDrives } from "../../runtime/drives.js";
 import { normalizeGatherings } from "../../runtime/gatherings.js";
 import { CONTENU_TOP } from "./chrome.js";
-import { SectionHead, fmtCount, moneyOf } from "./journal.jsx";
+import { CahierVide, EnTeteDeCahier, SectionHead, fmtCount, moneyOf } from "./journal.jsx";
 
 const cell = { fontSize: "var(--oh-t-xs)", padding: "0.35rem 0", verticalAlign: "baseline" };
 const chiffre = { ...cell, fontVariantNumeric: "tabular-nums", textAlign: "right", whiteSpace: "nowrap" };
@@ -118,7 +118,7 @@ const Analyse = ({ caisses, campagnes, rassemblements, usdPerSY }) => {
         style={{
           color: "var(--oh-text-strong)",
           fontFamily: "var(--oh-font-serif)",
-          fontSize: "clamp(1.5rem, 2.4vw, 2.1rem)",
+          fontSize: "var(--oh-t-2xl)",
           fontWeight: 700,
           letterSpacing: "-0.02em",
           lineHeight: 1.04,
@@ -137,14 +137,14 @@ const Analyse = ({ caisses, campagnes, rassemblements, usdPerSY }) => {
       )}
 
       {premiere && premiere.deliveredPerYear > 0 && (
-        <p style={{ color: "var(--oh-text-dim)", fontFamily: "var(--oh-font-serif)", fontSize: "var(--oh-t-sm)", fontStyle: "italic", lineHeight: 1.5, margin: "0 0 0.9rem", maxWidth: "46ch" }}>
+        <p style={{ color: "var(--oh-text-dim)", fontFamily: "var(--oh-font-serif)", fontSize: "var(--oh-t-base)", fontStyle: "italic", lineHeight: 1.55, margin: "0 0 0.9rem", maxWidth: "46ch" }}>
           {premiere.body} reverse {moneyOf(premiere.deliveredPerYear, usdPerSY)} par an
           {premiere.beneficiary ? ` à ${premiere.beneficiary}` : ""}.
         </p>
       )}
 
       {caisses.length > 0 && (
-        <p style={{ fontSize: "var(--oh-t-sm)", lineHeight: 1.5, margin: "0 0 0.7rem", maxWidth: "46ch" }}>
+        <p style={{ fontFamily: "var(--oh-font-serif)", fontSize: "var(--oh-t-base)", lineHeight: 1.55, margin: "0 0 0.7rem", maxWidth: "46ch" }}>
           Les {caisses.length} caisse{caisses.length > 1 ? "s" : ""} tiennent {moneyOf(enMain, usdPerSY)} en main
           {reversetotal > 0 ? `, et reversent ${moneyOf(reversetotal, usdPerSY)} par an` : ", et ne reversent rien"}.
           {premiere && premiere.parent
@@ -154,21 +154,21 @@ const Analyse = ({ caisses, campagnes, rassemblements, usdPerSY }) => {
       )}
 
       {courtes.length > 0 && (
-        <p style={{ fontSize: "var(--oh-t-sm)", lineHeight: 1.5, margin: "0 0 0.7rem", maxWidth: "46ch" }}>
+        <p style={{ fontFamily: "var(--oh-font-serif)", fontSize: "var(--oh-t-base)", lineHeight: 1.55, margin: "0 0 0.7rem", maxWidth: "46ch" }}>
           <b>À surveiller.</b>{" "}
           {courtes.map((t) => `${t.body} livre ${moneyOf(t.deliveredPerYear, usdPerSY)} sur les ${moneyOf(t.annualTarget, usdPerSY)} pour lesquels il a été fondé`).join(" ; ")}.
         </p>
       )}
 
       {ouvertes.length > 0 && (
-        <p style={{ fontSize: "var(--oh-t-sm)", lineHeight: 1.5, margin: "0 0 0.7rem", maxWidth: "46ch" }}>
+        <p style={{ fontFamily: "var(--oh-font-serif)", fontSize: "var(--oh-t-base)", lineHeight: 1.55, margin: "0 0 0.7rem", maxWidth: "46ch" }}>
           {ouvertes.length} campagne{ouvertes.length > 1 ? "s sont ouvertes" : " est ouverte"} :{" "}
           {ouvertes.map((d) => `${d.name}, ${moneyOf(d.collected, usdPerSY)} encaissés sur ${moneyOf(d.target, usdPerSY)}`).join(" ; ")}.
         </p>
       )}
 
       {prevus.length > 0 && (
-        <p style={{ fontSize: "var(--oh-t-sm)", lineHeight: 1.5, margin: "0 0 0.7rem", maxWidth: "46ch" }}>
+        <p style={{ fontFamily: "var(--oh-font-serif)", fontSize: "var(--oh-t-base)", lineHeight: 1.55, margin: "0 0 0.7rem", maxWidth: "46ch" }}>
           {prevus.length === 1 ? "Un rassemblement est prévu" : `${prevus.length} rassemblements sont prévus`} :{" "}
           {prevus.map((g) => `${g.name}${g.date ? ` le ${dayjs(g.date).locale("fr").format("D MMMM")}` : ""}${g.cost > 0 ? `, ${moneyOf(g.cost, usdPerSY)} budgétés` : ""}`).join(" ; ")}.
         </p>
@@ -343,6 +343,7 @@ export const Caisses = ({ nav = null }) => {
   );
   const campagnes = useMemo(() => normalizeDrives(world?.drives), [world?.drives]);
   const rassemblements = useMemo(() => normalizeGatherings(world?.gatherings), [world?.gatherings]);
+  const vide = caisses.length === 0 && campagnes.length === 0 && rassemblements.length === 0;
   const date = game?.gameDate ? dayjs(game.gameDate).locale("fr") : null;
 
   return (
@@ -364,47 +365,31 @@ export const Caisses = ({ nav = null }) => {
 
       <div style={{ margin: "0 auto", maxWidth: "74rem", padding: "0 1.5rem 3rem" }}>
         {/* Le bandeau du cahier : son nom, et sous quelle unité on le lit. */}
-        <header style={{ borderBottom: "3px solid var(--oh-text-strong)", paddingBottom: "0.5rem" }}>
-          <div style={{ alignItems: "end", display: "flex", flexWrap: "wrap", gap: "1rem", justifyContent: "space-between" }}>
-            <div>
-              <div className="oh-label" style={{ color: "var(--oh-text-dim)" }}>Saint-Siège · cahier</div>
-              <h1
-                style={{
-                  color: "var(--oh-text-strong)",
-                  fontFamily: "var(--oh-font-serif)",
-                  fontSize: "clamp(1.8rem, 4vw, 2.8rem)",
-                  fontWeight: 700,
-                  letterSpacing: "-0.025em",
-                  lineHeight: 1,
-                  margin: "0.1rem 0 0",
-                }}
-              >
-                Les Comptes
-              </h1>
-            </div>
-            <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)", lineHeight: 1.5, textAlign: "right" }}>
-              {date && date.isValid() && (
-                <div className="oh-label" style={{ color: "var(--oh-text-strong)" }}>
-                  Tour {game?.round || 1} · {date.format("D MMMM YYYY")}
-                </div>
-              )}
-              <div>
-                Unité : {usdPerSY > 0 ? "dollars" : "années-subsistance (AS)"}
-              </div>
-            </div>
-          </div>
-        </header>
+        <EnTeteDeCahier
+          titre="Les Comptes"
+          mention={date && date.isValid() ? `Tour ${game?.round || 1} · ${date.format("D MMMM YYYY")}` : null}
+          sousMention={`Unité : ${usdPerSY > 0 ? "dollars" : "années-subsistance (AS)"}`}
+        />
 
         {nav && nav()}
 
-        <div className="oh-comptes-grid">
-          <Analyse caisses={caisses} campagnes={campagnes} rassemblements={rassemblements} usdPerSY={usdPerSY} />
-          <div style={{ display: "flex", flexDirection: "column", gap: "1.4rem" }}>
-            <TableCaisses caisses={caisses} usdPerSY={usdPerSY} />
-            <TableCampagnes campagnes={campagnes} usdPerSY={usdPerSY} />
-            <TableRassemblements rassemblements={rassemblements} usdPerSY={usdPerSY} />
+        {/* Tant qu'aucun organisme ne tient de bourse, il n'y a pas deux
+            colonnes à tenir : la page revient à une seule, comme un cahier
+            qu'on n'a pas encore ouvert. */}
+        {vide ? (
+          <CahierVide quoiFaire="Ouvrez-en une par un ordre, et ce cahier se remplira de lui-même — ses lignes ne viennent que du registre.">
+            Aucune caisse n&apos;est encore ouverte, aucune campagne n&apos;est lancée, aucun rassemblement n&apos;est annoncé.
+          </CahierVide>
+        ) : (
+          <div className="oh-comptes-grid">
+            <Analyse caisses={caisses} campagnes={campagnes} rassemblements={rassemblements} usdPerSY={usdPerSY} />
+            <div style={{ display: "flex", flexDirection: "column", gap: "1.4rem" }}>
+              <TableCaisses caisses={caisses} usdPerSY={usdPerSY} />
+              <TableCampagnes campagnes={campagnes} usdPerSY={usdPerSY} />
+              <TableRassemblements rassemblements={rassemblements} usdPerSY={usdPerSY} />
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

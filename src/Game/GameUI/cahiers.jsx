@@ -12,12 +12,14 @@
  */
 import React, { useEffect, useState } from "react";
 import { readGameData, readWorldState } from "../../runtime/gameState.js";
+import dayjs from "dayjs";
 import { ActionsPanel } from "./actions.jsx";
 import { Record } from "./bulletin.jsx";
+import { EnTeteDeCahier } from "./journal.jsx";
 import { CONTENU_TOP } from "./chrome.js";
 
 /** Le cadre d'un cahier : même surface, même géométrie que l'édition. */
-const Feuille = ({ surface, nav, children }) => (
+const Feuille = ({ surface, nav, entete = null, children }) => (
   <div
     data-surface={surface}
     style={{
@@ -33,42 +35,55 @@ const Feuille = ({ surface, nav, children }) => (
     }}
   >
     <div style={{ margin: "0 auto", maxWidth: "74rem", padding: "1.6rem 1.5rem 3rem" }}>
+      {entete}
       {nav && nav()}
       {children}
     </div>
   </div>
 );
 
-/** Les ordres : ce qu'on verse au dossier, et ce que le moteur en a jugé. */
-export const Ordres = ({ onOpenAdvisor, nav }) => (
-  <Feuille surface="press" nav={nav}>
-    <ActionsPanel embedded isOpen onClose={() => {}} onOpenAdvisor={onOpenAdvisor} />
-  </Feuille>
-);
 
-/** Le registre : les lignes que le moteur a écrites, et rien d'autre. */
-export const Registre = ({ nav }) => {
-  const [game, setGame] = useState(null);
-  const [world, setWorld] = useState(null);
-
+/** La partie en cours, lue une fois. Les deux cahiers en ont besoin pour la
+ *  mention de tour que les quatre autres portent déjà. */
+const usePartie = () => {
+  const [etat, setEtat] = useState({ game: null, world: null });
   useEffect(() => {
     let vivant = true;
     Promise.all([
       readGameData().catch(() => null),
       readWorldState({ force: true }).catch(() => null),
-    ]).then(([g, w]) => {
-      if (!vivant) return;
-      setGame(g);
-      setWorld(w);
-    });
+    ]).then(([game, world]) => { if (vivant) setEtat({ game, world }); });
     return () => { vivant = false; };
   }, []);
+  return etat;
+};
 
+/** La mention de droite d'un bandeau de cahier : le tour, et sa date. */
+const mentionDeTour = (game) => {
+  const date = game?.gameDate ? dayjs(game.gameDate) : null;
+  return date && date.isValid()
+    ? `Tour ${game?.round || 1} · ${date.format("D MMMM YYYY")}`
+    : `Tour ${game?.round || 1}`;
+};
+
+/** Les ordres : ce qu'on verse au dossier, et ce que le moteur en a jugé. */
+export const Ordres = ({ onOpenAdvisor, nav }) => {
+  const { game } = usePartie();
+  return (
+    <Feuille surface="press" nav={nav} entete={<EnTeteDeCahier titre="Les Ordres" mention={mentionDeTour(game)} sousMention="Ce qui prendra effet au prochain tour" />}>
+      <ActionsPanel embedded isOpen onClose={() => {}} onOpenAdvisor={onOpenAdvisor} />
+    </Feuille>
+  );
+};
+
+/** Le registre : les lignes que le moteur a écrites, et rien d'autre. */
+export const Registre = ({ nav }) => {
+  const { game, world } = usePartie();
   const player = game?.country || "";
   const usdPerSY = Number(player ? world?.economies?.[player]?.usdPerSY : 0) || 0;
 
   return (
-    <Feuille surface="press" nav={nav}>
+    <Feuille surface="press" nav={nav} entete={<EnTeteDeCahier titre="Le Registre" mention={mentionDeTour(game)} sousMention={`Unité : ${usdPerSY > 0 ? "dollars" : "années-subsistance (AS)"}`} />}>
       <Record record={world?.record} treasuries={world?.treasuries} player={player} usdPerSY={usdPerSY} />
     </Feuille>
   );

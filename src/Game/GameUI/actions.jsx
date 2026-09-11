@@ -2,6 +2,7 @@
 import React from "react";
 import dayjs from "dayjs";
 import advancedFormat from "dayjs/plugin/advancedFormat";
+import "dayjs/locale/fr";
 import { JSON_URLS, readJson } from "../../runtime/assets.js";
 import { useCountryDisplayName } from "../../runtime/polityNames.js";
 import { generateActionSuggestions, refinePlayerAction } from "../AI/gameplay.js";
@@ -16,11 +17,13 @@ import {
 } from "../../runtime/gameState.js";
 import { assessAction } from "../../runtime/realityCheck.js";
 import { RealityTally } from "./verdict.jsx";
+import { CahierVide } from "./journal.jsx";
 
 // The verdict the next jump will hold the order to (runtime/realityCheck.js),
 // shown the moment it is queued — so the player argues with the world before
 // the turn, not after.
 dayjs.extend(advancedFormat);
+dayjs.locale("fr");
 
 const ACTIONS_STYLE_ID = "actions-style";
 
@@ -192,7 +195,7 @@ const SuggestionCard = ({ topic, onQueue, queuedIds }) => {
         style={{
             background: "transparent",
             border: "1px solid var(--oh-line)",
-            borderLeft: contested ? "4px solid var(--oh-caution)" : "1px solid var(--oh-line)",
+            borderLeft: contested ? "var(--oh-filet-fort) solid var(--oh-caution)" : "var(--oh-filet) solid var(--oh-line)",
             borderRadius: "var(--oh-r-flat)",
             display: "flex",
             flexDirection: "column",
@@ -255,7 +258,7 @@ const SuggestionCard = ({ topic, onQueue, queuedIds }) => {
 const ActionsPanel = ({ isOpen, onClose, onOpenAdvisor, embedded = false }) => {
     const [actions, setActions] = React.useState([]);
     const [inputValue, setInputValue] = React.useState("");
-    const [country, setCountry] = React.useState("your nation");
+    const [country, setCountry] = React.useState("votre puissance");
     // The normalized world (plus a cheap change stamp) behind the live verdicts.
     const [realityWorld, setRealityWorld] = React.useState(null);
     const realityContext = React.useMemo(
@@ -266,7 +269,7 @@ const ActionsPanel = ({ isOpen, onClose, onOpenAdvisor, embedded = false }) => {
     );
     // Full display name for the header, never the code.
     const countryDisplayName = useCountryDisplayName(country);
-    const [gameDate, setGameDate] = React.useState("the current date");
+    const [gameDate, setGameDate] = React.useState("");
     const [suggestions, setSuggestions] = React.useState([]);
     const [hasRequestedSuggestions, setHasRequestedSuggestions] = React.useState(false);
     const [isSubmitting, setIsSubmitting] = React.useState(false);
@@ -315,7 +318,9 @@ const ActionsPanel = ({ isOpen, onClose, onOpenAdvisor, embedded = false }) => {
                 }
 
                 if (data.gameDate) {
-                    setGameDate(dayjs(data.gameDate).format("MMMM Do, YYYY"));
+                    // « septembre 1er, 2026 » était un ordre de mots anglais : le formateur
+                    // sait écrire la date, la chaîne ne le lui demandait pas.
+                    setGameDate(dayjs(data.gameDate).format("Do MMMM YYYY"));
                 }
 
                 // After a jump, applySimulationResult re-marks last round's actions
@@ -524,7 +529,7 @@ const ActionsPanel = ({ isOpen, onClose, onOpenAdvisor, embedded = false }) => {
         <div
         style={{
             alignItems: "baseline",
-            borderBottom: embedded ? "4px solid var(--oh-text-strong)" : "1px solid var(--oh-line)",
+            borderBottom: embedded ? "var(--oh-filet-fort) solid var(--oh-text-strong)" : "var(--oh-filet) solid var(--oh-line)",
             display: "flex",
             justifyContent: "space-between",
             padding: embedded ? "0 0 0.4rem" : "1rem 1.25rem 0.75rem",
@@ -570,37 +575,10 @@ const ActionsPanel = ({ isOpen, onClose, onOpenAdvisor, embedded = false }) => {
         }}
         >
         {embedded
-            ? <>Des ordres au nom du {countryDisplayName}, prenant effet au {gameDate}. Chacun est tenu au budget, à la portée de l'appareil, aux chantiers déjà lancés et aux corps qui doivent voter, avant que le monde y réponde.</>
-            : <>Soumettez des ordres pour {countryDisplayName} au {gameDate}. Vos ordres décideront de la réponse du monde.</>}
+            ? <>Des ordres au nom de {countryDisplayName}, prenant effet {gameDate ? `le ${gameDate}` : "à la date en cours"}. Chacun est tenu au budget, à la portée de l'appareil, aux chantiers déjà lancés et aux corps qui doivent voter, avant que le monde y réponde.</>
+            : <>Soumettez des ordres pour {countryDisplayName}{gameDate ? ` au ${gameDate}` : ""}. Vos ordres décideront de la réponse du monde.</>}
         </p>
 
-        <button
-        type="button"
-        onClick={onOpenAdvisor}
-        style={{
-            background: "transparent",
-            border: "1px solid var(--oh-accent)",
-            borderRadius: "var(--oh-r-flat)",
-            color: "var(--oh-accent)",
-            cursor: "pointer",
-            fontSize: "var(--oh-t-xs)",
-            fontWeight: 500,
-            letterSpacing: "0.01em",
-            padding: "0.55rem 1rem",
-            transition: "background 0.15s, border-color 0.15s",
-            width: "100%",
-        }}
-        onMouseEnter={(event) => {
-            event.currentTarget.style.background = "var(--oh-accent-soft)";
-            event.currentTarget.style.borderColor = "var(--oh-accent-soft)";
-        }}
-        onMouseLeave={(event) => {
-            event.currentTarget.style.background = "var(--oh-accent-soft)";
-            event.currentTarget.style.borderColor = "var(--oh-accent-soft)";
-        }}
-        >
-        M'aider à trouver des idées
-        </button>
 
         <button
         type="button"
@@ -679,11 +657,15 @@ const ActionsPanel = ({ isOpen, onClose, onOpenAdvisor, embedded = false }) => {
             scrollbarWidth: "none",
         }}
         >
-        {submittedActions.length === 0 && (
+        {submittedActions.length === 0 && (embedded ? (
+            <CahierVide quoiFaire="Le verdict paraît dès qu'un ordre est versé au dossier : le budget, la portée de l'appareil, les chantiers en cours et les corps qui doivent voter y répondent avant le monde.">
+            Aucun ordre en cours. Écrivez-en un ci-dessous.
+            </CahierVide>
+        ) : (
             <p style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-sm)", fontStyle: "italic", margin: 0 }}>
-            Aucun ordre en cours. Écrivez-en un ci-dessous : le verdict paraît dès qu'il est versé au dossier.
+            Aucun ordre en cours. Écrivez-en un ci-dessous : le verdict paraît dès qu&apos;il est versé au dossier.
             </p>
-        )}
+        ))}
         {submittedActions.map(({ normalized, originalIndex }) => (
             <ActionItem key={normalized.id || originalIndex} action={normalized} onDelete={() => handleDelete(originalIndex)} realityContext={realityContext} />
         ))}
@@ -698,7 +680,7 @@ const ActionsPanel = ({ isOpen, onClose, onOpenAdvisor, embedded = false }) => {
             <div
             style={{
                 background: "var(--oh-caution-soft)",
-                borderLeft: "4px solid var(--oh-caution)",
+                borderLeft: "var(--oh-filet-fort) solid var(--oh-caution)",
                 color: "var(--oh-text-strong)",
                 fontSize: "var(--oh-t-sm)",
                 lineHeight: 1.5,
@@ -742,6 +724,7 @@ const ActionsPanel = ({ isOpen, onClose, onOpenAdvisor, embedded = false }) => {
             transition: "border-color 0.2s",
             minHeight: embedded ? "8rem" : "3rem",
             lineHeight: "1.45",
+            maxWidth: embedded ? "62ch" : "none",
             overflowY: "auto",
             width: "100%",
         }}

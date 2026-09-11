@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { readGameData, readWorldState } from "../../runtime/gameState.js";
 import { groupsOn, normalizeAssembly, temperWord } from "../../runtime/factions.js";
 import { useSurface } from "../../runtime/useSurface.js";
+import { CahierVide } from "./journal.jsx";
 import { CONTENU_TOP } from "./chrome.js";
 import { ensureOrganizations } from "./organizationsView.jsx";
 import {
@@ -99,7 +100,7 @@ const CorrespondentRow = ({ chat, active, unread, standing: where, onOpen, onDel
         style={{
             background: active ? "var(--oh-plate-2)" : "transparent",
             borderBottom: "1px solid var(--oh-line)",
-            borderLeft: `4px solid ${edge}`,
+            borderLeft: `var(--oh-filet-fort) solid ${edge}`,
             display: "flex",
             gap: "0.5rem",
             padding: "0.85rem 0.9rem 0.9rem 1rem",
@@ -404,11 +405,13 @@ const Correspondence = ({ nav = null }) => {
             />
             </>
         ) : (
-            <div style={{ margin: "auto", maxWidth: "46ch", padding: "2rem" }}>
+            // Ancré en haut, jamais centré dans le vide : une page de journal
+            // commence sous son en-tête, où qu'elle s'arrête.
+            <div style={{ margin: "0 auto", maxWidth: "62ch", padding: "2rem 2rem 0", width: "100%" }}>
             <span className="oh-label" style={{ color: "var(--oh-text-dim)" }}>Lettres</span>
-            <p style={{ color: "var(--oh-text)", fontFamily: "var(--oh-font-serif)", fontSize: "var(--oh-t-md)", lineHeight: 1.55, margin: "0.8rem 0 0" }}>
-            Choisissez un correspondant à gauche, ou écrivez une nouvelle lettre. Ce que vous écrivez est lu dans son propre caractère par la puissance à qui vous l'adressez, et ce qu'elle répond est jugé sur ce qu'elle veut vraiment.
-            </p>
+            <CahierVide quoiFaire="Choisissez un correspondant à gauche, ou écrivez une nouvelle lettre.">
+            Ce que vous écrivez est lu dans son propre caractère par la puissance à qui vous l&apos;adressez, et ce qu&apos;elle répond est jugé sur ce qu&apos;elle veut vraiment.
+            </CahierVide>
             </div>
         )}
         </div>

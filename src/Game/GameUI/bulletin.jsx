@@ -30,7 +30,7 @@ import { nextEdition } from "../../runtime/nextEdition.js";
 import { useSurface } from "../../runtime/useSurface.js";
 import { simulateAutoJump, simulateTimelineJump } from "../AI/gameplay.js";
 import { CONTENU_TOP } from "./chrome.js";
-import { SectionHead } from "./journal.jsx";
+import { CahierVide, SectionHead, fmtEntier } from "./journal.jsx";
 import { ApercuDuCollege } from "./college.jsx";
 
 // Written as a page, not as a panel dressed up as one. Nothing here inherits the
@@ -99,21 +99,111 @@ const Dateline = ({ children, tone = "alert" }) => (
     </span>
 );
 
-const Story = ({ event, lead = false, tone }) => (
+// Une photographie par page, qui suit le lieu quand l'événement en nomme un.
+// Les crédits sont dans public/CREDITS.md et repris sous l'image : la licence
+// CC BY n'est tenue que si l'auteur est nommé là où l'image est vue.
+const PHOTOGRAPHIES = [
+    { motifs: /basilique|saint-pierre|st\.? peter|coupole|nef/i, src: "/basilica.jpg", credit: "Vyacheslav Argenberg, CC BY 4.0" },
+    { motifs: /.*/,                                              src: "/vatican.jpg",  credit: "lafiguradelpadre Congreso, CC BY 2.0" },
+];
+const photographiePour = (texte) => PHOTOGRAPHIES.find((p) => p.motifs.test(String(texte || ""))) || PHOTOGRAPHIES[1];
+
+const Photographie = ({ sujet }) => {
+    const photo = photographiePour(sujet);
+    return (
+    <figure style={{ borderTop: "var(--oh-filet) solid var(--oh-line)", margin: "0 0 0.9rem", paddingTop: "0.6rem" }}>
+    <img
+    src={photo.src}
+    alt=""
+    loading="lazy"
+    style={{ aspectRatio: "3 / 2", display: "block", objectFit: "cover", objectPosition: "center 45%", width: "100%" }}
+    />
+    <figcaption style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)", paddingTop: "0.25rem", textAlign: "right" }}>
+    {photo.credit}
+    </figcaption>
+    </figure>
+    );
+};
+
+// L'article de tête, d'après le brief de la session de design. Ce qui le fait
+// tenir n'est pas une couleur mais un écart : le titre fait quatre fois le
+// corps. Une page de journal n'a qu'un premier plan, d'où le fait que ce
+// composant ne serve qu'une fois par écran.
+const ArticleDeUne = ({ dateline, tone = "alert", titre, chapo, sujet, encadre, children }) => (
+    <article style={{ borderTop: "var(--oh-filet) solid var(--oh-line)", padding: "0.95rem 0 1.4rem" }}>
+    {dateline && <Dateline tone={tone}>{dateline}</Dateline>}
+    <h2
+    style={{
+        color: "var(--oh-text-strong)",
+        fontFamily: "var(--oh-font-serif)",
+        fontSize: "var(--oh-t-2xl)",
+        fontWeight: 700,
+        letterSpacing: "-0.02em",
+        lineHeight: 1.02,
+        margin: "0 0 0.55rem",
+        textWrap: "balance",
+    }}
+    >
+    {titre}
+    </h2>
+    {chapo && (
+        <p
+        style={{
+            color: "var(--oh-text-dim)",
+            fontFamily: "var(--oh-font-serif)",
+            fontSize: "var(--oh-t-md)",
+            fontStyle: "italic",
+            fontWeight: 400,
+            lineHeight: 1.45,
+            margin: "0 0 0.9rem",
+            maxWidth: "52ch",
+        }}
+        >
+        {chapo}
+        </p>
+    )}
+    {sujet !== undefined && <Photographie sujet={sujet} />}
+    {children && (
+        <div className="oh-une-corps" style={{ color: "var(--oh-text)", fontSize: "var(--oh-t-sm)", lineHeight: 1.5 }}>
+        {children}
+        </div>
+    )}
+    {encadre && (
+        <aside style={{ borderTop: "var(--oh-filet-fort) solid var(--oh-accent)", marginTop: "1.1rem", paddingTop: "0.5rem" }}>
+        <div className="oh-label" style={{ color: "var(--oh-accent)" }}>Ce que cela change</div>
+        <div style={{ color: "var(--oh-text)", fontSize: "var(--oh-t-xs)", lineHeight: 1.5, marginTop: "0.4rem", maxWidth: "52ch" }}>
+        {encadre}
+        </div>
+        </aside>
+    )}
+    </article>
+);
+
+const Story = ({ event, lead = false, tone }) =>
+    lead ? (
+    <ArticleDeUne
+    dateline={event.date ? `${fmtDate(event.date, "D MMMM YYYY")} · Rome`.toUpperCase() : null}
+    tone={tone}
+    titre={event.title}
+    sujet={`${event.title || ""} ${event.location || ""}`}
+    >
+    {event.description && (
+        <div className="timeline-markdown"><ReactMarkdown>{event.description}</ReactMarkdown></div>
+    )}
+    </ArticleDeUne>
+    ) : (
     <article style={{ borderTop: "1px solid var(--oh-line)", padding: "0.95rem 0 1.15rem" }}>
     <Dateline tone={tone}>{fmtDate(event.date, "D MMM YYYY")}</Dateline>
     {/* Le titre est en romain, comme la maquette : c'est ce qui fait lire un
-        article de journal plutôt qu'une carte d'application. La une est posée
-        plus grande et plus serrée que les brèves — une première page range ce
-        qu'elle croit important. */}
+        article de journal plutôt qu'une carte d'application. */}
     <h3
     style={{
         color: "var(--oh-text-strong)",
         fontFamily: "var(--oh-font-serif)",
-        fontSize: lead ? "clamp(1.9rem, 3vw, 2.7rem)" : "var(--oh-t-md)",
+        fontSize: "var(--oh-t-md)",
         fontWeight: 700,
         letterSpacing: "-0.02em",
-        lineHeight: lead ? 0.98 : 1.12,
+        lineHeight: 1.12,
         margin: "0 0 0.45rem",
         textWrap: "balance",
     }}
@@ -129,29 +219,69 @@ const Story = ({ event, lead = false, tone }) => (
         </div>
     )}
     </article>
-);
+    );
 
-// The situation the scenario starts from. It is printed above the inauguration
-// sheet on the first turn, and again on any edition that carries no stories of
-// its own, which is why it is a component rather than a block inside one branch.
-const Situation = ({ briefing, date }) => (
+// Ce que la une porte tant qu'aucun événement n'est encore arrivé. Le brief de
+// la session de design est net là-dessus : une colonne de tête sans titre n'est
+// pas une une, c'est un paragraphe. Il y a de quoi en écrire un — le programme
+// sur lequel le pape vient d'être élu, et la situation qu'il trouve — et rien
+// ici n'est inventé : le titre porte le nom qu'il a pris, le chapô est sa
+// profession de foi mot pour mot, l'encadré ne nomme que des chantiers que le
+// monde tient déjà.
+const STANCE_LABEL = { hostile: "contre", supportive: "pour", rival: "rivale", neutral: "réservée" };
+const str = (v) => String(v ?? "").trim();
+
+const Situation = ({ briefing, date, world, awaitingInauguration }) => {
+    const inauguration = world?.inauguration;
+    const nom = str(inauguration?.name);
+    const declaration = str(inauguration?.declaration);
+    const reactions = Array.isArray(inauguration?.reactions) ? inauguration.reactions.filter((r) => r && r.owner) : [];
+    const elu = Boolean(!awaitingInauguration && nom && declaration);
+
+    const jour = date ? fmtDate(date, "D MMMM YYYY") : "";
+
+    if (!elu && !briefing) {
+        return (
+        <>
+        <SectionHead aside={jour}>La situation</SectionHead>
+        <CahierVide quoiFaire="La première édition paraîtra dès que le pontificat sera signé ; d'ici là, le monde n'a rien dit.">
+        Aucune situation d&apos;ouverture n&apos;a été écrite pour ce début.
+        </CahierVide>
+        </>
+        );
+    }
+
+    const texte = briefing || "";
+
+    return (
     <>
-    <SectionHead aside={fmtDate(date)}>La situation</SectionHead>
-    <article style={{ padding: "1rem 0 1.2rem" }}>
-    <div
-    style={{
-        color: "var(--oh-text)",
-        fontFamily: "var(--oh-font-body)",
-        fontSize: "var(--oh-t-md)",
-        lineHeight: 1.55,
-        maxWidth: "62ch",
-    }}
+    <SectionHead aside={jour}>{elu ? "La une" : "La situation"}</SectionHead>
+    <ArticleDeUne
+    dateline={jour ? `${jour} · Rome`.toUpperCase() : null}
+    titre={elu ? `${nom} a été élu sur ce programme` : "Ce que le nouveau pape trouve en arrivant"}
+    chapo={elu ? `« ${declaration} »` : null}
+    sujet={elu ? "basilique" : ""}
+    encadre={elu && reactions.length > 0 ? (
+        <>
+        {reactions.length === 1
+            ? "Un chantier déjà en cours répond à ce qui a été déclaré : "
+            : `${reactions.length} chantiers déjà en cours répondent à ce qui a été déclaré : `}
+        {reactions.map((r, i) => (
+            <span key={`${r.owner}-${i}`}>
+            {i > 0 ? ", " : ""}
+            <b style={{ color: "var(--oh-text-strong)" }}>{r.owner}</b>
+            {STANCE_LABEL[String(r.stance || "").toLowerCase()] ? ` (${STANCE_LABEL[String(r.stance).toLowerCase()]})` : ""}
+            </span>
+        ))}
+        . Leur réponse tombera dans la prochaine édition.
+        </>
+    ) : null}
     >
-    {briefing || "Aucune situation d'ouverture n'a été écrite pour ce début."}
-    </div>
-    </article>
+    {texte}
+    </ArticleDeUne>
     </>
-);
+    );
+};
 
 // A pope's first act is not a jump. He takes a name and tells the Church what he
 // was elected to change, in front of it — and both become state the whole engine
@@ -334,17 +464,14 @@ const fmtCount = (value) => {
 // A front with no figure prints as absent rather than as zero: a scenario with
 // no college has no unity to lose, and a bar at nothing would say the opposite.
 const FRONT_FORMAT = {
-    share: (v) => `${Math.round(v)}%`,
+    share: (v) => `${Math.round(v)}\u202f%`,
     count: fmtCount,
-    money: (v) => `${Math.round(v)} AS`,
+    money: (v) => `${fmtEntier(v)}\u202fAS`,
 };
 
 const Front = ({ row }) => {
     const format = FRONT_FORMAT[row.unit] ?? fmtCount;
     const held = row.value != null;
-    // A share is the only unit that has a meaningful full: a count of hostile
-    // powers or of seminarians has no ceiling to draw a bar against.
-    const bar = row.unit === "share" && held ? Math.max(0, Math.min(100, row.value)) : null;
     return (
         <div style={{ borderTop: "1px solid var(--oh-line)", padding: "0.55rem 0 0.6rem" }}>
         <div style={{ alignItems: "baseline", display: "flex", gap: "0.5rem", justifyContent: "space-between" }}>
@@ -356,11 +483,6 @@ const Front = ({ row }) => {
         <Movement row={row} format={format} />
         </span>
         </div>
-        {bar != null && (
-            <div style={{ background: "var(--oh-plate-2)", height: "0.3rem", marginTop: "0.35rem", position: "relative" }}>
-            <div style={{ background: row.good === false ? "var(--oh-alert)" : "var(--oh-accent)", inset: "0 auto 0 0", position: "absolute", width: `${bar}%` }} />
-            </div>
-        )}
         </div>
     );
 };
@@ -369,7 +491,9 @@ const Fronts = ({ rows }) => (
     <section style={{ borderBottom: "1px solid var(--oh-line)", padding: "0.9rem 0 1rem" }}>
     <SectionHead aside="depuis le début du pontificat">Les six fronts</SectionHead>
     <p style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)", lineHeight: 1.5, margin: "0.5rem 0 0.7rem", maxWidth: "54ch" }}>
-    Un pontificat se juge sur les six à la fois. L'argent est l'un d'eux.
+    Un pontificat se juge sur les six à la fois. L&apos;argent est l&apos;un d&apos;eux.
+    <br />
+    Unités : part en pourcentage, effectifs en nombre de personnes, argent en années-subsistance (AS).
     </p>
     {rows.map((row) => <Front key={row.key} row={row} />)}
     </section>
@@ -472,12 +596,12 @@ const Press = ({ game, world, actions, focus, onPrinted }) => {
     const stop = () => abortRef.current?.abort(new DOMException("Edition cancelled.", "AbortError"));
 
     return (
-        <section ref={ref} style={{ borderBottom: "1px solid var(--oh-line)", borderTop: "4px solid var(--oh-text-strong)", padding: "0.6rem 0 1rem" }}>
+        <section ref={ref} style={{ borderBottom: "var(--oh-filet) solid var(--oh-line)", borderTop: "var(--oh-filet-fort) solid var(--oh-text-strong)", padding: "0.6rem 0 1rem" }}>
         <div style={{ alignItems: "baseline", display: "flex", gap: "1rem", justifyContent: "space-between" }}>
         <span className="oh-label" style={{ color: "var(--oh-text-strong)" }}>Prochaine édition</span>
         <span style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)" }}>{from ? `depuis le ${fmtDate(from)}` : ""}</span>
         </div>
-        <div style={{ color: "var(--oh-text-strong)", fontFamily: "var(--oh-font-display)", fontSize: "clamp(1.6rem, 2.6vw, 2.2rem)", fontWeight: 800, letterSpacing: "-0.03em", lineHeight: 1.05, margin: "0.5rem 0 0.2rem" }}>
+        <div style={{ color: "var(--oh-text-strong)", fontFamily: "var(--oh-font-display)", fontSize: "var(--oh-t-xl)", fontWeight: 800, letterSpacing: "-0.03em", lineHeight: 1.05, margin: "0.5rem 0 0.2rem" }}>
         {to ? fmtDate(to) : "—"}
         </div>
         <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)", marginBottom: "0.7rem" }}>
@@ -713,9 +837,9 @@ const Record = ({ record, treasuries, player, usdPerSY }) => {
         Écrit par le moteur, jamais par les récits : une ligne ne paraît ici que si un stock a réellement bougé.
         </p>
         {rows.length === 0 ? (
-            <p style={{ color: "var(--oh-alert)", fontSize: "var(--oh-t-sm)", fontWeight: 600, lineHeight: 1.5, margin: "0.5rem 0 0" }}>
-            Rien n'a bougé. Quoi que les éditions aient dit d'argent qui arrive, les stocks sont là où ils étaient.
-            </p>
+            <CahierVide ton="alert" quoiFaire="Il n'y a rien à faire ici : le registre se remplit de lui-même, une ligne tombant chaque fois qu'un ordre déplace réellement un stock.">
+            Rien n&apos;a bougé. Quoi que les éditions aient dit d&apos;argent qui arrive, les stocks sont là où ils étaient.
+            </CahierVide>
         ) : (
             <table className="oh-ledger">
             <tbody>
@@ -975,6 +1099,11 @@ const Bulletin = ({ onOpenAdvisor, pressFocus = 0, nav = null }) => {
     const briefing = world?.startingTimelineText || "";
     const awaitingInauguration = Boolean(world) && !isInaugurated(world);
 
+    // La page n'a rien à mettre en tête : ni événement du tour, ni récit
+    // d'archive, ni feuille d'investiture à signer. C'est le seul cas où la
+    // grille de la une se recompose.
+    const creuse = !awaitingInauguration && edition.length === 0 && earlier.length === 0;
+
     // A turn that could not reach the model is written by a deterministic stub
     // that carries NO levers: no money moves, no order is judged, no scheme
     // advances. The engine has always recorded why, and the page has never said
@@ -1023,7 +1152,7 @@ const Bulletin = ({ onOpenAdvisor, pressFocus = 0, nav = null }) => {
             journal au centre, son état civil à gauche, celui du pontificat à
             droite. Un journal se reconnaît à son bandeau avant qu'on l'ait lu ;
             l'ancien n'avait qu'un titre et n'en était pas un. */}
-        <header style={{ borderBottom: "3px solid var(--oh-text-strong)", paddingBottom: "0.55rem" }}>
+        <header style={{ borderBottom: "var(--oh-filet-manchette) solid var(--oh-text-strong)", paddingBottom: "0.55rem" }}>
         <div className="oh-masthead" style={{ alignItems: "end", display: "grid", gap: "1rem", gridTemplateColumns: "1fr auto 1fr" }}>
         <div className="oh-masthead-flank" style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)", lineHeight: 1.5 }}>
         <div className="oh-label" style={{ color: "var(--oh-text-strong)" }}>
@@ -1037,7 +1166,7 @@ const Bulletin = ({ onOpenAdvisor, pressFocus = 0, nav = null }) => {
         style={{
             color: "var(--oh-text-strong)",
             fontFamily: "var(--oh-font-serif)",
-            fontSize: "clamp(2.4rem, 6vw, 4.2rem)",
+            fontSize: "var(--oh-t-3xl)",
             fontWeight: 700,
             letterSpacing: "-0.025em",
             lineHeight: 0.92,
@@ -1051,7 +1180,7 @@ const Bulletin = ({ onOpenAdvisor, pressFocus = 0, nav = null }) => {
 
         <div className="oh-masthead-flank" style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)", lineHeight: 1.5, textAlign: "right" }}>
         <div className="oh-label" style={{ color: "var(--oh-text-strong)" }}>
-        Rome, {fmtDate(game?.gameDate)}
+        {game?.gameDate ? `Rome, ${fmtDate(game.gameDate)}` : "Rome"}
         </div>
         {pape && <div>{pape}{jourDuPontificat ? ` · ${jourDuPontificat}ᵉ jour` : ""}</div>}
         {baptises && <div>{baptises} de baptisés</div>}
@@ -1070,7 +1199,7 @@ const Bulletin = ({ onOpenAdvisor, pressFocus = 0, nav = null }) => {
             role="alert"
             style={{
                 background: "var(--oh-plate)",
-                border: "2px solid var(--oh-alert)",
+                border: "var(--oh-filet-fort) solid var(--oh-alert)",
                 color: "var(--oh-text-strong)",
                 fontSize: "var(--oh-t-sm)",
                 lineHeight: 1.55,
@@ -1098,10 +1227,21 @@ const Bulletin = ({ onOpenAdvisor, pressFocus = 0, nav = null }) => {
             `${lignesRegistre} ${lignesRegistre === 1 ? "ligne au registre" : "lignes au registre"}`,
         ].join(" · "))}
 
-        <div className="oh-bulletin-grid">
+        {/* Une une sans matière laisse un trou de six cents pixels à côté de
+            deux colonnes pleines. Un journal ne fait pas ça : il recompose. La
+            note passe au-dessus, sur une colonne de lecture, et la grille
+            repasse à deux colonnes de contenu réel. */}
+        {creuse && (
+            <div style={{ marginBottom: "1.6rem" }}>
+            <Situation briefing={briefing} date={game?.startDate || game?.gameDate} world={world} />
+            </div>
+        )}
+
+        <div className={creuse ? "oh-bulletin-grid oh-bulletin-grid-creuse" : "oh-bulletin-grid"}>
 
         {/* Left: what the world did — and, on the first turn, the situation the
             new pope has to read before he can sign anything. */}
+        {!creuse && (
         <div>
         {awaitingInauguration ? (
             // Field report: the inauguration sheet was rendered INSTEAD of the
@@ -1111,14 +1251,9 @@ const Bulletin = ({ onOpenAdvisor, pressFocus = 0, nav = null }) => {
             // Church. The first irreversible decision in the game was made
             // blind. The situation prints above the form, never in place of it.
             <>
-            <Situation briefing={briefing} date={game?.startDate || game?.gameDate} />
+            <Situation briefing={briefing} date={game?.startDate || game?.gameDate} world={world} awaitingInauguration />
             <Inauguration world={world} player={player} onDone={setWorld} />
             </>
-        ) : edition.length === 0 ? (
-            // An episode opens before anything has happened. Rather than an empty
-            // page with a dashed box on it, the first edition prints the situation
-            // the scenario starts from — which is the thing a new player needs.
-            <Situation briefing={briefing} date={game?.startDate || game?.gameDate} />
         ) : (
             <>
             <SectionHead aside={`${edition.length} ${edition.length === 1 ? "événement" : "événements"}`}>
@@ -1152,6 +1287,7 @@ const Bulletin = ({ onOpenAdvisor, pressFocus = 0, nav = null }) => {
             </div>
         )}
         </div>
+        )}
 
         {/* Centre : ce qui est ordonné, et ce que le moteur en a jugé. La
             maquette journal lui donne sa propre colonne, entre les nouvelles et

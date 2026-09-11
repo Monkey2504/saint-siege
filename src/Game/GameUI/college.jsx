@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { readActionsState, readGameData, readWorldState, writeActionsState } from "../../runtime/gameState.js";
 import { useSurface } from "../../runtime/useSurface.js";
 import { CONTENU_TOP } from "./chrome.js";
-import { SectionHead } from "./journal.jsx";
+import { CahierVide, EnTeteDeCahier, SectionHead } from "./journal.jsx";
 import {
     AXES, HOSTILE_AT, LOYAL_AT, RADICAL_AT, ZEALOUS_AT,
     coalition, groupsOn, normalizeAssembly, putToTheVote, speechOrderText, standing, temper,
@@ -29,6 +29,19 @@ const MOOD = [
     { at: -Infinity, tone: "var(--oh-alert)", word: "au-delà de la discussion" },
 ];
 const moodOf = (approval) => MOOD.find((m) => approval >= m.at) ?? MOOD[MOOD.length - 1];
+
+// Les clés du moteur restent anglaises : `AXES` vient de runtime/factions.js,
+// les noms de groupes sont ceux du préréglage (churchPreset.js), et les deux
+// circulent dans les invites et dans l'état enregistré. Seul l'affichage est
+// français, par table — une valeur inconnue s'affiche telle quelle plutôt que
+// de disparaître.
+const AXE_LABEL = { doctrine: "Doctrine", region: "Région", role: "Charge", follows: "Courant", opinion: "Opinion" };
+const GROUPE_LABEL = {
+    africa: "Afrique", americas: "Amériques", asia: "Asie", europe: "Europe", oceania: "Océanie",
+    traditional: "Traditionnels", centrist: "Centristes", reforming: "Réformateurs",
+    curia: "Curie", diplomacy: "Diplomatie", bishops: "Évêques", orders: "Ordres", temporal: "Temporel",
+};
+const nomDeGroupe = (v) => GROUPE_LABEL[String(v || "").toLowerCase()] || v;
 
 // One hue per group on the chosen axis, spread so neighbours never blur.
 const hues = (names) => Object.fromEntries(names.map((n, i) => [n, `hsl(${Math.round((i / Math.max(1, names.length)) * 320) + 14} 56% 52%)`]));
@@ -65,7 +78,7 @@ const Hemicycle = ({ electors, axis, colours, selected, onSelect, byMood }) => {
     const seated = useMemo(() => [...electors].sort((a, b) => String(a[axis]).localeCompare(String(b[axis]))), [electors, axis]);
     const points = useMemo(() => seatPositions(seated.length), [seated.length]);
     return (
-        <svg viewBox="0 0 200 112" role="img" aria-label={`${seated.length} électeurs par ${axis}`} style={{ display: "block", width: "100%" }}>
+        <svg viewBox="0 0 200 112" role="img" aria-label={`${seated.length} électeurs par ${(AXE_LABEL[axis] || axis).toLowerCase()}`} style={{ display: "block", width: "100%" }}>
         {points.map((p, i) => {
             const e = seated[i];
             if (!e) return null;
@@ -80,7 +93,7 @@ const Hemicycle = ({ electors, axis, colours, selected, onSelect, byMood }) => {
                 style={{ cursor: "pointer" }}
                 onClick={() => onSelect(group === selected ? "" : group)}
                 >
-                <title>{`${e.doctrine} · ${e.region} · ${e.role} (${e.approval > 0 ? "+" : ""}${Math.round(e.approval)})`}</title>
+                <title>{`${nomDeGroupe(e.doctrine)} · ${nomDeGroupe(e.region)} · ${nomDeGroupe(e.role)} (${e.approval > 0 ? "+" : ""}${Math.round(e.approval)})`}</title>
                 </circle>
             );
         })}
@@ -129,8 +142,12 @@ export const College = ({ nav = null }) => {
     const [world, setWorld] = useState(null);
     const [game, setGame] = useState(null);
     const [axis, setAxis] = useState("region");
+    // L'écran s'ouvre sur l'opinion, pas sur la géographie : la question qu'on se
+    // pose en entrant dans la salle est « ai-je la majorité », pas « d'où
+    // viennent-ils ». La légende disait « indécis (0) » pour cinq continents,
+    // la couleur parlant géographie pendant que le texte parlait vote.
     const [selected, setSelected] = useState("");
-    const [byMood, setByMood] = useState(false);
+    const [byMood, setByMood] = useState(true);
     const [draft, setDraft] = useState("");
     const [sent, setSent] = useState(false);
     const [tick, setTick] = useState(0);
@@ -143,7 +160,22 @@ export const College = ({ nav = null }) => {
     }, [tick]);
 
     const assembly = useMemo(() => normalizeAssembly(world?.assembly), [world]);
-    const groups = useMemo(() => (assembly ? groupsOn(assembly, axis) : []), [assembly, axis]);
+    const parAxe = useMemo(() => (assembly ? groupsOn(assembly, axis) : []), [assembly, axis]);
+    const parHumeur = useMemo(() => {
+        if (!assembly) return [];
+        const par = new Map();
+        for (const e of assembly.electors) {
+            const m = moodOf(e.approval);
+            const g = par.get(m.word) || { name: m.word, seats: 0, somme: 0, tone: m.tone };
+            g.seats += 1;
+            g.somme += e.approval;
+            par.set(m.word, g);
+        }
+        return [...par.values()]
+            .map((g) => ({ ...g, approval: g.somme / Math.max(1, g.seats) }))
+            .sort((x, y) => y.approval - x.approval);
+    }, [assembly]);
+    const groups = byMood ? parHumeur : parAxe;
     const colours = useMemo(() => hues(groups.map((g) => g.name)), [groups]);
     const room = useMemo(() => (assembly ? standing(assembly) : null), [assembly]);
     // What a reform pleasing this group and offending nobody else would carry.
@@ -180,11 +212,16 @@ export const College = ({ nav = null }) => {
     if (!world) return null;
     if (!assembly || !room) {
         return (
+            // Un cahier vide reste un cahier : même bandeau, même gouttière,
+            // même colonne de lecture que les cinq autres. Sans cela la barre
+            // des cahiers venait buter contre le bord de l'écran.
             <div data-surface="chamber" style={{ background: "var(--oh-plate)", bottom: 0, color: "var(--oh-text)", left: 0, overflowY: "auto", position: "fixed", right: 0, top: CONTENU_TOP, zIndex: 10002 }}>
-        {nav && nav()}
-            <div style={{ margin: "0 auto", maxWidth: "42rem", padding: "3rem 1.5rem" }}>
-            <h1 style={{ color: "var(--oh-text-strong)", fontFamily: "var(--oh-font-display)", fontSize: "var(--oh-t-xl)", margin: 0 }}>Aucune assemblée</h1>
-            <p style={{ fontSize: "var(--oh-t-base)", lineHeight: 1.6 }}>Ce scénario n'a pas encore de corps d'électeurs.</p>
+            <div style={{ margin: "0 auto", maxWidth: "74rem", padding: "1.6rem 1.5rem 3rem" }}>
+            <EnTeteDeCahier titre="Le Collège" mention={game?.gameDate ? `Rome, ${game.gameDate}` : null} />
+            {nav && nav()}
+            <CahierVide quoiFaire="Un scénario qui tient un collège le déclare dans son état de départ ; celui-ci n'en a pas encore.">
+            Aucune assemblée. Ce scénario n&apos;a pas encore de corps d&apos;électeurs.
+            </CahierVide>
             </div>
             </div>
         );
@@ -229,13 +266,13 @@ export const College = ({ nav = null }) => {
         </figcaption>
         </figure>
 
-        <header style={{ borderBottom: "4px solid var(--oh-text-strong)", paddingBottom: "0.5rem" }}>
-        <h1 style={{ color: "var(--oh-text-strong)", fontFamily: "var(--oh-font-display)", fontSize: "clamp(1.9rem, 4vw, 3rem)", fontWeight: 800, letterSpacing: "-0.03em", lineHeight: 1, margin: 0 }}>
+        <header style={{ borderBottom: "var(--oh-filet-manchette) solid var(--oh-text-strong)", paddingBottom: "0.5rem" }}>
+        <h1 style={{ color: "var(--oh-text-strong)", fontFamily: "var(--oh-font-display)", fontSize: "var(--oh-t-3xl)", fontWeight: 800, letterSpacing: "-0.03em", lineHeight: 1, margin: 0 }}>
         {assembly.name}
         </h1>
         </header>
         <div style={{ alignItems: "baseline", borderBottom: "1px solid var(--oh-line)", display: "flex", flexWrap: "wrap", gap: "1rem", justifyContent: "space-between", marginBottom: "1.2rem", padding: "0.4rem 0 0.7rem" }}>
-        <span className="oh-label" style={{ color: "var(--oh-text-dim)" }}>{room.seats} electors · {game?.gameDate || ""}</span>
+        <span className="oh-label" style={{ color: "var(--oh-text-dim)" }}>{room.seats} électeurs · {game?.gameDate || ""}</span>
         <span style={{ fontSize: "var(--oh-t-sm)", fontVariantNumeric: "tabular-nums" }}>
         {/* Opinion only. What CARRIES a decision is the bloc that follows you
             plus whoever you sit with, and that count lives in its own panel —
@@ -248,8 +285,8 @@ export const College = ({ nav = null }) => {
         </div>
 
         <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem", marginBottom: "0.8rem" }}>
-        {AXES.map((a) => chip(a, axis === a && !byMood, () => { setAxis(a); setSelected(""); setByMood(false); }))}
-        {chip("opinion", byMood, () => setByMood(!byMood))}
+        {AXES.map((a) => chip(AXE_LABEL[a] || a, axis === a && !byMood, () => { setAxis(a); setSelected(""); setByMood(false); }))}
+        {chip(AXE_LABEL.opinion, byMood, () => setByMood(!byMood))}
         </div>
 
         <div style={{ display: "grid", gap: "1.5rem", gridTemplateColumns: "minmax(0, 1.3fr) minmax(0, 1fr)" }}>
@@ -264,29 +301,29 @@ export const College = ({ nav = null }) => {
         {groups.map((g) => {
             const mood = moodOf(g.approval);
             return (
-                <button key={g.name} type="button" onClick={() => setSelected(g.name === selected ? "" : g.name)}
+                <button key={g.name} type="button" disabled={byMood} onClick={() => setSelected(g.name === selected ? "" : g.name)}
                 style={{
                     background: g.name === selected ? "var(--oh-plate-2)" : "transparent", border: "none",
-                    borderBottom: "1px dotted var(--oh-line)", cursor: "pointer", display: "block",
+                    borderBottom: "1px dotted var(--oh-line)", cursor: byMood ? "default" : "pointer", display: "block",
                     padding: "0.5rem 0.4rem", textAlign: "left", width: "100%",
                 }}>
                 <div style={{ alignItems: "center", display: "flex", gap: "0.5rem" }}>
-                <span style={{ background: colours[g.name], borderRadius: "50%", flexShrink: 0, height: "0.7rem", width: "0.7rem" }} />
-                <span style={{ color: "var(--oh-text-strong)", fontFamily: "var(--oh-font-display)", fontSize: "var(--oh-t-sm)", fontWeight: 700 }}>{g.name}</span>
+                <span style={{ background: byMood ? g.tone : colours[g.name], borderRadius: "50%", flexShrink: 0, height: "0.7rem", width: "0.7rem" }} />
+                <span style={{ color: "var(--oh-text-strong)", fontFamily: "var(--oh-font-display)", fontSize: "var(--oh-t-sm)", fontWeight: 700 }}>{nomDeGroupe(g.name)}</span>
                 <span style={{ color: "var(--oh-text-strong)", fontSize: "var(--oh-t-sm)", fontVariantNumeric: "tabular-nums", marginLeft: "auto" }}>{g.seats}</span>
                 </div>
                 <div style={{ color: mood.tone, fontSize: "var(--oh-t-xs)", marginTop: "0.1rem", paddingLeft: "1.2rem" }}>
-                {mood.word} ({g.approval > 0 ? "+" : ""}{Math.round(g.approval)})
+                {byMood ? "" : `${mood.word} `}({g.approval > 0 ? "+" : ""}{Math.round(g.approval)})
                 </div>
                 </button>
             );
         })}
         {test && (
             <div style={{ border: "1px solid var(--oh-line)", fontSize: "var(--oh-t-xs)", lineHeight: 1.5, marginTop: "0.8rem", padding: "0.6rem 0.7rem" }}>
-            A measure that pleased {selected} and offended nobody would take{" "}
-            <b style={{ color: test.passed ? "var(--oh-grant)" : "var(--oh-caution)" }}>{test.ayes} of the {test.majority} it needs</b>
-            {test.noes ? `, against ${test.noes}` : ""}
-            {test.abstain ? `, with ${test.abstain} indifferent` : ""}.
+            Une mesure qui plairait aux {nomDeGroupe(selected)} sans froisser personne emporterait{" "}
+            <b style={{ color: test.passed ? "var(--oh-grant)" : "var(--oh-caution)" }}>{test.ayes} voix sur les {test.majority} qu'il en faut</b>
+            {test.noes ? `, contre ${test.noes}` : ""}
+            {test.abstain ? `, ${test.abstain} restant indifférents` : ""}.
             </div>
         )}
         </div>
@@ -296,7 +333,7 @@ export const College = ({ nav = null }) => {
             A pontificate either commands the votes or it negotiates for them. */}
         {pact && (
             <section style={{ marginTop: "1.6rem" }}>
-            <div className="oh-label" style={{ borderBottom: "4px solid var(--oh-text-strong)", color: "var(--oh-text-strong)", paddingBottom: "0.4rem" }}>
+            <div className="oh-label" style={{ borderBottom: "var(--oh-filet-fort) solid var(--oh-text-strong)", color: "var(--oh-text-strong)", paddingBottom: "0.4rem" }}>
             Pour emporter une décision — il en faut {pact.need}
             </div>
             <p style={{ fontSize: "var(--oh-t-sm)", lineHeight: 1.6, margin: "0.8rem 0 0.6rem", maxWidth: "70ch" }}>
@@ -314,7 +351,7 @@ export const College = ({ nav = null }) => {
                 return (
                     <button key={c.name} type="button"
                     onClick={() => setSitWith((prev) => (on ? prev.filter((n) => n !== c.name) : [...prev, c.name]))}
-                    title={refused ? refused.why : `${c.seats} electors follow them`}
+                    title={refused ? refused.why : `${c.seats} électeurs les suivent`}
                     style={{
                         background: on && !refused ? "var(--oh-accent)" : "transparent",
                         border: `1px solid ${refused && on ? "var(--oh-alert)" : on ? "var(--oh-accent)" : "var(--oh-line)"}`,
@@ -335,8 +372,8 @@ export const College = ({ nav = null }) => {
         )}
 
         <section style={{ marginTop: "1.6rem" }}>
-        <div className="oh-label" style={{ borderBottom: "4px solid var(--oh-text-strong)", color: "var(--oh-text-strong)", paddingBottom: "0.4rem" }}>
-        {selected ? `Speak to the ${selected}` : "Parler au collège"}
+        <div className="oh-label" style={{ borderBottom: "var(--oh-filet-fort) solid var(--oh-text-strong)", color: "var(--oh-text-strong)", paddingBottom: "0.4rem" }}>
+        {selected ? `Parler aux ${selected}` : "Parler au collège"}
         </div>
         <textarea value={draft} onChange={(e) => { setDraft(e.target.value); setSent(false); }} rows={4}
         placeholder="Ce que vous allez leur dire, et pourquoi ils devraient vous suivre."
