@@ -1,5 +1,6 @@
 /*! Open Historia — portions (mobile HUD wiring + advisor/forces launchers) © 2026 Nicholas Krol, MIT (see src/Editor/LICENSE). */
 import React, { Suspense, lazy, useCallback, useEffect, useMemo, useState } from "react";
+import { poserLaTriche } from "./triche.js";
 import dayjs from "dayjs";
 import "dayjs/locale/fr";
 import { SettingsButton, SettingsMenu } from "./settings";
@@ -62,6 +63,7 @@ const LazyAdvisorPanel = lazy(() =>
 const LazyCheatsPanel = lazy(() =>
   import("./cheats").then((module) => ({ default: module.CheatsPanel })),
 );
+
 
 const checkWebGL = () => {
   try {
@@ -180,6 +182,14 @@ const Main = ({
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isCheatsOpen, setIsCheatsOpen] = useState(false);
   const [shouldLoadCheats, setShouldLoadCheats] = useState(false);
+
+  // Le crochet que la ligne des cahiers appelle. Posé ici parce que c'est ici
+  // que vivent les deux états qu'il faut lever ensemble : charger le panneau,
+  // puis l'ouvrir.
+  useEffect(() => {
+    poserLaTriche(() => { setShouldLoadCheats(true); setIsCheatsOpen(true); });
+    return () => poserLaTriche(null);
+  }, []);
   const [isAdvisorOpen, setIsAdvisorOpen] = useState(false);
   const [advisorWidth, setAdvisorWidth] = useState(readAdvisorWidth);
   const [isForcesOpen, setIsForcesOpen] = useState(false);

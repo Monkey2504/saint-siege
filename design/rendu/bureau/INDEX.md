@@ -1,6 +1,6 @@
 # Rendu réel — bureau (1440×900)
 
-Capturé le 2026-09-11 14:36 · commit 1ef15e6 · source http://localhost:4173
+Capturé le 2026-09-11 14:42 · commit 4bd12de · source http://localhost:4173
 
 Ces images sont le rendu réel du jeu dans un navigateur, pas une maquette.
 Une session sans navigateur (Claude Design) doit les lire avant de juger le graphisme.
@@ -10,16 +10,16 @@ Une session sans navigateur (Claude Design) doit les lire avant de juger le grap
 - `01-portail.png` — capturé, 50 Ko
 - `02-cle-api.png` — capturé, 101 Ko
 - `03-accueil.jpg` — capturé, 247 Ko
-- `04-habemus-papam.png` — capturé, 249 Ko
+- `04-habemus-papam.png` — capturé, 250 Ko
 - `05-edition-du-tour.jpg` — capturé, 223 Ko
-- `06-ordres.png` — capturé, 128 Ko
+- `06-ordres.png` — capturé, 129 Ko
 - `07-registre.png` — capturé, 134 Ko
 - `08-college.png` — capturé, 365 Ko
 - `09-caisses.png` — capturé, 131 Ko
-- `10-correspondance.png` — capturé, 92 Ko
-- `11-courrier-ouvert.png` — capturé, 176 Ko
+- `10-correspondance.png` — capturé, 93 Ko
+- `11-courrier-ouvert.png` — capturé, 177 Ko
 
-Total du lot : 1895 Ko.
+Total du lot : 1900 Ko.
 
 ## Polices
 

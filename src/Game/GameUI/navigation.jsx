@@ -11,6 +11,7 @@
  */
 import React from "react";
 import { openLibraryTab } from "./libraryBar.jsx";
+import { ouvrirLaTriche } from "./triche.js";
 
 export const BarreDesCahiers = ({ sections, current, onSelect, apercu = "" }) => (
   <nav
@@ -63,6 +64,29 @@ export const BarreDesCahiers = ({ sections, current, onSelect, apercu = "" }) =>
           {apercu}
         </span>
       )}
+      {/* Le banc d'essai. Il vit derrière les Réglages, eux-mêmes derrière un
+          bouton que le journal ne montre pas : depuis que la feuille part du
+          bord de l'écran, il n'y avait plus d'endroit d'où l'atteindre en
+          jouant. Il est ici, discret, à côté de la porte de la bibliothèque. */}
+      <button
+        type="button"
+        onClick={() => ouvrirLaTriche()}
+        title="Banc d'essai — forcer l'état du monde"
+        style={{
+          background: "none",
+          border: 0,
+          color: "var(--oh-text-dim)",
+          cursor: "pointer",
+          fontFamily: "var(--oh-font-label)",
+          fontSize: "var(--oh-t-2xs)",
+          letterSpacing: "var(--oh-label-track)",
+          lineHeight: 1,
+          padding: 0,
+          textTransform: "var(--oh-label-case)",
+        }}
+      >
+        Triche
+      </button>
       {/* La porte de la bibliothèque. Elle flottait sur la page ; depuis que la
           feuille part du bord de l'écran, elle passait dessous et le joueur se
           retrouvait enfermé dans sa partie. Elle est ici, au bout de la ligne. */}
