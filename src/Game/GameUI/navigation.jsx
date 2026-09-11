@@ -40,7 +40,7 @@ export const BarreDesCahiers = ({ sections, current, onSelect, apercu = "" }) =>
               border: 0,
               // L'actif se distingue par l'encre et le soulignement, pas par un
               // pavé de couleur : une feuille imprimée n'a pas de bouton actif.
-              borderBottom: actif ? "2px solid var(--oh-text-strong)" : "2px solid transparent",
+              borderBottom: actif ? "var(--oh-filet-fort) solid var(--oh-text-strong)" : "var(--oh-filet-fort) solid transparent",
               color: actif ? "var(--oh-text-strong)" : "var(--oh-text-dim)",
               cursor: "pointer",
               fontFamily: "var(--oh-font-label)",

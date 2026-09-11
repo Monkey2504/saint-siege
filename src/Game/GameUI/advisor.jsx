@@ -196,7 +196,7 @@ const TabButton = ({ icon, label, active, onClick }) => (
         alignItems: "center",
         background: "none",
         border: "none",
-        borderBottom: active ? "2px solid var(--oh-accent)" : "2px solid transparent",
+        borderBottom: active ? "var(--oh-filet-fort) solid var(--oh-accent)" : "var(--oh-filet-fort) solid transparent",
         color: active ? "var(--oh-text-strong)" : "var(--oh-text-dim)",
         cursor: "pointer",
         display: "flex",
@@ -554,7 +554,7 @@ const markdownStyles = `
 .advisor-markdown code { background: var(--oh-plate-2); padding: 0.1rem 0.35rem; border-radius: 0; font-size: var(--oh-t-xs); }
 .advisor-markdown pre { background: var(--oh-plate-2); padding: 0.75rem; border-radius: 8px; overflow-x: auto; margin: 0.5rem 0; }
 .advisor-markdown h1, .advisor-markdown h2, .advisor-markdown h3 { margin: 0.75rem 0 0.25rem; font-size: var(--oh-t-md); color: var(--oh-text-strong); font-family: var(--oh-font-display); }
-.advisor-markdown blockquote { border-left: 2px solid var(--oh-accent-soft); margin: 0.5rem 0; padding-left: 0.75rem; color: var(--oh-text-dim); }
+.advisor-markdown blockquote { border-left: var(--oh-filet-fort) solid var(--oh-accent-soft); margin: 0.5rem 0; padding-left: 0.75rem; color: var(--oh-text-dim); }
 `;
 
 const MarkdownStyleInjector = () => {

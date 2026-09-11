@@ -55,6 +55,22 @@
   --oh-t-md: 1.18rem;
   --oh-t-lg: 1.42rem;
   --oh-t-xl: 2rem;
+  /* Les deux marches d'affichage. Elles ne sont pas inventées ici : la session
+     de design a posé 1 → 1.42 → 2, c'est-à-dire √2 deux fois ; on prolonge le
+     même pas, 2.83 puis 4. Le nom du journal fait alors quatre fois le corps du
+     texte, le rapport de la maquette. Proposées à design/tokens.json —
+     voir design/ECHELLE.md. En attendant elles vivent ici, ce qui vaut
+     toujours mieux que les sept clamp() qu'elles remplacent, chacun inventé à
+     son point d'usage. */
+  --oh-t-2xl: clamp(1.9rem, 3.4vw, 2.83rem);
+  --oh-t-3xl: clamp(2.3rem, 5.4vw, 4rem);
+  /* ---- trois filets, et pas un de plus ---- */
+  /* Un journal se lit d'abord à ses filets. Trois graisses, chacune un sens :
+     séparer, fermer, ouvrir. Une quatrième épaisseur serait un filet qui ne
+     dit rien. Proposées elles aussi à design/tokens.json. */
+  --oh-filet: 1px;          /* sépare : colonnes, lignes, articles */
+  --oh-filet-fort: 3px;     /* ferme : tête et fin de section, marque active */
+  --oh-filet-manchette: 6px; /* ouvre la page : une seule fois par écran */
   /* ---- three radii, by role ---- */
   --oh-r-flat: 0;
   --oh-r-soft: 3px;
@@ -331,6 +347,28 @@ button, input, textarea, select {
   .oh-bulletin-grid { grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr); }
 }
 
+/* Rien à imprimer en tête : la note est passée au-dessus, sur une colonne de
+   lecture, et il ne reste que deux colonnes de contenu réel. Une colonne vide
+   à côté de deux pleines n'est pas une mise en page, c'est un trou. */
+@media (min-width: 62rem) {
+  .oh-bulletin-grid-creuse { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); }
+}
+
+/* Le corps de l'article de tête, en deux colonnes comme la maquette. Une
+   colonne de journal tient trente à trente-cinq signes ; sous 34rem il n'y a
+   plus la place d'en mettre deux sans descendre à vingt, et la page repasse
+   alors sur une seule. */
+.oh-une-corps {
+  column-count: 2;
+  column-gap: 28px;
+  orphans: 2;
+  widows: 2;
+}
+.oh-une-corps > :first-child, .oh-une-corps p:first-child { margin-top: 0; }
+@media (max-width: 34rem) {
+  .oh-une-corps { column-count: 1; }
+}
+
 /* The lead story carries the page: the first headline is set larger than the
    ones under it, the way a front page ranks what it thinks matters. */
 .oh-entry:first-child .oh-entry-title { font-size: var(--oh-t-xl); }
@@ -343,7 +381,7 @@ button, input, textarea, select {
 
 .oh-plate {
   border: 0;
-  border-top: 4px solid var(--oh-text-strong);
+  border-top: var(--oh-filet-fort) solid var(--oh-text-strong);
   border-radius: var(--oh-r-flat);
   box-shadow: none;
 }
@@ -402,7 +440,7 @@ button, input, textarea, select {
    the constraints as ruled rows. Ink on paper throughout — a solid coloured
    slab put white and pastel text on blue, and the rows could not be read. */
 .oh-tally {
-  border-top: 4px solid var(--oh-text-strong);
+  border-top: var(--oh-filet-fort) solid var(--oh-text-strong);
   background: transparent;
   color: var(--oh-text);
   margin-top: 0.7rem;
@@ -413,11 +451,18 @@ button, input, textarea, select {
 .oh-tally-feasible { border-top-color: var(--oh-accent); }
 .oh-tally-constrained { border-top-color: var(--oh-caution); }
 .oh-tally-blocked { border-top-color: var(--oh-alert); }
+/* Le verdict est un aplat, pas un mot coloré. Le brief de la session de design
+   le demande et la page en a besoin : sans lui, l'écran entier est beige, noir
+   et gris, et rien n'y a de relief. C'est une pastille et non la dalle qu'on
+   avait essayée — celle-là mettait du texte pâle sur du bleu et rendait les
+   lignes du dessous illisibles ; ici la couleur ne porte qu'un mot, en blanc,
+   et les réserves restent de l'encre sur papier. */
 .oh-result {
-  margin: 0 0 0.45rem;
-  padding: 0;
-  background: transparent;
-  color: var(--oh-text-strong);
+  margin: 0 0 0.55rem;
+  padding: 0.22rem 0.5rem 0.26rem;
+  align-self: flex-start;
+  background: var(--oh-text-strong);
+  color: var(--oh-on-accent);
   font-family: var(--oh-font-display);
   font-weight: 800;
   font-size: var(--oh-t-md);
@@ -425,7 +470,9 @@ button, input, textarea, select {
   letter-spacing: -0.02em;
   border-radius: var(--oh-r-flat);
 }
-.oh-tally-blocked .oh-result { color: var(--oh-alert); }
+.oh-tally-feasible .oh-result { background: var(--oh-accent); }
+.oh-tally-constrained .oh-result { background: var(--oh-caution); }
+.oh-tally-blocked .oh-result { background: var(--oh-alert); }
 .oh-vote {
   border-bottom: 0;
   border-top: 1px dotted var(--oh-line);
@@ -450,7 +497,7 @@ button, input, textarea, select {
 .oh-dispatch { border-radius: var(--oh-r-flat); }
 .startup-panel {
   border: 0;
-  border-top: 4px solid var(--oh-text-strong);
+  border-top: var(--oh-filet-fort) solid var(--oh-text-strong);
   border-radius: var(--oh-r-flat);
   box-shadow: none;
 }

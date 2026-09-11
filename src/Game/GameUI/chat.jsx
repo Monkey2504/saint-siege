@@ -292,7 +292,7 @@ const markdownStyles = `
 .chat-markdown li { margin-bottom: 0.2rem; }
 .chat-markdown strong { color: var(--oh-text-strong); }
 .chat-markdown em { color: var(--oh-text-dim); }
-.chat-markdown blockquote { border-left: 2px solid var(--oh-accent-soft); margin: 0.5rem 0; padding-left: 0.75rem; color: var(--oh-text-dim); }
+.chat-markdown blockquote { border-left: var(--oh-filet-fort) solid var(--oh-accent-soft); margin: 0.5rem 0; padding-left: 0.75rem; color: var(--oh-text-dim); }
 `;
 
 const MarkdownStyleInjector = () => {
@@ -371,7 +371,7 @@ const MessageBubble = ({ msg }) => {
     if (!isPlayer && !isError) {
         return (
             <div style={{ display: "flex", flexDirection: "column", alignItems: "stretch", overflow: "visible" }}>
-            <div className="oh-plate oh-dispatch" style={{ borderTop: `3px solid ${accentColor}`, padding: "0.85rem 1.05rem 0.9rem", boxSizing: "border-box" }}>
+            <div className="oh-plate oh-dispatch" style={{ borderTop: `var(--oh-filet-fort) solid ${accentColor}`, padding: "0.85rem 1.05rem 0.9rem", boxSizing: "border-box" }}>
             <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: "0.8rem" }}>
             <span className="oh-label" style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem", color: "var(--oh-text-strong)" }}>
             <FlagImg url={flagUrl} alt={msg.speaker} size="0.95em" />{msg.speaker}
@@ -420,7 +420,7 @@ const MessageBubble = ({ msg }) => {
             borderRadius: "var(--oh-r-flat)",
             backgroundColor: isPlayer ? "var(--oh-plate-2)" : "var(--oh-alert-soft)",
             fontSize: "var(--oh-t-sm)", lineHeight: "1.5", whiteSpace: "pre-wrap", wordBreak: "break-word",
-            borderTop: `3px solid ${isPlayer ? "var(--oh-accent)" : "var(--oh-alert)"}`,
+            borderTop: `var(--oh-filet-fort) solid ${isPlayer ? "var(--oh-accent)" : "var(--oh-alert)"}`,
             color: "var(--oh-text)",
             boxSizing: "border-box",
         }}>
@@ -484,8 +484,8 @@ const ReactionBubble = ({ country, emoji, flagUrl, code }) => {
             ? `color-mix(in srgb, ${nationColor} 25%, var(--oh-plate-2))`
             : "var(--oh-plate-2)",
             border: nationColor
-            ? `1.5px solid ${nationColor}`
-            : "1px solid var(--oh-line)",
+            ? `var(--oh-filet) solid ${nationColor}`
+            : "var(--oh-filet) solid var(--oh-line)",
             display: "flex", alignItems: "center", justifyContent: "center",
             fontSize: "var(--oh-t-xs)", cursor: "default", lineHeight: 1,
         }}
@@ -1076,7 +1076,7 @@ const ChatPanel = ({ isOpen, onClose, requestedCountry, onConsumeRequest, fullPa
     const [view, setView] = useState("chats");
     const [countries, setCountries]               = useState([]);
     const [loadingCountries, setLoadingCountries] = useState(true);
-    const [playerCountry, setPlayerCountry]       = useState("your nation");
+    const [playerCountry, setPlayerCountry]       = useState("votre puissance");
     const [gameDate, setGameDate]                 = useState("");
     const [chats, setChats]                       = useState([]);
     const [activeChat, setActiveChat]             = useState(null);

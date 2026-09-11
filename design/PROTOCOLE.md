@@ -24,6 +24,12 @@ C'est la source de vérité de la direction graphique — couleurs, typographie,
 `design/TOKENS.md` est la version lisible de ce fichier, régénérée par
 `npm run tokens:doc`. C'est ce que la session de design lit avant de dessiner.
 
+`design/ECHELLE.md` est une proposition de la session de code : les deux marches
+d'affichage et les trois graisses de filet qui manquaient, avec le comptage qui
+les motive. Ces cinq valeurs vivent aujourd'hui dans le bloc `:root` de
+`src/theme.css` en attendant que la session de design les reprenne, ou les
+refuse, dans `tokens.json`.
+
 ## Le retour : `design/rendu/`
 
 Des captures du rendu réel du jeu dans un navigateur, en bureau et en mobile,
@@ -48,6 +54,14 @@ aujourd'hui : après un changement visuel, c'est à la session de code de relanc
 commit touchant le style ne montre pas l'état du jeu — l'`INDEX.md` porte la date
 et le commit précisément pour qu'on puisse s'en apercevoir.
 
+Le parcours capturé est celui du joueur qui ouvre le jeu pour la première fois :
+l'écran de la clé, l'accueil, puis les six cahiers d'une partie neuve. La feuille
+d'investiture (HABEMUS PAPAM) n'y est pas : elle ne paraît que pour une partie
+d'Église, et `vite preview` répond 500 sur `/api/runtime/json/game`, si bien que
+le scénario n'est jamais chargé et que le monde reste sans pays. Les captures
+montrent donc des cahiers vides — utile pour juger les états vides, insuffisant
+pour juger une partie en cours.
+
 Un workflow qui ferait ce travail à chaque poussée sur `main` existe, mais hors
 du dépôt : François le garde de côté. L'installer suppose d'abord de retirer la
 ligne `.github/workflows/` du `.gitignore`, qui exclut aujourd'hui toute
@@ -63,6 +77,11 @@ proposer le token correspondant dans `design/tokens.json`.
 **Session de code, avant de toucher au style :** ne jamais écrire une valeur
 littérale dans un composant ; passer par un token. Après un changement visuel,
 relancer `npm run rendu` pour que le retour soit à jour.
+
+**Un brief qui renvoie à des maquettes doit les committer.** Le brief du
+11 septembre pointe six fichiers dans `reference/` ; ce dossier n'est pas dans le
+dépôt, et la session de code ne peut pas les ouvrir. Un chemin cité mais absent
+coûte une passe entière.
 
 ## Ce que ce protocole ne résout pas
 
