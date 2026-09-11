@@ -484,7 +484,7 @@ const ActionsPanel = ({ isOpen, onClose, onOpenAdvisor, embedded = false }) => {
     };
 
     const suggestionButtonLabel = hasRequestedSuggestions
-    ? (isSuggesting ? "Refreshing AI suggestions..." : "Refresh AI suggestions")
+    ? (isSuggesting ? "Suggestions en cours…" : "En demander d'autres")
     : (isSuggesting ? "Suggestions en cours…" : "Demander des suggestions");
 
     return (

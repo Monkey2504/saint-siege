@@ -26,6 +26,7 @@ import { normalizeRecord } from "../../runtime/record.js";
 import { normalizeTreasuries } from "../../runtime/treasuries.js";
 import { normalizeGatherings } from "../../runtime/gatherings.js";
 import { outageNotice } from "../../runtime/outageNotice.js";
+import { ChampDeCle } from "../../runtime/FirstRunKey.jsx";
 import { preferredLanguage } from "../../runtime/i18n.js";
 import { nextEdition } from "../../runtime/nextEdition.js";
 import { useSurface } from "../../runtime/useSurface.js";
@@ -1245,6 +1246,11 @@ const Bulletin = ({ onOpenAdvisor, pressFocus = 0, nav = null }) => {
                 {outage.reasonLabel}: {outage.reason}
                 </div>
             )}
+            {/* Un quota épuisé se répare avec une autre clé, et ce bandeau était
+                le seul endroit où le joueur apprenait le problème sans pouvoir
+                rien y faire — le champ vivait derrière le menu des réglages. Il
+                est ici, sous la raison qui le rend nécessaire. */}
+            <ChampDeCle />
             </div>
         )}
         {/* Les cahiers, et ce que cette feuille contient : la maquette met les

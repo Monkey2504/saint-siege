@@ -94,6 +94,90 @@ export const hasProviderKey = () => {
     }
 };
 
+/**
+ * Le champ où l'on donne une clé, partout ailleurs qu'à la porte d'entrée.
+ *
+ * Le bandeau de panne disait « Gemini returned 429. The free-tier quota for this
+ * model is used up », ce qui est exactement le renseignement qu'il faut — et il
+ * n'offrait rien à faire. La clé se change dans les Réglages, derrière un menu
+ * que personne n'ouvre en lisant une alerte. Le joueur l'a demandé ainsi :
+ * « laisse un endroit où mettre une nouvelle clé. »
+ *
+ * Une clé donnée ici n'est envoyée nulle part : elle reste sur cette machine,
+ * exactement comme celle de l'écran d'accueil, dont ce champ réutilise le code
+ * d'enregistrement plutôt que d'en tenir une seconde copie.
+ */
+export const ChampDeCle = ({ onDone = () => {} }) => {
+    const [cle, setCle] = useState("");
+    const [enregistree, setEnregistree] = useState(false);
+
+    const enregistrer = () => {
+        const propre = cle.trim();
+        if (!propre) return;
+        try {
+            localStorage.setItem("api_provider", "gemini");
+            setProviderField("gemini", "apiKey", propre);
+            setEnregistree(true);
+            setCle("");
+        } catch {
+            // Pas de stockage : le même cas que celui que hasProviderKey admet.
+        }
+        onDone();
+    };
+
+    if (enregistree) {
+        return (
+        <div style={{ color: "var(--oh-grant)", fontSize: "var(--oh-t-xs)", marginTop: "0.6rem" }}>
+        Clé enregistrée sur cette machine. La prochaine édition sera écrite par le modèle.
+        </div>
+        );
+    }
+
+    return (
+    <div style={{ alignItems: "center", display: "flex", flexWrap: "wrap", gap: "0.5rem", marginTop: "0.7rem" }}>
+        <input
+        type="password"
+        value={cle}
+        onChange={(e) => setCle(e.target.value)}
+        onKeyDown={(e) => { if (e.key === "Enter") enregistrer(); }}
+        placeholder="Collez une nouvelle clé ici"
+        aria-label="Nouvelle clé d'API"
+        style={{
+            background: "transparent", border: "var(--oh-filet) solid var(--oh-line)",
+            borderRadius: "var(--oh-r-flat)", color: "var(--oh-text)", flex: "1 1 18rem",
+            fontFamily: "inherit", fontSize: "var(--oh-t-xs)", minWidth: 0,
+            outline: "none", padding: "0.45rem 0.6rem",
+        }}
+        />
+        <button
+        type="button"
+        onClick={enregistrer}
+        disabled={!cle.trim()}
+        style={{
+            background: cle.trim() ? "var(--oh-accent)" : "transparent",
+            border: `var(--oh-filet) solid ${cle.trim() ? "var(--oh-accent)" : "var(--oh-line)"}`,
+            borderRadius: "var(--oh-r-flat)",
+            color: cle.trim() ? "var(--oh-on-accent)" : "var(--oh-text-dim)",
+            cursor: cle.trim() ? "pointer" : "default",
+            fontFamily: "var(--oh-font-label)", fontSize: "var(--oh-t-2xs)",
+            letterSpacing: "var(--oh-label-track)", padding: "0.45rem 0.9rem",
+            textTransform: "uppercase",
+        }}
+        >
+        Enregistrer
+        </button>
+        <a
+        href={KEY_URL}
+        target="_blank"
+        rel="noreferrer"
+        style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)" }}
+        >
+        en obtenir une
+        </a>
+    </div>
+    );
+};
+
 const FirstRunKey = ({ onDone }) => {
     const [key, setKey] = useState("");
     const [busy, setBusy] = useState(false);
