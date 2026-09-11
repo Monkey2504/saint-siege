@@ -53,7 +53,14 @@ export const normalizeIntent = (entry, index = 0) => {
     // "audit", "curia"). An order that mentions none of them is not this
     // scheme's business — see realityCheck.assessAction. Empty = everything
     // the target does, which is what a total enemy actually is.
-    scope: (Array.isArray(entry.scope) ? entry.scope : []).map((k) => lower(k)).filter(Boolean).slice(0, 16),
+    // La borne était à 16, et elle coupait des lexiques écrits à la main : le
+    // chantier financier du préréglage en déclarait 19, et « deficit »,
+    // « investisse » et « invest » tombaient par-dessus bord sans que rien ne le
+    // dise. Une borne reste nécessaire — une portée vient aussi du texte d'un
+    // joueur ou d'un modèle — mais elle doit être plus large que ce qu'un auteur
+    // écrit, pas plus étroite. `classify` garde la sienne à 16 : celle-là est
+    // dérivée d'une table de sujets, pas rédigée.
+    scope: (Array.isArray(entry.scope) ? entry.scope : []).map((k) => lower(k)).filter(Boolean).slice(0, 64),
     triggerHint: str(entry.triggerHint),
     status,
     outcome: str(entry.outcome),

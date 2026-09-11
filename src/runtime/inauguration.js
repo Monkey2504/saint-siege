@@ -75,6 +75,25 @@ const lower = (v) => str(v).toLowerCase();
  * Read from the intents the world holds — the same data the reality check uses
  * to price opposition — never from prose.
  */
+/**
+ * Un mot de portée est cherché en DÉBUT de mot, jamais n'importe où dedans.
+ *
+ * `text.includes(k)` accrochait au milieu des mots : « Autriche » contient
+ * « riche », « tricher » contient « rich ». Un pape qui parlait de l'Autriche
+ * déclenchait l'appareil financier. La frontière de gauche seule est gardée —
+ * les mots de portée sont des radicaux (« financ », « transparen »,
+ * « investisse ») et doivent continuer d'attraper leurs déclinaisons.
+ */
+const DEBUT_DE_MOT = /[a-zà-öø-ÿ0-9]/i;
+const nommeLeMot = (texte, mot) => {
+  let i = texte.indexOf(mot);
+  while (i !== -1) {
+    if (i === 0 || !DEBUT_DE_MOT.test(texte[i - 1])) return true;
+    i = texte.indexOf(mot, i + 1);
+  }
+  return false;
+};
+
 export const reactionsToDeclaration = (world, declaration) => {
   const text = lower(declaration);
   const intents = Array.isArray(world?.intents) ? world.intents : [];
@@ -82,7 +101,7 @@ export const reactionsToDeclaration = (world, declaration) => {
     .filter((it) => it && lower(it.status || "active") === "active" && str(it.id) !== INAUGURATION_INTENT_ID && lower(it.owner) !== lower(HOLY_SEE))
     .map((it) => {
       const scope = (Array.isArray(it.scope) ? it.scope : []).map(lower).filter(Boolean);
-      const hits = scope.filter((k) => text.includes(k));
+      const hits = scope.filter((k) => nommeLeMot(text, k));
       return { id: str(it.id), owner: str(it.owner), stance: lower(it.stance) || "hostile", hits, touched: scope.length === 0 || hits.length > 0 };
     })
     .filter((r) => r.touched);

@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { INAUGURATION_INTENT_ID, describeDeclarationReactions, inaugurate, isChurchGame, isInaugurated, markDeclarationAnswered } from "./inauguration.js";
-import { HOLY_SEE } from "./churchPreset.js";
+import { HOLY_SEE, seededIntents } from "./churchPreset.js";
 import { assessAction } from "./realityCheck.js";
 
 const churchWorld = () => ({
@@ -91,4 +91,44 @@ test("the declaration is read by the reality check as the pope's own line, never
   const a = assessAction({ id: "o1", title: "Open the Curia's accounts", text: "Publish the full accounts of every dicastery." }, { playerPolity: HOLY_SEE, economy: null, world: w, jumpDays: 90 });
   const opposition = a.constraints.find((c) => c.factor === "opposition");
   assert.ok(!opposition || !/Leo XV|Saint-Siège/.test(opposition.detail), "his own programme is not counted against him");
+});
+
+// Deux fautes que le joueur a trouvées avant nous, en écrivant son programme.
+//
+// La première : « Église que pour les riches » n'accrochait rien. Les mots de
+// portée de l'appareil financier étaient ceux d'un audit, pas ceux dans
+// lesquels un pape parle de l'argent de l'Église — et le joueur lisait que son
+// programme ne recoupait aucun chantier.
+//
+// La seconde : l'accroche était un `includes` brut. « Autriche » contient
+// « riche », « donc » contient « don ». Élargir les lexiques sans garder la
+// frontière de gauche aurait fait répondre le gardien du coffre à un pape qui
+// parlait de diplomatie autrichienne.
+const mondeDuPreset = () => ({
+  church: { faithful: 1406000000, asOf: "2026-09-01", log: [] },
+  intents: seededIntents("2026-09-01").map((it, i) => ({ ...it, id: `seed-${i}`, status: "active" })),
+  polityOverrides: { [HOLY_SEE]: { name: HOLY_SEE } },
+  countryStats: { [HOLY_SEE]: { leader: "Le Souverain Pontife" } },
+});
+
+const accrochesDe = (declaration) => {
+  const w = inaugurate(mondeDuPreset(), { name: "Léon XV", declaration });
+  return w.inauguration.reactions.filter((r) => r.hits.length > 0).map((r) => r.owner);
+};
+
+test("un programme sur l'argent de l'Église touche le chantier qui garde cet argent", () => {
+  const touches = accrochesDe("Une Église qui ne soit plus seulement pour les riches.");
+  assert.ok(touches.includes("Appareil financier du Vatican"), `attendu l'appareil financier, obtenu : ${touches.join(", ") || "rien"}`);
+});
+
+test("un programme sur l'Évangile et la messe touche le chantier doctrinal", () => {
+  const touches = accrochesDe("Remettre l'Évangile au centre et rendre la messe à tous.");
+  assert.ok(touches.includes("Bloc des cardinaux des dubia"), `attendu les dubia, obtenu : ${touches.join(", ") || "rien"}`);
+});
+
+test("un mot de portée est cherché en début de mot, jamais au milieu d'un autre", () => {
+  // « Autriche » contient « riche », et rien d'autre dans cette phrase ne parle
+  // d'argent : le gardien du coffre ne doit pas s'y reconnaître.
+  const touches = accrochesDe("Rétablir la nonciature en Autriche.");
+  assert.ok(!touches.includes("Appareil financier du Vatican"), `l'appareil financier a répondu à « Autriche » : ${touches.join(", ")}`);
 });

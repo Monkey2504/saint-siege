@@ -192,7 +192,11 @@ export const seededIntents = (date = "") => [
   // read stance and scope; without them every faction would oppose every
   // order, which is neither the Church nor a game.
   { ownerType: "polity", owner: DUBIA, target: HOLY_SEE, kind: "political", secret: true, stage: 20, stance: "hostile",
-    scope: ["doctrin", "liturg", "synod", "dubia", "bénédiction", "blessing", "mariage", "marriage", "communion", "divorc", "femme", "women", "diacon", "célibat", "celibacy", "latin", "rite", "tradition"],
+    // La doctrine telle qu'un pape en parle, et non telle qu'un canoniste
+    // l'indexe : l'Évangile, la morale, les sacrements et la messe sont le
+    // terrain de ce chantier autant que le mot « doctrine » lui-même.
+    scope: ["doctrin", "liturg", "synod", "dubia", "bénédiction", "blessing", "mariage", "marriage", "communion", "divorc", "femme", "women", "diacon", "célibat", "celibacy", "latin", "rite", "tradition",
+      "évangile", "evangile", "gospel", "moral", "moraux", "sacrement", "sacrament", "messe", "eucharist", "dogme", "dogma", "avortement", "abortion", "homosex", "lgbt", "gender", "pénitence", "confession"],
     summary: "Préparer une déclaration publique de cardinaux contestant la légitimité doctrinale des réformes, et rallier assez d'électeurs pour bloquer toute décision doctrinale ou liturgique du Collège.",
     triggerHint: "une réforme doctrinale ou liturgique annoncée ; un consistoire qui ne les favorise pas" },
   { ownerType: "polity", owner: SYNODAL, target: HOLY_SEE, kind: "political", secret: false, stage: 30, stance: "neutral",
@@ -204,7 +208,13 @@ export const seededIntents = (date = "") => [
     summary: "Ralentir la réforme de la Curie par les nominations et les procédures, et faire fuiter à la presse italienne tout document qui affaiblit le pape.",
     triggerHint: "une restructuration de dicastère ; un audit ; une nomination de laïc à un poste clé" },
   { ownerType: "polity", owner: FINANCE, target: HOLY_SEE, kind: "economic", secret: true, stage: 25, stance: "hostile",
-    scope: ["audit", "apsa", "ior", "pension", "compte", "account", "financ", "budget", "patrimoine", "immobilier", "real estate", "réviseur", "auditor", "asif", "transparen", "déficit", "deficit", "investisse", "invest"],
+    // L'argent de l'Église, et pas seulement sa comptabilité. Un pape qui
+    // déclare que l'Église est « pour les riches », ou qu'il veut vendre le
+    // patrimoine pour les pauvres, vise exactement ce que ce chantier protège :
+    // sans ces mots-là, le gardien du coffre ne se sentait visé que par le
+    // vocabulaire d'un audit.
+    scope: ["audit", "apsa", "ior", "pension", "compte", "account", "financ", "budget", "patrimoine", "immobilier", "real estate", "réviseur", "auditor", "asif", "transparen", "déficit", "deficit", "investisse", "invest",
+      "rich", "pauvr", "poor", "argent", "money", "wealth", "fortune", "trésor", "treasur", "caisse", "bourse", "aumône", "obole", "donation", "salaire", "dépens", "vend", "vente", "sell"],
     summary: "Garder hors du périmètre de l'audit les comptes et participations les plus exposés, et présenter le déficit de pension comme soutenable.",
     triggerHint: "un audit externe ; la publication des comptes du fonds de pension ; une enquête de l'ASIF" },
   { ownerType: "polity", owner: OPUS, target: HOLY_SEE, kind: "diplomatic", secret: true, stage: 10, stance: "hostile",

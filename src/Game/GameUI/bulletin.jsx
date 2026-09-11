@@ -251,39 +251,52 @@ const str = (v) => String(v ?? "").trim();
  * les a accrochés. Quand il n'y en a aucun, il le dit — c'est un renseignement
  * utile : ce qui vient d'être déclaré n'accroche rien de ce que le monde tient.
  */
-const CeQueCelaChange = ({ reactions }) => {
+// Les `hits` sont des radicaux — « rich », « financ », « transparen » — et les
+// montrer tels quels donne « (« rich », contre) », qui ne ressemble à rien de ce
+// que le joueur a écrit. On retrouve le mot entier dans sa déclaration.
+const motEntier = (declaration, radical) => {
+    const mots = String(declaration || "").split(/[^\p{L}\p{N}]+/u).filter(Boolean);
+    const trouve = mots.find((m) => m.toLowerCase().startsWith(String(radical).toLowerCase()));
+    return trouve || radical;
+};
+
+const CeQueCelaChange = ({ reactions, declaration }) => {
     const nommes = reactions.filter((r) => Array.isArray(r.hits) && r.hits.length > 0);
     const veilleurs = reactions.length - nommes.length;
-    const suite = veilleurs > 0
-        ? (veilleurs === 1
-            ? " Un corps qui suit tout ce que fait le Saint-Siège répondra de toute façon, sur ce que vous êtes et non sur ce que vous avez dit."
-            : ` ${veilleurs} corps qui suivent tout ce que fait le Saint-Siège répondront de toute façon, sur ce que vous êtes et non sur ce que vous avez dit.`)
-        : "";
-
-    if (nommes.length === 0) {
-        return (
-        <>
-        Rien de ce qui a été déclaré ne recoupe un chantier en cours : aucun des mots
-        employés n&apos;est un de ceux que ces corps surveillent.{suite}
-        </>
-        );
-    }
 
     return (
     <>
-    {nommes.length === 1
-        ? "Un chantier en cours porte sur ce que vous avez nommé, avec la position qu'il tenait déjà : "
-        : `${nommes.length} chantiers en cours portent sur ce que vous avez nommé, avec la position qu'ils tenaient déjà : `}
-    {nommes.map((r, i) => (
-        <span key={`${r.owner}-${i}`}>
-        {i > 0 ? ", " : ""}
-        <b style={{ color: "var(--oh-text-strong)" }}>{r.owner}</b>
-        {` (« ${r.hits.join(" », « ")} »`}
-        {STANCE_LABEL[String(r.stance || "").toLowerCase()] ? `, ${STANCE_LABEL[String(r.stance).toLowerCase()]}` : ""}
-        {")"}
-        </span>
-    ))}
-    . {nommes.length === 1 ? "Sa réponse tombera" : "Leur réponse tombera"} dans la prochaine édition.{suite}
+    <p style={{ margin: "0 0 0.5rem" }}>
+    Votre programme est versé à l&apos;édition, et chaque corps qu&apos;il touche doit y répondre —
+    une déclaration, un geste, une fuite, un serrage de rangs.
+    </p>
+    {nommes.length > 0 ? (
+        <p style={{ margin: "0 0 0.5rem" }}>
+        {nommes.length === 1 ? "Un chantier en cours est accroché par ce que vous avez nommé, " : `${nommes.length} chantiers en cours sont accrochés par ce que vous avez nommé, `}
+        avec la position qu&apos;{nommes.length === 1 ? "il tenait" : "ils tenaient"} déjà :{" "}
+        {nommes.map((r, i) => (
+            <span key={`${r.owner}-${i}`}>
+            {i > 0 ? ", " : ""}
+            <b style={{ color: "var(--oh-text-strong)" }}>{r.owner}</b>
+            {` (« ${[...new Set(r.hits.map((h) => motEntier(declaration, h)))].join(" », « ")} »`}
+            {STANCE_LABEL[String(r.stance || "").toLowerCase()] ? `, ${STANCE_LABEL[String(r.stance).toLowerCase()]}` : ""}
+            {")"}
+            </span>
+        ))}
+        .
+        </p>
+    ) : (
+        <p style={{ margin: "0 0 0.5rem" }}>
+        Aucun des mots employés n&apos;est de ceux que les chantiers en cours surveillent :
+        ce qui répondra répondra sur ce que vous êtes, et non sur ce que vous avez dit.
+        </p>
+    )}
+    {veilleurs > 0 && (
+        <p style={{ margin: 0 }}>
+        {veilleurs === 1 ? "Un corps suit" : `${veilleurs} corps suivent`} tout ce que fait le
+        Saint-Siège et {veilleurs === 1 ? "répondra" : "répondront"} de toute façon.
+        </p>
+    )}
     </>
     );
 };
@@ -319,7 +332,7 @@ const Situation = ({ briefing, date, world, awaitingInauguration }) => {
     titre={elu ? `${nom} a été élu sur ce programme` : "Ce que le nouveau pape trouve en arrivant"}
     chapo={elu ? `«\u00a0${declaration}\u00a0»` : null}
     sujet={elu ? "basilique" : ""}
-    encadre={elu ? <CeQueCelaChange reactions={reactions} /> : null}
+    encadre={elu ? <CeQueCelaChange reactions={reactions} declaration={declaration} /> : null}
     >
     {texte}
     </ArticleDeUne>
