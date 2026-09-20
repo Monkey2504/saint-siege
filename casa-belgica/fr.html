@@ -31,7 +31,7 @@ body{margin:0;font-family:var(--body);background:var(--creme);color:var(--encre)
 ::selection{background:var(--or);color:var(--vert-nuit)}
 h1,h2,h3{font-family:var(--disp);letter-spacing:-.02em;text-wrap:balance;margin:0}
 p{margin:0;max-width:62ch}
-a{color:inherit}
+a{color:inherit;touch-action:manipulation}
 :focus-visible{outline:3px solid var(--or);outline-offset:3px}
 .num{font-variant-numeric:tabular-nums}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
@@ -99,7 +99,7 @@ h1 mark{background:none;color:var(--or);box-shadow:inset 0 -.14em transparent;bo
 .keys span{display:block;margin-top:6px;font-size:.9rem;color:var(--sur-vert-mut);line-height:1.4}
 
 /* ---- Sections ---- */
-section{padding-block:clamp(56px,8vw,104px)}
+section{padding-block:clamp(56px,8vw,104px);scroll-margin-top:72px}
 section.line{border-top:1px solid var(--ligne)}
 .kick{display:flex;align-items:center;gap:12px;font-size:.88rem;font-weight:700;color:var(--vert);margin:0 0 14px}
 .kick:before{content:"";width:28px;height:3px;background:var(--or)}
@@ -135,11 +135,11 @@ strong{font-weight:700}
 .encart .duo{display:grid;grid-template-columns:1fr 1fr;gap:18px;padding-top:18px;border-top:1px solid rgba(255,255,255,.18)}
 @media(max-width:480px){.encart .duo{grid-template-columns:1fr}}
 .encart .duo b{display:block;font-family:var(--disp);font-size:1.6rem;font-weight:800;color:#fff;line-height:1.05;font-variant-numeric:tabular-nums}
-.encart .duo span{display:block;font-size:.86rem;color:var(--sur-vert-mut);margin-top:6px;line-height:1.4}
+.encart .duo span{display:block;font-size:.86rem;color:#C4CEC6;margin-top:6px;line-height:1.4}
 
 .cond{list-style:none;margin:0;padding:0;counter-reset:c;border-top:1px solid var(--ligne-forte)}
 .cond li{counter-increment:c;display:grid;grid-template-columns:44px 1fr;gap:10px;padding:16px 0;border-bottom:1px solid var(--ligne)}
-.cond li:before{content:counter(c);font-family:var(--disp);font-weight:800;font-size:1.3rem;color:var(--or-sombre);line-height:1.2}
+.cond li:before{content:counter(c);font-family:var(--disp);font-weight:800;font-size:1.3rem;color:var(--vert);line-height:1.2}
 .cond strong{display:block;font-family:var(--disp);font-size:1.05rem}
 .cond span{display:block;font-size:.92rem;color:var(--mut);margin-top:2px}
 
@@ -262,7 +262,7 @@ footer a{color:var(--encre)}
     <a class="link" href="#risque">Les risques</a>
     <a class="link" href="#faq">Objections</a>
     <a class="lang" href="index.html" lang="en" hreflang="en">EN</a>
-    <a class="cta" href="#appel">Prêter 1 000 €</a>
+    <a class="cta" href="#appel">Prêter 1 000 €</a>
   </nav>
 </div>
 <div class="subnav" aria-hidden="true">
@@ -278,7 +278,7 @@ footer a{color:var(--encre)}
   <div>
     <p class="eyebrow">Casa Belgica, coopérative de logement de transition en création, portée par Ballal ASBL à Molenbeek depuis 2023.</p>
     <h1>Il ne manque que <mark>120 personnes</mark>.</h1>
-    <p class="lead">Pour financer un bâtiment qui loge 50 personnes sortant des squats bruxellois, il faut un crédit bancaire de 900 000 €. Pour que la banque suive, il faut des fonds propres : 120 000 €. Toute la question est là — 120 personnes qui prêtent chacune 1 000 € à 0 %, et les fonds propres sont là.</p>
+    <p class="lead">Pour financer un bâtiment qui loge 50 personnes sortant des squats bruxellois, il faut un crédit bancaire de 900 000 €. Pour que la banque suive, il faut des fonds propres : 120 000 €. Toute la question est là — 120 personnes qui prêtent chacune 1 000 € à 0 %, et les fonds propres sont là.</p>
     <p class="lead">Ce n'est pas un don. C'est un prêt. L'argent revient entre l'année 6 et l'année 10 — et repart dans un deuxième bâtiment.</p>
     <div class="actions">
       <a class="btn or" href="#appel">Devenir l'un des 120</a>
@@ -287,14 +287,14 @@ footer a{color:var(--encre)}
   </div>
   <figure class="wall">
     <div class="courses" id="mur" role="img" aria-label="Un mur de 120 briques dorées, une brique par prêteur"></div>
-    <figcaption><span><strong class="num" id="compte">0</strong> briques sur 120</span><span>1 brique = 1 prêteur = <strong>1 000 €</strong> à 0 %</span></figcaption>
+    <figcaption><span><strong class="num" id="compte">0</strong> briques sur 120</span><span>1 brique = 1 prêteur = <strong>1 000 €</strong> à 0 %</span></figcaption>
   </figure>
 </div>
 <div class="keys">
-  <div><b>120 000 €</b><span>de prêts citoyens, à 0 %</span></div>
-  <div><b>900 000 €</b><span>de crédit bancaire, rendus possibles par ces fonds propres</span></div>
+  <div><b>120 000 €</b><span>de prêts citoyens, à 0 %</span></div>
+  <div><b>900 000 €</b><span>de crédit bancaire, rendus possibles par ces fonds propres</span></div>
   <div><b>50</b><span>places, chacune avec sa chambre individuelle</span></div>
-  <div><b>250 à 350</b><span>personnes logées en vingt ans</span></div>
+  <div><b>250 à 350</b><span>personnes logées en vingt ans</span></div>
 </div>
 </div>
 </section>
@@ -305,28 +305,28 @@ footer a{color:var(--encre)}
 <h2>Sortir du squat — et après ?</h2>
 <div class="two">
   <div class="stack">
-    <p class="big">Qui vient d'obtenir ses papiers touche un revenu d'intégration (RIS) au taux isolé : 1 340 €/mois. Un studio bruxellois coûte 700 à 850 € de loyer, plus la garantie locative. Il reste 565 € pour tout le reste. Pas d'épargne, jamais de garantie, et le premier pépin ramène à la rue.</p>
+    <p class="big">Qui vient d'obtenir ses papiers touche un revenu d'intégration (RIS) au taux isolé : 1 340 €/mois. Un studio bruxellois coûte 700 à 850 € de loyer, plus la garantie locative. Il reste 565 € pour tout le reste. Pas d'épargne, jamais de garantie, et le premier pépin ramène à la rue.</p>
     <p><strong>Entre le squat et ce studio, il n'y a rien.</strong></p>
     <p>Un squat permet déjà de vivre à bas coût. Ce qu'il ne donne pas : un titre d'occupation sûr — donc une adresse, donc une domiciliation, donc l'accès aux droits — et la certitude de ne pas être expulsé avant d'avoir fini d'épargner.</p>
-    <p class="note">Fin 2025, 62 234 ménages attendent un logement social à Bruxelles — environ 10 % des ménages bruxellois — avec 9 à 13 ans d'attente selon le type de logement. Entre 2020 et 2024, la Région a investi près de 2 milliards d'euros, construit plus de 2 000 logements et rénové plus de 7 500 — et la demande a augmenté de 25 % sur la même période.</p>
+    <p class="note">Fin 2025, 62 234 ménages attendent un logement social à Bruxelles — environ 10 % des ménages bruxellois — avec 9 à 13 ans d'attente selon le type de logement. Entre 2020 et 2024, la Région a investi près de 2 milliards d'euros, construit plus de 2 000 logements et rénové plus de 7 500 — et la demande a augmenté de 25 % sur la même période.</p>
   </div>
   <div class="stack">
-    <h3>Sur 1 340 € de RIS, ce qui reste pour vivre</h3>
+    <h3>Sur 1 340 € de RIS, ce qui reste pour vivre</h3>
     <div class="reste" aria-label="Comparaison du reste à vivre">
       <div class="row">
-        <div class="lbl"><span>Studio privé · 775 € de loyer</span><b class="num">565 €</b></div>
-        <div class="bar"><i class="loyer" style="flex:775">loyer 775 €</i><i class="vie" style="flex:565">reste 565 €</i></div>
+        <div class="lbl"><span>Studio privé · 775 € de loyer</span><b class="num">565 €</b></div>
+        <div class="bar"><i class="loyer" style="flex:775">loyer 775 €</i><i class="vie" style="flex:565">reste 565 €</i></div>
       </div>
       <div class="row win">
-        <div class="lbl"><span>Casa Belgica · 300 € tout compris</span><b class="num">1 040 €</b></div>
-        <div class="bar"><i class="loyer" style="flex:300">300 €</i><i class="vie" style="flex:1040">reste 1 040 €</i></div>
+        <div class="lbl"><span>Casa Belgica · 300 € tout compris</span><b class="num">1 040 €</b></div>
+        <div class="bar"><i class="loyer" style="flex:300">300 €</i><i class="vie" style="flex:1040">reste 1 040 €</i></div>
       </div>
-      <div class="scale"><span>0 €</span><span>1 340 € / mois</span></div>
+      <div class="scale"><span>0 €</span><span>1 340 € / mois</span></div>
     </div>
     <div class="stats">
-      <div><b>400 à 550 €</b><span>épargnés chaque mois</span></div>
-      <div><b>7 à 10 k€</b><span>mis de côté en trois ans, en n'épargnant que la moitié</span></div>
-      <div><b>447 €</b><span>d'écart mensuel entre le RIS isolé (1 340 €) et le RIS cohabitant (893,65 €)</span></div>
+      <div><b>400 à 550 €</b><span>épargnés chaque mois</span></div>
+      <div><b>7 à 10 k€</b><span>mis de côté en trois ans, en n'épargnant que la moitié</span></div>
+      <div><b>447 €</b><span>d'écart mensuel entre le RIS isolé (1 340 €) et le RIS cohabitant (893,65 €)</span></div>
     </div>
   </div>
 </div>
@@ -336,23 +336,23 @@ footer a{color:var(--encre)}
 <section id="batiment" class="line">
 <div class="w">
 <p class="kick">Ce qu'on construit</p>
-<h2>50 chambres, 300 € par mois, tout compris.</h2>
+<h2>50 chambres, 300 € par mois, tout compris.</h2>
 <div class="two">
   <div class="stack">
-    <p class="big">50 chambres individuelles d'au moins 18 m² nets, chacune avec sa douche et son WC. Un immeuble bruxellois ancien d'environ 1 200 m², en emphytéose de longue durée (jusqu'à 99 ans) auprès d'un propriétaire public ou institutionnel.</p>
-    <p>Pas d'achat : à 300 €/mois, le modèle ne porte aucune acquisition. Depuis la réforme du Code civil de 2021, l'emphytéose gratuite à but non lucratif au profit d'une ASBL est explicitement permise. Le canon emphytéotique peut donc être nul.</p>
+    <p class="big">50 chambres individuelles d'au moins 18 m² nets, chacune avec sa douche et son WC. Un immeuble bruxellois ancien d'environ 1 200 m², en emphytéose de longue durée (jusqu'à 99 ans) auprès d'un propriétaire public ou institutionnel.</p>
+    <p>Pas d'achat : à 300 €/mois, le modèle ne porte aucune acquisition. Depuis la réforme du Code civil de 2021, l'emphytéose gratuite à but non lucratif au profit d'une ASBL est explicitement permise. Le canon emphytéotique peut donc être nul.</p>
     <div class="encart">
-      <p><span class="accent">La douche et le WC individuels ne sont pas un confort.</span> Ils sécurisent le statut d'isolé au CPAS — 447 €/mois de revenus en plus par habitant·e — donc la capacité de payer 300 €. On n'économise jamais sur ce poste.</p>
+      <p><span class="accent">La douche et le WC individuels ne sont pas un confort.</span> Ils sécurisent le statut d'isolé au CPAS — 447 €/mois de revenus en plus par habitant·e — donc la capacité de payer 300 €. On n'économise jamais sur ce poste.</p>
       <div class="duo">
-        <div><b>300 à 600 k€</b><span>coût des 50 unités sanitaires — 6 000 à 12 000 € par chambre</span></div>
-        <div><b>22 350 €/mois</b><span>perdus par le groupe d'habitants si on rogne dessus</span></div>
+        <div><b>300 à 600 k€</b><span>coût des 50 unités sanitaires — 6 000 à 12 000 € par chambre</span></div>
+        <div><b>22 350 €/mois</b><span>perdus par le groupe d'habitants si on rogne dessus</span></div>
       </div>
     </div>
   </div>
   <div>
     <h3>Quatre conditions non négociables</h3>
     <ol class="cond">
-      <li><div><strong>Douche et WC privés, au moins 18 m² nets</strong><span>Arrêté du 30 novembre 2023, en vigueur depuis le 1er janvier 2026.</span></div></li>
+      <li><div><strong>Douche et WC privés, au moins 18 m² nets</strong><span>Arrêté du 30 novembre 2023, en vigueur depuis le 1er janvier 2026.</span></div></li>
       <li><div><strong>Contrat individuel et nominatif</strong><span>Jouissance exclusive d'une unité déterminée.</span></div></li>
       <li><div><strong>Pas de caisse commune</strong><span>Aucune gestion ménagère commune formalisée.</span></div></li>
       <li><div><strong>Avis écrit du CPAS avant tout engagement</strong><span>Sur la base d'un plan type de chambre.</span></div></li>
@@ -366,47 +366,47 @@ footer a{color:var(--encre)}
 <div class="w">
 <p class="kick">Les chiffres</p>
 <h2>Comment ça se porte tout seul.</h2>
-<p class="big">Recettes mensuelles : 50 places × 300 €, à 95 % d'occupation → 14 250 €/mois, 171 000 €/an.</p>
-<div class="split" role="img" aria-label="Répartition des 14 250 € mensuels : charges 57 %, dette 38 %, excédent 5 %">
-  <div class="a" style="flex:57"><b>8 120 €</b><small>Charges d'exploitation · 57 %</small></div>
-  <div class="b" style="flex:38"><b>5 450 €</b><small>Service de la dette · 38 %</small></div>
-  <div class="c" style="flex:5"><b>680 €</b><small>Excédent</small></div>
+<p class="big">Recettes mensuelles : 50 places × 300 €, à 95 % d'occupation → 14 250 €/mois, 171 000 €/an.</p>
+<div class="split" role="img" aria-label="Répartition des 14 250 € mensuels : charges 57 %, dette 38 %, excédent 5 %">
+  <div class="a" style="flex:57"><b>8 120 €</b><small>Charges d'exploitation · 57 %</small></div>
+  <div class="b" style="flex:38"><b>5 450 €</b><small>Service de la dette · 38 %</small></div>
+  <div class="c" style="flex:5"><b>680 €</b><small>Excédent</small></div>
 </div>
-<div class="legend"><span><i style="background:var(--vert)"></i>Charges d'exploitation 8 120 €</span><span><i style="background:var(--vert-nuit)"></i>Service de la dette 5 450 €</span><span><i style="background:var(--or)"></i>Excédent 680 € · 5 %</span></div>
+<div class="legend"><span><i style="background:var(--vert)"></i>Charges d'exploitation 8 120 €</span><span><i style="background:var(--vert-nuit)"></i>Service de la dette 5 450 €</span><span><i style="background:var(--or)"></i>Excédent 680 € · 5 %</span></div>
 
 <div class="two" style="margin-top:44px">
   <div>
     <h3>Le détail des charges, par mois</h3>
     <div class="tablewrap"><table>
-      <tr><td>Énergie (chauffage, eau chaude, électricité)</td><td class="n">2 200 €</td></tr>
-      <tr><td>Eau</td><td class="n">700 €</td></tr>
-      <tr><td>Assurance incendie et RC</td><td class="n">420 €</td></tr>
-      <tr><td>Précompte immobilier (exonération à demander)</td><td class="n">300 €</td></tr>
-      <tr><td>Télécoms, déchets, consommables, petit entretien</td><td class="n">400 €</td></tr>
-      <tr><td>Comptabilité, administration, banque</td><td class="n">250 €</td></tr>
-      <tr><td>Réserve gros entretien (1 %/an)</td><td class="n">1 250 €</td></tr>
-      <tr><td>Canon emphytéotique (hypothèse prudente ; peut être nul)</td><td class="n">500 €</td></tr>
-      <tr><td>Fonction bailleur, 0,5 ETP</td><td class="n">2 100 €</td></tr>
-      <tr class="tot"><td>Total</td><td class="n">8 120 €</td></tr>
+      <tr><td>Énergie (chauffage, eau chaude, électricité)</td><td class="n">2 200 €</td></tr>
+      <tr><td>Eau</td><td class="n">700 €</td></tr>
+      <tr><td>Assurance incendie et RC</td><td class="n">420 €</td></tr>
+      <tr><td>Précompte immobilier (exonération à demander)</td><td class="n">300 €</td></tr>
+      <tr><td>Télécoms, déchets, consommables, petit entretien</td><td class="n">400 €</td></tr>
+      <tr><td>Comptabilité, administration, banque</td><td class="n">250 €</td></tr>
+      <tr><td>Réserve gros entretien (1 %/an)</td><td class="n">1 250 €</td></tr>
+      <tr><td>Canon emphytéotique (hypothèse prudente ; peut être nul)</td><td class="n">500 €</td></tr>
+      <tr><td>Fonction bailleur, 0,5 ETP</td><td class="n">2 100 €</td></tr>
+      <tr class="tot"><td>Total</td><td class="n">8 120 €</td></tr>
     </table></div>
   </div>
   <div class="stack">
     <div>
       <h3>Financement des travaux</h3>
       <div class="tablewrap"><table>
-        <tr><td>Crédit bancaire, 20 ans à 4 %</td><td class="n">900 000 €</td></tr>
-        <tr><td>Prêt citoyen subordonné, 0 %</td><td class="n">120 000 €</td></tr>
-        <tr class="tot"><td>Budget travaux</td><td class="n">1 020 000 €</td></tr>
+        <tr><td>Crédit bancaire, 20 ans à 4 %</td><td class="n">900 000 €</td></tr>
+        <tr><td>Prêt citoyen subordonné, 0 %</td><td class="n">120 000 €</td></tr>
+        <tr class="tot"><td>Budget travaux</td><td class="n">1 020 000 €</td></tr>
       </table></div>
     </div>
     <div>
       <h3>L'écart — et le risque principal</h3>
-      <div class="m2" role="img" aria-label="Budget disponible 850 €/m² ; une rénovation lourde coûte de 1 100 à 1 800 €/m²">
+      <div class="m2" role="img" aria-label="Budget disponible 850 €/m² ; une rénovation lourde coûte de 1 100 à 1 800 €/m²">
         <div class="track"><div class="range" style="left:61.1%;right:0"></div><div class="pin" style="left:47.2%"></div></div>
-        <div class="ticks"><span style="left:0">0</span><span class="k" style="left:47.2%">850 €/m²</span><span style="left:61.1%">1 100</span><span style="left:100%;transform:translateX(-100%)">1 800 €/m²</span></div>
-        <div class="cap"><span><i></i>Budget disponible : 1 020 000 € sur 1 200 m²</span><span><i class="r"></i>Rénovation lourde</span></div>
+        <div class="ticks"><span style="left:0">0</span><span class="k" style="left:47.2%">850 €/m²</span><span style="left:61.1%">1 100</span><span style="left:100%;transform:translateX(-100%)">1 800 €/m²</span></div>
+        <div class="cap"><span><i></i>Budget disponible : 1 020 000 € sur 1 200 m²</span><span><i class="r"></i>Rénovation lourde</span></div>
       </div>
-      <p style="margin-top:16px">L'écart de 200 000 à 480 000 € se comble par trois leviers : la TVA à 6 % au lieu de 21 % (≈ 150 000 €), un chantier participatif sur les lots non techniques, et les subsides (Contrat de quartier durable, appels à projets régionaux, fonds européens). <strong>C'est le risque principal du projet. L'étude de faisabilité tranche — avant tout engagement.</strong></p>
+      <p style="margin-top:16px">L'écart de 200 000 à 480 000 € se comble par trois leviers : la TVA à 6 % au lieu de 21 % (≈ 150 000 €), un chantier participatif sur les lots non techniques, et les subsides (Contrat de quartier durable, appels à projets régionaux, fonds européens). <strong>C'est le risque principal du projet. L'étude de faisabilité tranche — avant tout engagement.</strong></p>
     </div>
   </div>
 </div>
@@ -417,27 +417,27 @@ footer a{color:var(--encre)}
 <div class="w">
 <p class="kick">Le remboursement</p>
 <h2>Pourquoi ce n'est pas un don.</h2>
-<p class="big">Forme juridique : prêt subordonné à 0 %, sans remboursement les cinq premières années, remboursement en une fois entre l'année 6 et l'année 10. Subordonné veut dire : en cas de crise, la banque passe avant les citoyens. C'est exactement ce qui permet à la banque de traiter les 120 000 € comme des quasi-fonds propres et de maintenir le levier à 900 000 €.</p>
+<p class="big">Forme juridique : prêt subordonné à 0 %, sans remboursement les cinq premières années, remboursement en une fois entre l'année 6 et l'année 10. Subordonné veut dire : en cas de crise, la banque passe avant les citoyens. C'est exactement ce qui permet à la banque de traiter les 120 000 € comme des quasi-fonds propres et de maintenir le levier à 900 000 €.</p>
 <div class="frise">
   <div class="rail" aria-label="Frise sur vingt ans">
-    <div><strong>Années 1 à 5</strong><span>L'excédent de 680 €/mois s'accumule.</span></div>
-    <div><strong>Années 6 à 10</strong><span>Remboursement des 120 000 €.</span></div>
-    <div><strong>Années 11 à 20</strong><span>Fin du crédit bancaire.</span></div>
-    <div><strong>Année 21 et après</strong><span>65 400 €/an libérés.</span></div>
+    <div><strong>Années 1 à 5</strong><span>L'excédent de 680 €/mois s'accumule.</span></div>
+    <div><strong>Années 6 à 10</strong><span>Remboursement des 120 000 €.</span></div>
+    <div><strong>Années 11 à 20</strong><span>Fin du crédit bancaire.</span></div>
+    <div><strong>Année 21 et après</strong><span>65 400 €/an libérés.</span></div>
   </div>
 </div>
 <div class="two" style="margin-top:44px">
   <div>
     <h3>Deux sources financent le remboursement</h3>
     <div class="stats" style="grid-template-columns:1fr">
-      <div><b>≈ 640 €/mois</b><span>par l'indexation : à 2 %/an, la contribution passe de 300 à 331 € en année 5 (+1 480 €/mois de recettes ; les charges montent aussi, +845 €/mois)</span></div>
-      <div><b>41 000 €</b><span>d'excédent accumulé — 680 €/mois pendant 60 mois</span></div>
-      <div><b>79 000 €</b><span>de solde, refinancé sur dix ans, environ 800 €/mois</span></div>
+      <div><b>≈ 640 €/mois</b><span>par l'indexation : à 2 %/an, la contribution passe de 300 à 331 € en année 5 (+1 480 €/mois de recettes ; les charges montent aussi, +845 €/mois)</span></div>
+      <div><b>41 000 €</b><span>d'excédent accumulé — 680 €/mois pendant 60 mois</span></div>
+      <div><b>79 000 €</b><span>de solde, refinancé sur dix ans, environ 800 €/mois</span></div>
     </div>
   </div>
   <div class="stack">
-    <p class="big"><strong>Le cycle dure 6 à 10 ans, pas 5.</strong> On préfère le dire avant que de le découvrir ensemble.</p>
-    <p class="note">Si la banque refuse la subordination, les 120 000 € deviennent des parts de coopérative — des fonds propres sans sortie. Le levier et le budget restent identiques, mais l'argent ne revient pas.</p>
+    <p class="big"><strong>Le cycle dure 6 à 10 ans, pas 5.</strong> On préfère le dire avant que de le découvrir ensemble.</p>
+    <p class="note">Si la banque refuse la subordination, les 120 000 € deviennent des parts de coopérative — des fonds propres sans sortie. Le levier et le budget restent identiques, mais l'argent ne revient pas.</p>
   </div>
 </div>
 </div>
@@ -452,11 +452,11 @@ footer a{color:var(--encre)}
     <h3>Argent engagé avant le point de non-retour</h3>
     <div class="tablewrap"><table>
       <tr><th>Poste</th><th style="text-align:right">Coût</th><th>Couvert par</th></tr>
-      <tr><td>Avis écrit du CPAS</td><td class="n">0 €</td><td class="c">—</td></tr>
-      <tr><td>Recherche du bâtiment</td><td class="n">0 €</td><td class="c">—</td></tr>
-      <tr><td>Étude de faisabilité et avis pompiers (SIAMU)</td><td class="n">15 à 25 k€</td><td class="c">Appels à projets (Brulocalis, Fondation Roi Baudouin, Coopcity)</td></tr>
-      <tr><td>Statuts de la coopérative, notaire, FSMA</td><td class="n">3 à 5 k€</td><td class="c">Fonds propres</td></tr>
-      <tr class="tot"><td>Risque maximal</td><td class="n">30 000 €</td><td class="c" style="font-family:var(--body);font-weight:500;font-size:.88rem">en grande partie subsidiable</td></tr>
+      <tr><td>Avis écrit du CPAS</td><td class="n">0 €</td><td class="c">—</td></tr>
+      <tr><td>Recherche du bâtiment</td><td class="n">0 €</td><td class="c">—</td></tr>
+      <tr><td>Étude de faisabilité et avis pompiers (SIAMU)</td><td class="n">15 à 25 k€</td><td class="c">Appels à projets (Brulocalis, Fondation Roi Baudouin, Coopcity)</td></tr>
+      <tr><td>Statuts de la coopérative, notaire, FSMA</td><td class="n">3 à 5 k€</td><td class="c">Fonds propres</td></tr>
+      <tr class="tot"><td>Risque maximal</td><td class="n">30 000 €</td><td class="c" style="font-family:var(--body);font-weight:500;font-size:.88rem">en grande partie subsidiable</td></tr>
     </table></div>
   </div>
   <div>
@@ -464,16 +464,16 @@ footer a{color:var(--encre)}
     <div class="sorties">
       <div class="rail" aria-hidden="true"><span>0–3</span><span>3–9</span><span>9–15</span><span>15–21 mois</span></div>
       <ol>
-        <li><b>Mois 0 à 3</b><span>Si le CPAS refuse le statut d'isolé, le modèle à 300 € ne tient pas. Stop.</span><em>coût : zéro</em></li>
-        <li><b>Mois 3 à 9</b><span>Si aucun propriétaire n'ouvre une discussion d'emphytéose : stop.</span><em>coût : zéro</em></li>
-        <li><b>Mois 9 à 15</b><span>Si l'étude de faisabilité chiffre un écart travaux incomblable : stop.</span><em>l'étude, subsidiée</em></li>
-        <li><b>Mois 15 à 21</b><span>Si les banques refusent : stop, ou bascule vers la variante en parts de coopérative.</span><em>bascule</em></li>
+        <li><b>Mois 0 à 3</b><span>Si le CPAS refuse le statut d'isolé, le modèle à 300 € ne tient pas. Stop.</span><em>coût : zéro</em></li>
+        <li><b>Mois 3 à 9</b><span>Si aucun propriétaire n'ouvre une discussion d'emphytéose : stop.</span><em>coût : zéro</em></li>
+        <li><b>Mois 9 à 15</b><span>Si l'étude de faisabilité chiffre un écart travaux incomblable : stop.</span><em>l'étude, subsidiée</em></li>
+        <li><b>Mois 15 à 21</b><span>Si les banques refusent : stop, ou bascule vers la variante en parts de coopérative.</span><em>bascule</em></li>
       </ol>
     </div>
   </div>
 </div>
 <div class="flag">
-  <p><strong>Permis.</strong> Le changement d'affectation est soumis à permis depuis l'arrêté du 16 mai 2024 — compter 12 à 24 mois, enquête publique probable.</p>
+  <p><strong>Permis.</strong> Le changement d'affectation est soumis à permis depuis l'arrêté du 16 mai 2024 — compter 12 à 24 mois, enquête publique probable.</p>
   <p><strong>Incendie.</strong> Un hébergement collectif de 50 personnes exige compartimentage, deux voies d'évacuation et détection généralisée ; avis préalable du SIAMU avant tout engagement financier.</p>
 </div>
 <p style="margin-top:28px;max-width:78ch"><strong>La campagne citoyenne vient après ces quatre étapes.</strong> C'est la partie la plus simple du projet — et la seule qu'on ne peut faire qu'une fois. La Fondation Roi Baudouin met à disposition une analyse juridique des outils pour bâtiments publics vides (emphytéose et variantes, bail à réhabilitation) avec un term sheet type ; l'inventaire des terrains et bâtiments vides est tenu par perspective.brussels.</p>
@@ -491,15 +491,15 @@ footer a{color:var(--encre)}
   </details>
   <details>
     <summary>Pourquoi pas une AIS, du logement social, ou un projet CLTB ?<i aria-hidden="true"></i></summary>
-    <div class="rep"><p>Le logement social compte 62 234 candidats fin 2025, avec 9 à 13 ans d'attente. Le CLTB fait de l'acquisition pour des ménages, avec plus de 1 300 personnes en liste d'attente. D'autres acteurs créent de l'habitat groupé avec portage de bâtiment — Fair Ground Brussels, L'Îlot, Renovassistance.</p><p>Ce que personne n'offre aujourd'hui : un sas de trois à quatre ans, à 300 € tout compris, en chambre individuelle avec statut d'isolé, pour des personnes sortant de squats. C'est cette combinaison qui manque — pas le logement social.</p></div>
+    <div class="rep"><p>Le logement social compte 62 234 candidats fin 2025, avec 9 à 13 ans d'attente. Le CLTB fait de l'acquisition pour des ménages, avec plus de 1 300 personnes en liste d'attente. D'autres acteurs créent de l'habitat groupé avec portage de bâtiment — Fair Ground Brussels, L'Îlot, Renovassistance.</p><p>Ce que personne n'offre aujourd'hui : un sas de trois à quatre ans, à 300 € tout compris, en chambre individuelle avec statut d'isolé, pour des personnes sortant de squats. C'est cette combinaison qui manque — pas le logement social.</p></div>
   </details>
   <details>
     <summary>50 places, c'est peu, et la première clé arrive dans trois ans.<i aria-hidden="true"></i></summary>
-    <div class="rep"><p>50 places avec des séjours de trois à quatre ans, c'est 250 à 350 personnes en vingt ans — à partir d'un seul bâtiment, et le capital citoyen repart vers un deuxième. Rien n'est suspendu entre-temps : les occupations continuent, l'accompagnement continue.</p></div>
+    <div class="rep"><p>50 places avec des séjours de trois à quatre ans, c'est 250 à 350 personnes en vingt ans — à partir d'un seul bâtiment, et le capital citoyen repart vers un deuxième. Rien n'est suspendu entre-temps : les occupations continuent, l'accompagnement continue.</p></div>
   </details>
   <details>
     <summary>Et si ça échoue ?<i aria-hidden="true"></i></summary>
-    <div class="rep"><p>Les coûts d'entrée sont plafonnés à 30 000 €, en grande partie subsidiables, et le projet s'arrête proprement à quatre points définis, avant qu'un seul euro citoyen ne bouge.</p></div>
+    <div class="rep"><p>Les coûts d'entrée sont plafonnés à 30 000 €, en grande partie subsidiables, et le projet s'arrête proprement à quatre points définis, avant qu'un seul euro citoyen ne bouge.</p></div>
   </details>
 </div>
 </div>
@@ -510,15 +510,15 @@ footer a{color:var(--encre)}
 <p class="kick">L'appel</p>
 <h2>Ce qu'on vous demande.</h2>
 <ol class="asks">
-  <li><strong>Partagez le diagnostic</strong><p>Pour quelqu'un qui sort d'un squat, il n'existe vraiment aucun sas entre le squat et le studio à 775 € ? Dites-nous si on se trompe.</p></li>
+  <li><strong>Partagez le diagnostic</strong><p>Pour quelqu'un qui sort d'un squat, il n'existe vraiment aucun sas entre le squat et le studio à 775 € ? Dites-nous si on se trompe.</p></li>
   <li><strong>Ouvrez vos réseaux</strong><p>Vous connaissez un CPAS à convaincre, un bâtiment public vide, une communauté religieuse, un bureau d'architecture ? Les étapes 1 et 2 ne coûtent rien et dépendent de vos réseaux.</p></li>
-  <li><strong>Engagez-vous à prêter 1 000 €</strong><p>Dès que le bâtiment est trouvé et le crédit accordé. Avant, pas un euro ne bouge. On constitue dès maintenant la liste des 120 promesses — c'est la preuve de fonds propres dont la banque a besoin.</p></li>
+  <li><strong>Engagez-vous à prêter 1 000 €</strong><p>Dès que le bâtiment est trouvé et le crédit accordé. Avant, pas un euro ne bouge. On constitue dès maintenant la liste des 120 promesses — c'est la preuve de fonds propres dont la banque a besoin.</p></li>
 </ol>
 <div class="actions">
   <a class="btn or" href="mailto:fhzegert@gmail.com?subject=Casa%20Belgica%20%E2%80%94%20comptez-moi%20parmi%20les%20120">Comptez-moi parmi les 120</a>
   <a class="btn ghost" href="mailto:fhzegert@gmail.com?subject=Casa%20Belgica%20%E2%80%94%20un%20contact%20%C3%A0%20vous%20ouvrir">Je connais un CPAS, un bâtiment, un architecte</a>
 </div>
-<div class="callout">La campagne démarre après les quatre étapes, donc dans 18 à 21 mois. On ne collecte pas avant que le dossier tienne. <strong>120 personnes convaincues, ce sont 50 personnes logées. Le capital citoyen revient, et le bâtiment reste.</strong></div>
+<div class="callout">La campagne démarre après les quatre étapes, donc dans 18 à 21 mois. On ne collecte pas avant que le dossier tienne. <strong>120 personnes convaincues, ce sont 50 personnes logées. Le capital citoyen revient, et le bâtiment reste.</strong></div>
 </div>
 </section>
 
@@ -546,8 +546,8 @@ Portée par Ballal ASBL, 645 chaussée de Gand, 1080 Molenbeek · <a href="mailt
     html+='</div>';
   }
   function tint(n){ return (0.94+((n*37)%9)/100).toFixed(2); }
-  function brique(n){ return '<b style="--i:'+n+';--tint:'+tint(n)+'" title="Brique '+n+' · 1 000 €"></b>'; }
-  function demi(n){ return '<b class="half" style="--i:'+n+';--tint:'+tint(n)+'" title="Brique '+n+' · 1 000 €"></b>'; }
+  function brique(n){ return '<b style="--i:'+n+';--tint:'+tint(n)+'" title="Brique '+n+' · 1 000 €"></b>'; }
+  function demi(n){ return '<b class="half" style="--i:'+n+';--tint:'+tint(n)+'" title="Brique '+n+' · 1 000 €"></b>'; }
   mur.innerHTML=html;
 
   // Le compteur suit la pose des briques (11 ms par brique), sauf si l'animation est désactivée.
