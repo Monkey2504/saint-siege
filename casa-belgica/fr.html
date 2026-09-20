@@ -1,0 +1,562 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Sortir du squat — Casa Belgica, coopérative de logement de transition, Bruxelles</title>
+<meta name="description" content="Casa Belgica : 120 citoyens prêtent 1 000 € à 0 % pour débloquer un crédit bancaire de 900 000 € et loger 50 personnes sortant des squats bruxellois. 300 €/mois tout compris.">
+<meta property="og:title" content="Sortir du squat — Casa Belgica">
+<meta property="og:description" content="Il ne manque que 120 personnes. 1 brique = 1 000 €. 50 chambres à 300 €/mois pour sortir du squat à Bruxelles.">
+<meta name="theme-color" content="#13251A">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 10'><rect width='20' height='10' fill='%23E3C362'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600;700&display=swap">
+<style>
+/* ---- Jetons : palette du dossier imprimé (vert profond, or, crème) ---- */
+:root{
+  --vert-nuit:#13251A; --vert:#1F4A35; --vert-clair:#2A5E45;
+  --or:#E3C362; --or-sombre:#B8963E; --or-pale:#F1DFA4;
+  --creme:#F3F1EA; --creme-2:#EAE7DD; --blanc:#FBFAF6;
+  --encre:#17211B; --mut:#5E6B62; --ligne:#CFCBBD; --ligne-forte:#17211B;
+  --sur-vert:#EFEADB; --sur-vert-mut:#A9B5AC;
+  --disp:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
+  --body:"Instrument Sans",ui-sans-serif,system-ui,sans-serif;
+  --w:1120px; --gut:clamp(18px,4vw,40px);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{margin:0;font-family:var(--body);background:var(--creme);color:var(--encre);line-height:1.6;font-size:17px;text-wrap:pretty}
+.w{max-width:var(--w);margin:0 auto;padding-inline:var(--gut)}
+::selection{background:var(--or);color:var(--vert-nuit)}
+h1,h2,h3{font-family:var(--disp);letter-spacing:-.02em;text-wrap:balance;margin:0}
+p{margin:0;max-width:62ch}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--or);outline-offset:3px}
+.num{font-variant-numeric:tabular-nums}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* ---- En-tête ---- */
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--vert-nuit);color:var(--sur-vert)}
+header .w{display:flex;align-items:center;justify-content:space-between;gap:16px;height:64px}
+.logo{display:flex;align-items:center;gap:10px;font-family:var(--disp);font-weight:800;font-size:1rem;letter-spacing:.06em;text-decoration:none;white-space:nowrap}
+.logo i{display:block;width:26px;height:13px;background:var(--or);border-radius:1px}
+nav{display:flex;align-items:center;gap:6px}
+nav a{text-decoration:none;font-size:.9rem;font-weight:600;padding:8px 10px;border-radius:3px;white-space:nowrap}
+nav a:hover{background:rgba(255,255,255,.08)}
+nav a.lang{border:1.5px solid var(--sur-vert-mut);margin-left:6px}
+nav a.cta{background:var(--or);color:var(--vert-nuit);padding:10px 16px;margin-left:6px}
+nav a.cta:hover{background:var(--or-pale)}
+.subnav{display:none}
+@media(max-width:820px){
+  nav a.link{display:none}
+  header .w{gap:8px;min-width:0}
+  nav{gap:4px}
+  .logo{font-size:.88rem;letter-spacing:.04em}
+  nav a.lang{padding:7px 8px;margin-left:0}
+  nav a.cta{padding:9px 12px;margin-left:0;font-size:.85rem}
+  .subnav{display:flex;gap:4px;overflow-x:auto;padding:0 var(--gut) 10px;scrollbar-width:none;background:var(--vert-nuit)}
+  .subnav::-webkit-scrollbar{display:none}
+  .subnav a{flex:none;color:var(--sur-vert-mut);text-decoration:none;font-size:.85rem;font-weight:600;padding:6px 10px;border:1px solid rgba(255,255,255,.15);border-radius:999px}
+}
+
+/* ---- Héros : le mur ---- */
+.hero{background:var(--vert-nuit);color:var(--sur-vert);padding-block:clamp(48px,8vw,96px) clamp(40px,6vw,72px)}
+.heroRow{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:clamp(32px,5vw,72px);align-items:center}
+@media(max-width:900px){.heroRow{grid-template-columns:1fr}}
+.eyebrow{font-size:.9rem;color:var(--or);font-weight:600;max-width:52ch;line-height:1.45}
+h1{font-size:clamp(2.7rem,7.2vw,5.4rem);line-height:.96;font-weight:800;margin:18px 0 22px;color:#fff;max-width:14ch}
+h1 mark{background:none;color:var(--or);box-shadow:inset 0 -.14em transparent;border-bottom:.08em solid var(--or)}
+.lead{font-size:1.15rem;color:var(--sur-vert);max-width:40em}
+.lead+.lead{margin-top:14px;color:var(--sur-vert-mut)}
+.actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:30px}
+.btn{display:inline-flex;align-items:center;gap:10px;font-weight:700;padding:15px 24px;text-decoration:none;border-radius:3px;border:1.5px solid transparent;transition:background .15s,color .15s,border-color .15s;min-height:48px}
+.btn.or{background:var(--or);color:var(--vert-nuit)}
+.btn.or:hover{background:var(--or-pale)}
+.btn.ghost{background:transparent;color:var(--sur-vert);border-color:var(--sur-vert-mut)}
+.btn.ghost:hover{border-color:#fff;color:#fff}
+.btn.vert{background:var(--vert);color:#fff}
+.btn.vert:hover{background:var(--vert-clair)}
+
+.wall{margin:0;width:100%;max-width:520px;justify-self:end}
+@media(max-width:900px){.wall{justify-self:start}}
+.courses{display:flex;flex-direction:column;gap:4px;background:#0B1710;padding:6px;border:1px solid #2A3B30;border-radius:2px}
+.course{display:flex;gap:4px}
+.course b{flex:2 1 0;aspect-ratio:2/1;background:var(--or);border-radius:1px;position:relative;filter:brightness(var(--tint,1));transition:filter .15s, transform .15s}
+.course b.half{flex:1 1 0;aspect-ratio:1/1}
+.course b:hover{filter:brightness(1.15);transform:translateY(-1px)}
+.wall figcaption{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-top:12px;font-size:.88rem;color:var(--sur-vert-mut)}
+.wall figcaption strong{color:#fff;font-family:var(--disp);font-size:1.1rem}
+@media(prefers-reduced-motion:no-preference){
+  .course b{animation:poser .32s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--i) * 11ms)}
+  @keyframes poser{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+}
+
+.keys{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px;margin-top:clamp(40px,6vw,64px);padding-top:22px;border-top:1px solid #3B4F43}
+@media(max-width:820px){.keys{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.keys div{padding-right:12px}
+.keys b{display:block;font-family:var(--disp);font-weight:800;font-size:clamp(1.7rem,3.2vw,2.3rem);line-height:1.05;color:#fff;font-variant-numeric:tabular-nums}
+.keys span{display:block;margin-top:6px;font-size:.9rem;color:var(--sur-vert-mut);line-height:1.4}
+
+/* ---- Sections ---- */
+section{padding-block:clamp(56px,8vw,104px)}
+section.line{border-top:1px solid var(--ligne)}
+.kick{display:flex;align-items:center;gap:12px;font-size:.88rem;font-weight:700;color:var(--vert);margin:0 0 14px}
+.kick:before{content:"";width:28px;height:3px;background:var(--or)}
+h2{font-size:clamp(1.9rem,4.4vw,3.1rem);font-weight:800;line-height:1.04;margin:0 0 22px;max-width:22ch}
+h3{font-size:1.2rem;font-weight:700;margin:0 0 12px}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(28px,5vw,64px);align-items:start}
+@media(max-width:860px){.two{grid-template-columns:1fr}}
+.stack{display:grid;gap:16px}
+.big{font-size:1.22rem;line-height:1.5}
+.note{font-size:.9rem;color:var(--mut);max-width:78ch}
+strong{font-weight:700}
+
+/* Comparaison : que reste-t-il pour vivre sur 1 340 € ? */
+.reste{display:grid;gap:18px}
+.reste .row{display:grid;gap:8px}
+.reste .lbl{display:flex;justify-content:space-between;gap:12px;font-size:.92rem}
+.reste .lbl b{font-family:var(--disp);font-size:1.2rem}
+.reste .bar{display:flex;height:34px;border-radius:3px;overflow:hidden;background:var(--creme-2)}
+.reste .bar i{display:flex;align-items:center;padding-inline:10px;font-style:normal;font-size:.78rem;font-weight:700;white-space:nowrap;overflow:hidden}
+.reste .loyer{background:var(--ligne);color:var(--encre)}
+.reste .vie{background:var(--vert);color:#fff}
+.reste .win .vie{background:var(--or);color:var(--vert-nuit)}
+.reste .scale{display:flex;justify-content:space-between;font-size:.78rem;color:var(--mut)}
+
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:20px 28px;margin-top:8px;padding-top:18px;border-top:1px solid var(--ligne-forte)}
+.stats b{display:block;font-family:var(--disp);font-weight:800;font-size:1.9rem;line-height:1.05;color:var(--vert);font-variant-numeric:tabular-nums}
+.stats span{display:block;margin-top:6px;font-size:.9rem;color:var(--mut);line-height:1.4}
+
+/* Encart vert (comme le dossier imprimé) */
+.encart{background:var(--vert);color:var(--sur-vert);padding:26px 26px 28px;border-radius:4px;display:grid;gap:20px}
+.encart p{color:var(--sur-vert)}
+.encart .accent{color:var(--or);font-weight:700}
+.encart .duo{display:grid;grid-template-columns:1fr 1fr;gap:18px;padding-top:18px;border-top:1px solid rgba(255,255,255,.18)}
+@media(max-width:480px){.encart .duo{grid-template-columns:1fr}}
+.encart .duo b{display:block;font-family:var(--disp);font-size:1.6rem;font-weight:800;color:#fff;line-height:1.05;font-variant-numeric:tabular-nums}
+.encart .duo span{display:block;font-size:.86rem;color:var(--sur-vert-mut);margin-top:6px;line-height:1.4}
+
+.cond{list-style:none;margin:0;padding:0;counter-reset:c;border-top:1px solid var(--ligne-forte)}
+.cond li{counter-increment:c;display:grid;grid-template-columns:44px 1fr;gap:10px;padding:16px 0;border-bottom:1px solid var(--ligne)}
+.cond li:before{content:counter(c);font-family:var(--disp);font-weight:800;font-size:1.3rem;color:var(--or-sombre);line-height:1.2}
+.cond strong{display:block;font-family:var(--disp);font-size:1.05rem}
+.cond span{display:block;font-size:.92rem;color:var(--mut);margin-top:2px}
+
+/* Répartition 57 / 38 / 5 */
+.split{display:flex;height:56px;border-radius:3px;overflow:hidden;margin-top:22px}
+.split div{display:flex;flex-direction:column;justify-content:center;padding-inline:14px;color:#fff;min-width:0}
+.split b{font-family:var(--disp);font-size:1.15rem;white-space:nowrap}
+.split small{font-size:.76rem;white-space:nowrap;opacity:.85}
+.split .a{background:var(--vert)}.split .b{background:var(--vert-nuit)}.split .c{background:var(--or);color:var(--vert-nuit)}
+.split .c b,.split .c small{display:none}
+.legend{display:flex;gap:18px;flex-wrap:wrap;margin-top:10px;font-size:.88rem;color:var(--mut)}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+
+table{border-collapse:collapse;width:100%;font-size:.94rem;border-top:1px solid var(--ligne-forte)}
+th,td{padding:11px 10px 11px 0;border-bottom:1px solid var(--ligne);text-align:left;vertical-align:top}
+th{font-family:var(--disp);font-size:.82rem;color:var(--mut);font-weight:700}
+td.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;font-weight:600;padding-right:0}
+td.c{color:var(--mut);font-size:.88rem}
+tr.tot td{border-top:1.5px solid var(--ligne-forte);border-bottom:none;font-weight:800;font-family:var(--disp);font-size:1.05rem;padding-top:14px}
+tr.tot td.n{color:var(--vert);font-size:1.4rem}
+.tablewrap{overflow-x:auto}
+
+/* Échelle €/m² */
+.m2{margin-top:22px}
+.m2 .track{position:relative;height:12px;background:var(--creme-2);border-radius:999px}
+.m2 .range{position:absolute;top:0;bottom:0;background:repeating-linear-gradient(135deg,var(--vert) 0 6px,var(--vert-clair) 6px 12px);border-radius:999px}
+.m2 .pin{position:absolute;top:-6px;width:24px;height:24px;margin-left:-12px;background:var(--or);border:3px solid var(--creme);border-radius:50%;box-shadow:0 0 0 1px var(--or-sombre)}
+.m2 .ticks{position:relative;height:38px;font-size:.8rem;color:var(--mut)}
+.m2 .ticks span{position:absolute;top:8px;transform:translateX(-50%);white-space:nowrap}
+.m2 .ticks span.k{color:var(--encre);font-weight:700}
+.m2 .cap{display:flex;gap:16px;flex-wrap:wrap;font-size:.86rem;color:var(--mut)}
+.m2 .cap i{display:inline-block;width:12px;height:12px;border-radius:50%;background:var(--or);margin-right:6px;vertical-align:-1px}
+.m2 .cap i.r{border-radius:2px;background:var(--vert)}
+
+/* Frise des années */
+.frise{margin-top:26px}
+.frise .rail{display:grid;grid-template-columns:5fr 5fr 10fr 3fr;gap:4px}
+.frise .rail div{padding:14px 12px 16px;border-top:5px solid var(--vert);min-width:0}
+.frise .rail div:nth-child(2){border-color:var(--or)}
+.frise .rail div:nth-child(3){border-color:var(--vert-nuit)}
+.frise .rail div:nth-child(4){border-color:var(--or-sombre)}
+.frise strong{display:block;font-family:var(--disp);font-size:1.05rem}
+.frise span{display:block;font-size:.9rem;color:var(--mut);margin-top:4px;line-height:1.4}
+@media(max-width:720px){.frise .rail{grid-template-columns:1fr 1fr}}
+@media(max-width:420px){.frise .rail{grid-template-columns:1fr}}
+
+/* Sorties (mois 0 → 21) */
+.sorties{margin-top:4px}
+.sorties .rail{display:grid;grid-template-columns:3fr 6fr 6fr 6fr;gap:3px;font-size:.78rem;font-weight:700}
+.sorties .rail span{padding:7px 8px;background:var(--vert);color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sorties .rail span:nth-child(2){background:var(--vert-clair)}
+.sorties .rail span:nth-child(3){background:var(--vert-nuit)}
+.sorties .rail span:nth-child(4){background:var(--or);color:var(--vert-nuit)}
+.sorties ol{list-style:none;margin:14px 0 0;padding:0}
+.sorties li{display:grid;grid-template-columns:96px 1fr auto;gap:14px;padding:13px 0;border-bottom:1px solid var(--ligne);align-items:baseline;font-size:.95rem}
+.sorties li:first-child{border-top:1px solid var(--ligne-forte)}
+.sorties b{font-family:var(--disp);color:var(--vert);white-space:nowrap}
+.sorties em{font-style:normal;font-size:.8rem;font-weight:700;padding:3px 9px;background:var(--or-pale);color:var(--vert-nuit);border-radius:3px;white-space:nowrap}
+@media(max-width:600px){.sorties li{grid-template-columns:1fr;gap:4px}}
+.flag{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:26px}
+@media(max-width:720px){.flag{grid-template-columns:1fr}}
+.flag p{font-size:.92rem;color:var(--mut)}
+.flag strong{color:var(--encre)}
+
+/* ---- Objections (FAQ) ---- */
+.faq{border-top:1px solid var(--ligne-forte)}
+.faq details{border-bottom:1px solid var(--ligne)}
+.faq summary{cursor:pointer;list-style:none;display:grid;grid-template-columns:1fr 36px;gap:20px;align-items:center;padding:22px 0;font-family:var(--disp);font-weight:700;font-size:clamp(1.05rem,2vw,1.3rem);line-height:1.3;transition:color .15s}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary:hover{color:var(--vert)}
+.faq summary i{position:relative;width:36px;height:36px;border:1.5px solid var(--ligne-forte);border-radius:50%;transition:background .2s,transform .3s,border-color .2s}
+.faq summary i:before,.faq summary i:after{content:"";position:absolute;left:50%;top:50%;width:14px;height:2px;background:currentColor;transform:translate(-50%,-50%)}
+.faq summary i:after{transform:translate(-50%,-50%) rotate(90deg)}
+.faq details[open] summary i{background:var(--vert);border-color:var(--vert);color:#fff;transform:rotate(45deg)}
+.faq details[open] summary{color:var(--vert)}
+.faq .rep{padding:0 0 26px;max-width:70ch;color:#33403A;font-size:1.02rem}
+.faq .rep p+p{margin-top:12px}
+@media(prefers-reduced-motion:no-preference){
+  .faq details[open] .rep{animation:ouvrir .3s ease both}
+  @keyframes ouvrir{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+}
+
+/* ---- L'appel ---- */
+.ask{background:var(--vert-nuit);color:var(--sur-vert);position:relative;overflow:hidden}
+.ask:before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.12;
+  background:
+    linear-gradient(90deg,transparent 0 calc(100% - 4px),var(--vert-nuit) calc(100% - 4px)) 0 0/68px 34px,
+    linear-gradient(90deg,transparent 0 calc(100% - 4px),var(--vert-nuit) calc(100% - 4px)) 34px 34px/68px 34px,
+    linear-gradient(0deg,transparent 0 calc(100% - 4px),var(--vert-nuit) calc(100% - 4px)) 0 0/68px 34px,
+    var(--or);
+  -webkit-mask:linear-gradient(90deg,transparent 0 45%,#000 100%);mask:linear-gradient(90deg,transparent 0 45%,#000 100%)}
+.ask .w{position:relative}
+.ask .kick{color:var(--or)}
+.ask h2{color:#fff}
+.ask p{color:var(--sur-vert-mut)}
+.asks{list-style:none;margin:8px 0 0;padding:0;counter-reset:a;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}
+@media(max-width:860px){.asks{grid-template-columns:1fr}}
+.asks li{counter-increment:a;border-top:1px solid #3B4F43;padding-top:16px}
+.asks li:before{content:counter(a);display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--or);color:var(--vert-nuit);font-family:var(--disp);font-weight:800;margin-bottom:12px}
+.asks strong{display:block;font-family:var(--disp);font-size:1.15rem;color:#fff;margin-bottom:8px}
+.asks p{font-size:.95rem}
+.ask .actions{margin-top:34px}
+.callout{border:1.5px solid var(--or);border-radius:4px;padding:18px 22px;margin-top:34px;font-size:.98rem;color:var(--sur-vert);max-width:none}
+.callout strong{color:#fff}
+
+footer{padding-block:32px;font-size:.88rem;color:var(--mut);border-top:1px solid var(--ligne)}
+footer b{color:var(--encre)}
+footer a{color:var(--encre)}
+</style>
+</head>
+<body>
+
+<header>
+<div class="w">
+  <a class="logo" href="#top" aria-label="Casa Belgica, retour en haut"><i aria-hidden="true"></i>CASA BELGICA</a>
+  <nav aria-label="Sections">
+    <a class="link" href="#probleme">Le problème</a>
+    <a class="link" href="#batiment">Le bâtiment</a>
+    <a class="link" href="#argent">Les chiffres</a>
+    <a class="link" href="#risque">Les risques</a>
+    <a class="link" href="#faq">Objections</a>
+    <a class="lang" href="index.html" lang="en" hreflang="en">EN</a>
+    <a class="cta" href="#appel">Prêter 1 000 €</a>
+  </nav>
+</div>
+<div class="subnav" aria-hidden="true">
+  <a href="#probleme">Le problème</a><a href="#batiment">Le bâtiment</a><a href="#argent">Les chiffres</a><a href="#risque">Les risques</a><a href="#faq">Objections</a>
+</div>
+</header>
+
+<main id="top">
+
+<section class="hero">
+<div class="w">
+<div class="heroRow">
+  <div>
+    <p class="eyebrow">Casa Belgica, coopérative de logement de transition en création, portée par Ballal ASBL à Molenbeek depuis 2023.</p>
+    <h1>Il ne manque que <mark>120 personnes</mark>.</h1>
+    <p class="lead">Pour financer un bâtiment qui loge 50 personnes sortant des squats bruxellois, il faut un crédit bancaire de 900 000 €. Pour que la banque suive, il faut des fonds propres : 120 000 €. Toute la question est là — 120 personnes qui prêtent chacune 1 000 € à 0 %, et les fonds propres sont là.</p>
+    <p class="lead">Ce n'est pas un don. C'est un prêt. L'argent revient entre l'année 6 et l'année 10 — et repart dans un deuxième bâtiment.</p>
+    <div class="actions">
+      <a class="btn or" href="#appel">Devenir l'un des 120</a>
+      <a class="btn ghost" href="#argent">Vérifier les chiffres</a>
+    </div>
+  </div>
+  <figure class="wall">
+    <div class="courses" id="mur" role="img" aria-label="Un mur de 120 briques dorées, une brique par prêteur"></div>
+    <figcaption><span><strong class="num" id="compte">0</strong> briques sur 120</span><span>1 brique = 1 prêteur = <strong>1 000 €</strong> à 0 %</span></figcaption>
+  </figure>
+</div>
+<div class="keys">
+  <div><b>120 000 €</b><span>de prêts citoyens, à 0 %</span></div>
+  <div><b>900 000 €</b><span>de crédit bancaire, rendus possibles par ces fonds propres</span></div>
+  <div><b>50</b><span>places, chacune avec sa chambre individuelle</span></div>
+  <div><b>250 à 350</b><span>personnes logées en vingt ans</span></div>
+</div>
+</div>
+</section>
+
+<section id="probleme">
+<div class="w">
+<p class="kick">Le problème</p>
+<h2>Sortir du squat — et après ?</h2>
+<div class="two">
+  <div class="stack">
+    <p class="big">Qui vient d'obtenir ses papiers touche un revenu d'intégration (RIS) au taux isolé : 1 340 €/mois. Un studio bruxellois coûte 700 à 850 € de loyer, plus la garantie locative. Il reste 565 € pour tout le reste. Pas d'épargne, jamais de garantie, et le premier pépin ramène à la rue.</p>
+    <p><strong>Entre le squat et ce studio, il n'y a rien.</strong></p>
+    <p>Un squat permet déjà de vivre à bas coût. Ce qu'il ne donne pas : un titre d'occupation sûr — donc une adresse, donc une domiciliation, donc l'accès aux droits — et la certitude de ne pas être expulsé avant d'avoir fini d'épargner.</p>
+    <p class="note">Fin 2025, 62 234 ménages attendent un logement social à Bruxelles — environ 10 % des ménages bruxellois — avec 9 à 13 ans d'attente selon le type de logement. Entre 2020 et 2024, la Région a investi près de 2 milliards d'euros, construit plus de 2 000 logements et rénové plus de 7 500 — et la demande a augmenté de 25 % sur la même période.</p>
+  </div>
+  <div class="stack">
+    <h3>Sur 1 340 € de RIS, ce qui reste pour vivre</h3>
+    <div class="reste" aria-label="Comparaison du reste à vivre">
+      <div class="row">
+        <div class="lbl"><span>Studio privé · 775 € de loyer</span><b class="num">565 €</b></div>
+        <div class="bar"><i class="loyer" style="flex:775">loyer 775 €</i><i class="vie" style="flex:565">reste 565 €</i></div>
+      </div>
+      <div class="row win">
+        <div class="lbl"><span>Casa Belgica · 300 € tout compris</span><b class="num">1 040 €</b></div>
+        <div class="bar"><i class="loyer" style="flex:300">300 €</i><i class="vie" style="flex:1040">reste 1 040 €</i></div>
+      </div>
+      <div class="scale"><span>0 €</span><span>1 340 € / mois</span></div>
+    </div>
+    <div class="stats">
+      <div><b>400 à 550 €</b><span>épargnés chaque mois</span></div>
+      <div><b>7 à 10 k€</b><span>mis de côté en trois ans, en n'épargnant que la moitié</span></div>
+      <div><b>447 €</b><span>d'écart mensuel entre le RIS isolé (1 340 €) et le RIS cohabitant (893,65 €)</span></div>
+    </div>
+  </div>
+</div>
+</div>
+</section>
+
+<section id="batiment" class="line">
+<div class="w">
+<p class="kick">Ce qu'on construit</p>
+<h2>50 chambres, 300 € par mois, tout compris.</h2>
+<div class="two">
+  <div class="stack">
+    <p class="big">50 chambres individuelles d'au moins 18 m² nets, chacune avec sa douche et son WC. Un immeuble bruxellois ancien d'environ 1 200 m², en emphytéose de longue durée (jusqu'à 99 ans) auprès d'un propriétaire public ou institutionnel.</p>
+    <p>Pas d'achat : à 300 €/mois, le modèle ne porte aucune acquisition. Depuis la réforme du Code civil de 2021, l'emphytéose gratuite à but non lucratif au profit d'une ASBL est explicitement permise. Le canon emphytéotique peut donc être nul.</p>
+    <div class="encart">
+      <p><span class="accent">La douche et le WC individuels ne sont pas un confort.</span> Ils sécurisent le statut d'isolé au CPAS — 447 €/mois de revenus en plus par habitant·e — donc la capacité de payer 300 €. On n'économise jamais sur ce poste.</p>
+      <div class="duo">
+        <div><b>300 à 600 k€</b><span>coût des 50 unités sanitaires — 6 000 à 12 000 € par chambre</span></div>
+        <div><b>22 350 €/mois</b><span>perdus par le groupe d'habitants si on rogne dessus</span></div>
+      </div>
+    </div>
+  </div>
+  <div>
+    <h3>Quatre conditions non négociables</h3>
+    <ol class="cond">
+      <li><div><strong>Douche et WC privés, au moins 18 m² nets</strong><span>Arrêté du 30 novembre 2023, en vigueur depuis le 1er janvier 2026.</span></div></li>
+      <li><div><strong>Contrat individuel et nominatif</strong><span>Jouissance exclusive d'une unité déterminée.</span></div></li>
+      <li><div><strong>Pas de caisse commune</strong><span>Aucune gestion ménagère commune formalisée.</span></div></li>
+      <li><div><strong>Avis écrit du CPAS avant tout engagement</strong><span>Sur la base d'un plan type de chambre.</span></div></li>
+    </ol>
+  </div>
+</div>
+</div>
+</section>
+
+<section id="argent" class="line">
+<div class="w">
+<p class="kick">Les chiffres</p>
+<h2>Comment ça se porte tout seul.</h2>
+<p class="big">Recettes mensuelles : 50 places × 300 €, à 95 % d'occupation → 14 250 €/mois, 171 000 €/an.</p>
+<div class="split" role="img" aria-label="Répartition des 14 250 € mensuels : charges 57 %, dette 38 %, excédent 5 %">
+  <div class="a" style="flex:57"><b>8 120 €</b><small>Charges d'exploitation · 57 %</small></div>
+  <div class="b" style="flex:38"><b>5 450 €</b><small>Service de la dette · 38 %</small></div>
+  <div class="c" style="flex:5"><b>680 €</b><small>Excédent</small></div>
+</div>
+<div class="legend"><span><i style="background:var(--vert)"></i>Charges d'exploitation 8 120 €</span><span><i style="background:var(--vert-nuit)"></i>Service de la dette 5 450 €</span><span><i style="background:var(--or)"></i>Excédent 680 € · 5 %</span></div>
+
+<div class="two" style="margin-top:44px">
+  <div>
+    <h3>Le détail des charges, par mois</h3>
+    <div class="tablewrap"><table>
+      <tr><td>Énergie (chauffage, eau chaude, électricité)</td><td class="n">2 200 €</td></tr>
+      <tr><td>Eau</td><td class="n">700 €</td></tr>
+      <tr><td>Assurance incendie et RC</td><td class="n">420 €</td></tr>
+      <tr><td>Précompte immobilier (exonération à demander)</td><td class="n">300 €</td></tr>
+      <tr><td>Télécoms, déchets, consommables, petit entretien</td><td class="n">400 €</td></tr>
+      <tr><td>Comptabilité, administration, banque</td><td class="n">250 €</td></tr>
+      <tr><td>Réserve gros entretien (1 %/an)</td><td class="n">1 250 €</td></tr>
+      <tr><td>Canon emphytéotique (hypothèse prudente ; peut être nul)</td><td class="n">500 €</td></tr>
+      <tr><td>Fonction bailleur, 0,5 ETP</td><td class="n">2 100 €</td></tr>
+      <tr class="tot"><td>Total</td><td class="n">8 120 €</td></tr>
+    </table></div>
+  </div>
+  <div class="stack">
+    <div>
+      <h3>Financement des travaux</h3>
+      <div class="tablewrap"><table>
+        <tr><td>Crédit bancaire, 20 ans à 4 %</td><td class="n">900 000 €</td></tr>
+        <tr><td>Prêt citoyen subordonné, 0 %</td><td class="n">120 000 €</td></tr>
+        <tr class="tot"><td>Budget travaux</td><td class="n">1 020 000 €</td></tr>
+      </table></div>
+    </div>
+    <div>
+      <h3>L'écart — et le risque principal</h3>
+      <div class="m2" role="img" aria-label="Budget disponible 850 €/m² ; une rénovation lourde coûte de 1 100 à 1 800 €/m²">
+        <div class="track"><div class="range" style="left:61.1%;right:0"></div><div class="pin" style="left:47.2%"></div></div>
+        <div class="ticks"><span style="left:0">0</span><span class="k" style="left:47.2%">850 €/m²</span><span style="left:61.1%">1 100</span><span style="left:100%;transform:translateX(-100%)">1 800 €/m²</span></div>
+        <div class="cap"><span><i></i>Budget disponible : 1 020 000 € sur 1 200 m²</span><span><i class="r"></i>Rénovation lourde</span></div>
+      </div>
+      <p style="margin-top:16px">L'écart de 200 000 à 480 000 € se comble par trois leviers : la TVA à 6 % au lieu de 21 % (≈ 150 000 €), un chantier participatif sur les lots non techniques, et les subsides (Contrat de quartier durable, appels à projets régionaux, fonds européens). <strong>C'est le risque principal du projet. L'étude de faisabilité tranche — avant tout engagement.</strong></p>
+    </div>
+  </div>
+</div>
+</div>
+</section>
+
+<section id="remboursement" class="line">
+<div class="w">
+<p class="kick">Le remboursement</p>
+<h2>Pourquoi ce n'est pas un don.</h2>
+<p class="big">Forme juridique : prêt subordonné à 0 %, sans remboursement les cinq premières années, remboursement en une fois entre l'année 6 et l'année 10. Subordonné veut dire : en cas de crise, la banque passe avant les citoyens. C'est exactement ce qui permet à la banque de traiter les 120 000 € comme des quasi-fonds propres et de maintenir le levier à 900 000 €.</p>
+<div class="frise">
+  <div class="rail" aria-label="Frise sur vingt ans">
+    <div><strong>Années 1 à 5</strong><span>L'excédent de 680 €/mois s'accumule.</span></div>
+    <div><strong>Années 6 à 10</strong><span>Remboursement des 120 000 €.</span></div>
+    <div><strong>Années 11 à 20</strong><span>Fin du crédit bancaire.</span></div>
+    <div><strong>Année 21 et après</strong><span>65 400 €/an libérés.</span></div>
+  </div>
+</div>
+<div class="two" style="margin-top:44px">
+  <div>
+    <h3>Deux sources financent le remboursement</h3>
+    <div class="stats" style="grid-template-columns:1fr">
+      <div><b>≈ 640 €/mois</b><span>par l'indexation : à 2 %/an, la contribution passe de 300 à 331 € en année 5 (+1 480 €/mois de recettes ; les charges montent aussi, +845 €/mois)</span></div>
+      <div><b>41 000 €</b><span>d'excédent accumulé — 680 €/mois pendant 60 mois</span></div>
+      <div><b>79 000 €</b><span>de solde, refinancé sur dix ans, environ 800 €/mois</span></div>
+    </div>
+  </div>
+  <div class="stack">
+    <p class="big"><strong>Le cycle dure 6 à 10 ans, pas 5.</strong> On préfère le dire avant que de le découvrir ensemble.</p>
+    <p class="note">Si la banque refuse la subordination, les 120 000 € deviennent des parts de coopérative — des fonds propres sans sortie. Le levier et le budget restent identiques, mais l'argent ne revient pas.</p>
+  </div>
+</div>
+</div>
+</section>
+
+<section id="risque" class="line">
+<div class="w">
+<p class="kick">Ce que ça coûte, et où ça s'arrête</p>
+<h2>Le risque est plafonné.</h2>
+<div class="two">
+  <div>
+    <h3>Argent engagé avant le point de non-retour</h3>
+    <div class="tablewrap"><table>
+      <tr><th>Poste</th><th style="text-align:right">Coût</th><th>Couvert par</th></tr>
+      <tr><td>Avis écrit du CPAS</td><td class="n">0 €</td><td class="c">—</td></tr>
+      <tr><td>Recherche du bâtiment</td><td class="n">0 €</td><td class="c">—</td></tr>
+      <tr><td>Étude de faisabilité et avis pompiers (SIAMU)</td><td class="n">15 à 25 k€</td><td class="c">Appels à projets (Brulocalis, Fondation Roi Baudouin, Coopcity)</td></tr>
+      <tr><td>Statuts de la coopérative, notaire, FSMA</td><td class="n">3 à 5 k€</td><td class="c">Fonds propres</td></tr>
+      <tr class="tot"><td>Risque maximal</td><td class="n">30 000 €</td><td class="c" style="font-family:var(--body);font-weight:500;font-size:.88rem">en grande partie subsidiable</td></tr>
+    </table></div>
+  </div>
+  <div>
+    <h3>Quatre points de sortie en 21 mois</h3>
+    <div class="sorties">
+      <div class="rail" aria-hidden="true"><span>0–3</span><span>3–9</span><span>9–15</span><span>15–21 mois</span></div>
+      <ol>
+        <li><b>Mois 0 à 3</b><span>Si le CPAS refuse le statut d'isolé, le modèle à 300 € ne tient pas. Stop.</span><em>coût : zéro</em></li>
+        <li><b>Mois 3 à 9</b><span>Si aucun propriétaire n'ouvre une discussion d'emphytéose : stop.</span><em>coût : zéro</em></li>
+        <li><b>Mois 9 à 15</b><span>Si l'étude de faisabilité chiffre un écart travaux incomblable : stop.</span><em>l'étude, subsidiée</em></li>
+        <li><b>Mois 15 à 21</b><span>Si les banques refusent : stop, ou bascule vers la variante en parts de coopérative.</span><em>bascule</em></li>
+      </ol>
+    </div>
+  </div>
+</div>
+<div class="flag">
+  <p><strong>Permis.</strong> Le changement d'affectation est soumis à permis depuis l'arrêté du 16 mai 2024 — compter 12 à 24 mois, enquête publique probable.</p>
+  <p><strong>Incendie.</strong> Un hébergement collectif de 50 personnes exige compartimentage, deux voies d'évacuation et détection généralisée ; avis préalable du SIAMU avant tout engagement financier.</p>
+</div>
+<p style="margin-top:28px;max-width:78ch"><strong>La campagne citoyenne vient après ces quatre étapes.</strong> C'est la partie la plus simple du projet — et la seule qu'on ne peut faire qu'une fois. La Fondation Roi Baudouin met à disposition une analyse juridique des outils pour bâtiments publics vides (emphytéose et variantes, bail à réhabilitation) avec un term sheet type ; l'inventaire des terrains et bâtiments vides est tenu par perspective.brussels.</p>
+</div>
+</section>
+
+<section id="faq" class="line">
+<div class="w">
+<p class="kick">Objections</p>
+<h2>Quatre objections, réponses franches.</h2>
+<div class="faq">
+  <details open>
+    <summary>Qui décide — les prêteurs ?<i aria-hidden="true"></i></summary>
+    <div class="rep"><p>Les habitant·es décident. Les prêteurs apportent le capital ; les habitant·es détiennent la majorité des voix en assemblée générale et la moitié des sièges au conseil d'administration. Une personne, une voix.</p></div>
+  </details>
+  <details>
+    <summary>Pourquoi pas une AIS, du logement social, ou un projet CLTB ?<i aria-hidden="true"></i></summary>
+    <div class="rep"><p>Le logement social compte 62 234 candidats fin 2025, avec 9 à 13 ans d'attente. Le CLTB fait de l'acquisition pour des ménages, avec plus de 1 300 personnes en liste d'attente. D'autres acteurs créent de l'habitat groupé avec portage de bâtiment — Fair Ground Brussels, L'Îlot, Renovassistance.</p><p>Ce que personne n'offre aujourd'hui : un sas de trois à quatre ans, à 300 € tout compris, en chambre individuelle avec statut d'isolé, pour des personnes sortant de squats. C'est cette combinaison qui manque — pas le logement social.</p></div>
+  </details>
+  <details>
+    <summary>50 places, c'est peu, et la première clé arrive dans trois ans.<i aria-hidden="true"></i></summary>
+    <div class="rep"><p>50 places avec des séjours de trois à quatre ans, c'est 250 à 350 personnes en vingt ans — à partir d'un seul bâtiment, et le capital citoyen repart vers un deuxième. Rien n'est suspendu entre-temps : les occupations continuent, l'accompagnement continue.</p></div>
+  </details>
+  <details>
+    <summary>Et si ça échoue ?<i aria-hidden="true"></i></summary>
+    <div class="rep"><p>Les coûts d'entrée sont plafonnés à 30 000 €, en grande partie subsidiables, et le projet s'arrête proprement à quatre points définis, avant qu'un seul euro citoyen ne bouge.</p></div>
+  </details>
+</div>
+</div>
+</section>
+
+<section class="ask" id="appel">
+<div class="w">
+<p class="kick">L'appel</p>
+<h2>Ce qu'on vous demande.</h2>
+<ol class="asks">
+  <li><strong>Partagez le diagnostic</strong><p>Pour quelqu'un qui sort d'un squat, il n'existe vraiment aucun sas entre le squat et le studio à 775 € ? Dites-nous si on se trompe.</p></li>
+  <li><strong>Ouvrez vos réseaux</strong><p>Vous connaissez un CPAS à convaincre, un bâtiment public vide, une communauté religieuse, un bureau d'architecture ? Les étapes 1 et 2 ne coûtent rien et dépendent de vos réseaux.</p></li>
+  <li><strong>Engagez-vous à prêter 1 000 €</strong><p>Dès que le bâtiment est trouvé et le crédit accordé. Avant, pas un euro ne bouge. On constitue dès maintenant la liste des 120 promesses — c'est la preuve de fonds propres dont la banque a besoin.</p></li>
+</ol>
+<div class="actions">
+  <a class="btn or" href="mailto:fhzegert@gmail.com?subject=Casa%20Belgica%20%E2%80%94%20comptez-moi%20parmi%20les%20120">Comptez-moi parmi les 120</a>
+  <a class="btn ghost" href="mailto:fhzegert@gmail.com?subject=Casa%20Belgica%20%E2%80%94%20un%20contact%20%C3%A0%20vous%20ouvrir">Je connais un CPAS, un bâtiment, un architecte</a>
+</div>
+<div class="callout">La campagne démarre après les quatre étapes, donc dans 18 à 21 mois. On ne collecte pas avant que le dossier tienne. <strong>120 personnes convaincues, ce sont 50 personnes logées. Le capital citoyen revient, et le bâtiment reste.</strong></div>
+</div>
+</section>
+
+</main>
+
+<footer>
+<div class="w">
+<b>Casa Belgica — Sortir du squat / Leave the Squat</b> · coopérative de logement de transition en création · Bruxelles<br>
+Portée par Ballal ASBL, 645 chaussée de Gand, 1080 Molenbeek · <a href="mailto:fhzegert@gmail.com">fhzegert@gmail.com</a> · <a href="index.html" lang="en" hreflang="en">English version</a>
+</div>
+</footer>
+
+<script>
+(function(){
+  // Le mur : 8 rangées de 15 briques en appareil à joints décalés.
+  // Sur les rangées décalées, les deux demi-briques des extrémités sont la même brique coupée en deux.
+  var mur=document.getElementById('mur'), compte=document.getElementById('compte');
+  var html='', n=0;
+  for(var r=0;r<8;r++){
+    var dec=r%2===1, moitie=0; html+='<div class="course">';
+    if(dec){ n++; moitie=n; html+=demi(moitie); }
+    var pleines=dec?14:15;
+    for(var k=0;k<pleines;k++){ n++; html+=brique(n); }
+    if(dec){ html+=demi(moitie); }
+    html+='</div>';
+  }
+  function tint(n){ return (0.94+((n*37)%9)/100).toFixed(2); }
+  function brique(n){ return '<b style="--i:'+n+';--tint:'+tint(n)+'" title="Brique '+n+' · 1 000 €"></b>'; }
+  function demi(n){ return '<b class="half" style="--i:'+n+';--tint:'+tint(n)+'" title="Brique '+n+' · 1 000 €"></b>'; }
+  mur.innerHTML=html;
+
+  // Le compteur suit la pose des briques (11 ms par brique), sauf si l'animation est désactivée.
+  var reduit=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(reduit){ compte.textContent='120'; return; }
+  var t0=null;
+  function step(t){ if(t0===null)t0=t; var v=Math.min(120,Math.floor((t-t0)/11)); compte.textContent=v; if(v<120)requestAnimationFrame(step); }
+  requestAnimationFrame(step);
+})();
+</script>
+</body>
+</html>
