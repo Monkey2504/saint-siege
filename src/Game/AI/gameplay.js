@@ -3062,7 +3062,13 @@ export const simulateTimelineJump = async ({ days, mode = "jump", signal } = {})
     economies: variables.economies ?? {},
     organizations: variables.organizations ?? [],
     catalyst: payload?.catalyst ?? null,
-    clearActions: payload?.clearActions !== false,
+    // Un tour juge TOUS les ordres du bureau. Le modèle répondait parfois
+    // clearActions: false — « le synode met deux ans à porter » —, les ordres
+    // restaient « prévus », l'en-tête affichait « 0 ordres jugés », et le tour
+    // suivant les ré-exécutait : le gel des embauches tombait deux fois. Ce qui
+    // prend des années se poursuit dans les chantiers et dans le récit ; l'ordre,
+    // lui, a reçu son verdict ce tour-ci.
+    clearActions: true,
     events: normalizeArray(payload?.events),
     mode,
     outreach: normalizeArray(payload?.diplomaticOutreach),

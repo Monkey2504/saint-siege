@@ -1261,9 +1261,13 @@ export async function callAI(systemPrompt, history, opts = {}) {
     // Non-English players get replies in their language at the source —
     // native answers beat post-translating them (see runtime/i18n.js).
     const { languageMode = "ui", ...providerOpts } = opts;
+    // Toujours épinglée, français compris. « Rien à demander, le jeu est déjà
+    // en français » ne valait que pour les invites déjà écrites en français :
+    // celles des suggestions d'ordres sont en anglais, et le bureau proposait
+    // « Establish Regional Seminaries » au milieu d'une page française.
     const directive = languageMode === "none" ? ""
         : languageMode === "chat" ? chatLanguageDirective()
-        : languageDirective();
+        : languageDirective(undefined, { force: true });
     if (directive) {
         systemPrompt = `${systemPrompt}\n\n${directive}`;
     }
