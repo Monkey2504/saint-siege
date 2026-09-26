@@ -1594,8 +1594,8 @@ const fallbackJumpSimulation = async ({ bundle, days, mode, targetDate }) => {
         date: eventDate,
         description:
           action.kind === "chat"
-            ? `${bundle.game.country} opens a deliberate diplomatic channel tied to ${action.title.toLowerCase()}, forcing counterparts to weigh terms instead of guessing intent.`
-            : `${bundle.game.country} begins implementing ${action.title.toLowerCase()}, producing immediate administrative and political consequences that other powers start to notice.`,
+            ? `${bundle.game.country} ouvre un canal diplomatique sur « ${action.title} » : ses interlocuteurs doivent peser des conditions au lieu de deviner une intention.`
+            : `${bundle.game.country} commence à mettre en œuvre « ${action.title} ». Son sort, calculé par le moteur, est dans « Le sort de vos ordres ».`,
         impacts: {
           createdChats:
             action.kind === "chat" && action.invitees.length > 0 && action.chatStarter
@@ -1617,15 +1617,15 @@ const fallbackJumpSimulation = async ({ bundle, days, mode, targetDate }) => {
         playerRelated: true,
         title:
           action.kind === "chat"
-            ? `${bundle.game.country} opens a diplomatic channel`
-            : `${bundle.game.country} acts on ${action.title.toLowerCase()}`,
+            ? `${bundle.game.country} ouvre un canal diplomatique`
+            : `${bundle.game.country} : « ${action.title.length > 70 ? `${action.title.slice(0, 68)}…` : action.title} »`,
       });
     });
   } else {
     const midpoint = advanceGameDate(Math.max(1, Math.round(Math.max(days, 1) / 2)));
     events.push({
       date: midpoint,
-      description: `Foreign ministries and general staffs keep adjusting to the current balance of power while ${bundle.game.country} gathers its next move.`,
+      description: `Rien de ce que ${bundle.game.country} a ordonné n'était sur le bureau ce mois-ci. Le monde a suivi son cours ; les chiffres ci-dessous sont ceux du moteur.`,
       impacts: {
         createdChats: [],
         polityChanges: [],
@@ -1635,7 +1635,7 @@ const fallbackJumpSimulation = async ({ bundle, days, mode, targetDate }) => {
       kind: "world",
       notable: mode === "auto",
       playerRelated: false,
-      title: "The international balance remains in motion",
+      title: "Un mois sans ordre",
     });
   }
 
@@ -1841,7 +1841,7 @@ const applySimulationResult = async ({
   const realityAssessments = buildRealityAssessments({ game: baseGame, world: baseWorld, actions: baseActions }, { jumpDays: daysBetween(baseGame.gameDate, nextGame.gameDate) });
   const narratedOutcomes = freshEvents.flatMap((event) => (Array.isArray(event.impacts?.actionOutcomes) ? event.impacts.actionOutcomes : []));
   const nextActions = result.clearActions
-    ? applyActionOutcomes(normalizeActions(baseActions), narratedOutcomes, realityAssessments, { defaultStatus: "resolved" })
+    ? applyActionOutcomes(normalizeActions(baseActions), narratedOutcomes, realityAssessments, { defaultStatus: "resolved", date: nextGame.gameDate })
     : normalizeActions(baseActions);
 
   // The verdict binds the impacts (realityCheck.bindImpactsToVerdicts): an
@@ -2127,10 +2127,16 @@ const applySimulationResult = async ({
 
     // One row per group that actually shifted, so the paper reads the room
     // rather than a hundred and sixty individual moods.
+    // Sous un demi-point, rien ne s'est vu : le registre imprimait « approuve
+    // votre façon de gouverner +0 pt », sur une page qui promet qu'une ligne ne
+    // paraît que si quelque chose a bougé. Et il faut dire QUI approuve.
+    const playerName = normalizeString(nextGame.country);
     for (const row of [...judged.rows, ...blundered.rows, ...preached.rows]) {
+      if (Math.abs(Number(row.step) || 0) < 0.5) continue;
+      const qui = row.group === playerName ? `votre courant (${row.seats} électeurs)` : `${row.group} (${row.seats} électeurs)`;
       worldWithImpacts.record = appendRecord(worldWithImpacts.record, [{
         date: nextGame.gameDate, polity: row.group, kind: "standing",
-        what: row.reason, amount: row.step, unit: "pt",
+        what: `${qui} ${row.reason}`, amount: row.step, unit: "pt",
         source: `assembly:${row.axis || "all"}:${row.seats} electors`,
       }]);
     }

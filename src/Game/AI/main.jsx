@@ -570,13 +570,13 @@ async function resolveModel(provider, { endpoint = "", headers = {}, fallbackMod
     }
 
     if (!providerSupportsModelDiscovery(provider)) {
-        throw new Error(`Ouvrez les **réglages** et indiquez un modèle pour ${providerLabel}.`);
+        throw new Error(`Ouvrez les réglages et indiquez un modèle pour ${providerLabel}.`);
     }
 
     const normalizedEndpoint = normalizeEndpoint(endpoint);
 
     if (!normalizedEndpoint) {
-        throw new Error(`Ouvrez les **réglages** et indiquez une adresse pour ${providerLabel}.`);
+        throw new Error(`Ouvrez les réglages et indiquez une adresse pour ${providerLabel}.`);
     }
 
     try {
@@ -600,7 +600,7 @@ async function resolveModel(provider, { endpoint = "", headers = {}, fallbackMod
     } catch (error) {
         if (signal?.aborted) throw signal.reason ?? error;
         console.warn(`Could not auto-detect model for ${providerLabel}:`, error);
-        throw new Error(`Aucun modèle n'a pu être détecté pour ${providerLabel}. Indiquez-en un à la main dans les **réglages**.`);
+        throw new Error(`Aucun modèle n'a pu être détecté pour ${providerLabel}. Indiquez-en un à la main dans les réglages.`);
     }
 }
 
@@ -617,7 +617,7 @@ async function callGemini(systemPrompt, history, {
     const apiKey = settings.apiKey.trim();
 
     if (!apiKey) {
-        throw new Error("Ouvrez les **réglages** et collez votre clé Gemini — elle s'obtient sur https://aistudio.google.com/app/apikey");
+        throw new Error("Ouvrez les réglages et collez votre clé Gemini — elle s'obtient sur https://aistudio.google.com/app/apikey");
     }
 
     const model = await resolveModel("gemini", {
@@ -971,7 +971,7 @@ async function callOpenAI(systemPrompt, history, opts = {}) {
     const apiKey = settings.apiKey.trim();
 
     if (!apiKey) {
-        throw new Error("Ouvrez les **réglages** et collez votre clé OpenAI.");
+        throw new Error("Ouvrez les réglages et collez votre clé OpenAI.");
     }
 
     const headers = {
@@ -1005,7 +1005,7 @@ async function callOpenAICompatible(systemPrompt, history, opts = {}) {
     const endpoint = normalizeEndpoint(settings.endpoint);
 
     if (!endpoint) {
-        throw new Error("Ouvrez les **réglages**, choisissez « OpenAI Compatible », et indiquez votre adresse (par exemple http://localhost:11434/v1).");
+        throw new Error("Ouvrez les réglages, choisissez « OpenAI Compatible », et indiquez votre adresse (par exemple http://localhost:11434/v1).");
     }
 
     const headers = {
@@ -1056,7 +1056,7 @@ async function callAnthropic(systemPrompt, history, {
     const apiKey = settings.apiKey.trim();
 
     if (!apiKey) {
-        throw new Error("Ouvrez les **réglages** et collez votre clé Anthropic.");
+        throw new Error("Ouvrez les réglages et collez votre clé Anthropic.");
     }
 
     const model = await resolveModel("anthropic", {
@@ -1166,7 +1166,7 @@ async function callAnthropicCompatible(systemPrompt, history, {
     const endpoint = normalizeEndpoint(settings.endpoint);
 
     if (!endpoint) {
-        throw new Error("Ouvrez les **réglages**, choisissez « Anthropic Compatible », et indiquez votre adresse (un relais Anthropic Messages hébergé par vous).");
+        throw new Error("Ouvrez les réglages, choisissez « Anthropic Compatible », et indiquez votre adresse (un relais Anthropic Messages hébergé par vous).");
     }
 
     const apiKey = settings.apiKey.trim();
