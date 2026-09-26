@@ -208,6 +208,7 @@ const economyUpdateSchema = {
         population: { type: "number", description: "Signed number of PEOPLE gained or (negative) lost, as an alternative to populationShare; the same ±20% cap applies." },
         transfers: { type: "number", description: "SY per year of donations/aid/subsidy gained or (negative) lost." },
         endowment: { type: "number", description: "SY of the state's productive patrimony gained (bequest, confiscation) or (negative) sold or lost." },
+        treasury: { type: "number", description: "SY of cash in hand gained (the proceeds of a sale, a one-off gift) or (negative) spent once." },
         unfundedLiabilities: { type: "number", description: "SY of unfunded promises (pensions, arrears) added or (negative) funded away by a reform." },
       },
       additionalProperties: false,

@@ -1,3 +1,4 @@
+import { FAITS_ETABLIS } from "../../runtime/churchPreset.js";
 import dayjs from "dayjs";
 import { JSON_URLS, getNationTags, loadRegionCatalog, readJson } from "../../runtime/assets.js";
 import { resolveAllCountryTags, resolveCountryTags } from "../../runtime/countryTags.js";
@@ -669,7 +670,7 @@ export const buildPromptContext = async (bundle, {
     // describeOrganizations in runtime/organizations.js.
     organizationsSummary: minimal ? "" : describeOrganizations(seededOrganizations, { playerPolity, full: "relevant" }),
     intentsSummary: minimal ? "" : describeIntents(world.intents, { revealSecrets: true }),
-    canonFactsText: minimal ? "" : world.canonFacts.join("\n"),
+    canonFactsText: minimal ? "" : [...new Set([...world.canonFacts, ...(world.church ? FAITS_ETABLIS : [])])].join("\n"),
     churchSummary: minimal ? "" : describeFaithful(world.church),
     // Every fundraising drive with its target, pledges and collections, and
     // the rule that words move nothing (runtime/drives.js). "Last edition" is
