@@ -19,6 +19,32 @@ import { normalizeGatherings } from "../../runtime/gatherings.js";
 import { CONTENU_TOP } from "./chrome.js";
 import { CahierVide, EnTeteDeCahier, SectionHead, fmtCount, fmtMoney, moneyOf } from "./journal.jsx";
 import { pourcent } from "../../runtime/money.js";
+import { fiscalBalance, normalizeEconomy } from "../../runtime/economy.js";
+
+// La caisse du Saint-Siège lui-même. Le cahier ne listait que les bourses des
+// organismes, et titrait « Aucune caisse n'est encore ouverte · 0 organisme »
+// pendant que l'édition affichait 46 M€ en main et 2,6 Md€ de patrimoine : le
+// joueur lisait deux pages qui se démentaient. Les trois chiffres viennent de
+// la même économie que le bloc « Comptes » de l'édition.
+const CaisseDuSaintSiege = ({ economy, usdPerSY, player }) => {
+  const e = economy ? normalizeEconomy(economy) : null;
+  if (!e) return null;
+  const solde = fiscalBalance(e);
+  const ligne = (label, valeur, ton) => (
+    <div style={{ alignItems: "baseline", borderBottom: "1px solid var(--oh-line)", display: "flex", justifyContent: "space-between", padding: "0.45rem 0" }}>
+      <span style={{ fontSize: "var(--oh-t-sm)" }}>{label}</span>
+      <b style={{ color: ton || "var(--oh-text-strong)", fontVariantNumeric: "tabular-nums" }}>{valeur}</b>
+    </div>
+  );
+  return (
+    <section style={{ marginBottom: "1.6rem" }}>
+      <SectionHead aside="la caisse centrale">{player || "Saint-Siège"}</SectionHead>
+      {ligne("En main", moneyOf(e.treasury, usdPerSY))}
+      {ligne("Patrimoine placé", moneyOf(e.endowment, usdPerSY))}
+      {ligne("Solde de l'année", `${solde >= 0 ? "+" : ""}${moneyOf(solde, usdPerSY)}`, solde < 0 ? "var(--oh-alert)" : "var(--oh-grant)")}
+    </section>
+  );
+};
 
 // Une campagne ne compte PAS en années-subsistance. Ses chiffres sont des
 // millions dans sa propre monnaie (runtime/drives.js), et le cahier les passait
@@ -121,7 +147,7 @@ const Analyse = ({ caisses, campagnes, rassemblements, usdPerSY }) => {
       + (premiere.parent || premiere.beneficiary ? ", et cette caisse ne lui appartient pas" : "")
     : caisses.length
       ? `${caisses.length} caisse${caisses.length > 1 ? "s" : ""} tiennent ${moneyOf(enMain, usdPerSY)} en main`
-      : "Aucune caisse n'est encore ouverte";
+      : "Aucun organisme ne tient encore sa propre bourse";
 
   return (
     <div>
@@ -143,8 +169,8 @@ const Analyse = ({ caisses, campagnes, rassemblements, usdPerSY }) => {
 
       {!caisses.length && (
         <p style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-sm)", fontStyle: "italic", lineHeight: 1.5, margin: 0, maxWidth: "46ch" }}>
-          Rien à analyser tant qu&apos;aucun organisme ne tient de bourse. Ouvrez-en une par un ordre, et
-          ce cahier se remplira de lui-même — ses lignes ne viennent que du registre.
+          La caisse centrale du Saint-Siège est en tête de ce cahier. Les organismes (APSA, IOR, un fonds
+          que vous créez…) n&apos;y paraissent qu&apos;une fois qu&apos;un ordre leur ouvre une bourse.
         </p>
       )}
 
@@ -204,7 +230,7 @@ const TableCaisses = ({ caisses, usdPerSY }) => {
       <SectionHead aside={`${caisses.length} organisme${caisses.length > 1 ? "s" : ""}`}>Caisses</SectionHead>
       {caisses.length === 0 ? (
         <p style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)", fontStyle: "italic", margin: "0.6rem 0 0" }}>
-          Aucun organisme ne tient encore de bourse.
+          Aucun organisme ne tient encore sa propre bourse : tout passe par la caisse centrale.
         </p>
       ) : (
         // Six colonnes de chiffres insécables font 475 px : à 390, ce tableau
@@ -391,12 +417,14 @@ export const Caisses = ({ nav = null }) => {
 
         {nav && nav()}
 
+        <CaisseDuSaintSiege economy={player ? world?.economies?.[player] : null} usdPerSY={usdPerSY} player={player} />
+
         {/* Tant qu'aucun organisme ne tient de bourse, il n'y a pas deux
             colonnes à tenir : la page revient à une seule, comme un cahier
             qu'on n'a pas encore ouvert. */}
         {vide ? (
           <CahierVide quoiFaire="Ouvrez-en une par un ordre, et ce cahier se remplira de lui-même — ses lignes ne viennent que du registre.">
-            Aucune caisse n&apos;est encore ouverte, aucune campagne n&apos;est lancée, aucun rassemblement n&apos;est annoncé.
+            Aucun organisme ne tient encore sa propre bourse, aucune campagne n&apos;est lancée, aucun rassemblement n&apos;est annoncé.
           </CahierVide>
         ) : (
           <div className="oh-comptes-grid">

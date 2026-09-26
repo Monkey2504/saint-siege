@@ -45,7 +45,7 @@ import {
 const fmtShort = (value) => {
     if (!value) return "";
     const d = new Date(value);
-    return Number.isNaN(d.getTime()) ? "" : d.toLocaleDateString(undefined, { day: "numeric", month: "short" });
+    return Number.isNaN(d.getTime()) ? "" : d.toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
 };
 
 // Which drawer a correspondent belongs in. The proposal files them in four; the

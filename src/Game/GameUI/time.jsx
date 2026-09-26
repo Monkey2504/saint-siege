@@ -173,9 +173,9 @@ const buttonStyle = {
     width: "2rem",
 };
 
-const formatDate = (value, pattern = "MMM D, YYYY") => {
+const formatDate = (value, pattern = "D MMM YYYY") => {
     if (!value) {
-        return "Undated";
+        return "Sans date";
     }
 
     const parsed = dayjs(value);
@@ -184,7 +184,7 @@ const formatDate = (value, pattern = "MMM D, YYYY") => {
 
 const formatRange = (fromDate, toDate) => {
     if (!fromDate && !toDate) {
-        return "No recorded range";
+        return "Aucune période enregistrée";
     }
 
     if (!fromDate) {
@@ -195,7 +195,7 @@ const formatRange = (fromDate, toDate) => {
         return formatDate(fromDate);
     }
 
-    return `${formatDate(fromDate)} -> ${formatDate(toDate)}`;
+    return `du ${formatDate(fromDate)} au ${formatDate(toDate)}`;
 };
 
 const resolvePolityName = (code, polityLookup) => {
@@ -732,7 +732,7 @@ const PanelChrome = ({
             event.currentTarget.style.background = "none";
             event.currentTarget.style.color = "var(--oh-text-dim)";
         }}
-        aria-label="Close panel"
+        aria-label="Fermer le panneau"
         >
         <CloseIcon />
         </button>
@@ -937,9 +937,9 @@ const TimelineSkipPanel = ({
                 width: "12.5rem",
             }}
             >
-            <div style={{ fontSize: "var(--oh-t-xs)", fontWeight: 700 }}>↩ Undo last turn</div>
+            <div style={{ fontSize: "var(--oh-t-xs)", fontWeight: 700 }}>↩ Annuler le dernier tour</div>
             <div style={{ color: "var(--oh-caution)", fontSize: "var(--oh-t-2xs)" }}>
-            {undoCount} turn{undoCount === 1 ? "" : "s"} can be undone
+            {undoCount} tour{undoCount === 1 ? "" : "s"} peu{undoCount === 1 ? "t" : "vent"} être annulé{undoCount === 1 ? "" : "s"}
             </div>
             </button>
             <div style={{ background: "var(--oh-accent-soft)", height: "1.25rem", width: "2px" }} />
@@ -959,7 +959,7 @@ const TimelineSkipPanel = ({
             width: "5.5rem",
         }}
         >
-        {dayjs(currentDate).format("M/D/YYYY")}
+        {dayjs(currentDate).format("D/M/YYYY")}
         </div>
 
         {jumpOptions.map((opt) => (
@@ -1172,7 +1172,7 @@ const TimelineHistoryPanel = ({
         isOpen={isOpen}
         onClose={onClose}
         subtitle={record?.rangeLabel || ""}
-        title="Events"
+        title="Événements"
         topOffset={topOffset}
         >
         <div>
@@ -1195,7 +1195,7 @@ const TimelineHistoryPanel = ({
         {!record ? (
             <EmptyPanelState text="Aucune suite d'événements n'est disponible." />
         ) : totalEvents === 0 ? (
-            <EmptyPanelState text="No world events were recorded for this time skip." />
+            <EmptyPanelState text="Aucun événement n'a été enregistré pour ce saut dans le temps." />
         ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
             {/* No plate: on the bulletin the page IS the paper, and the stories
@@ -1225,7 +1225,7 @@ const TimelineHistoryPanel = ({
                 }}
                 >
                 <ChevronDownIcon />
-                <span>Next event</span>
+                <span>Événement suivant</span>
                 </button>
                 {/* The interrupt: fast-forwards the reveal (and the staged map)
                     to the final state. Nothing is truncated — every event stays. */}
@@ -1239,7 +1239,7 @@ const TimelineHistoryPanel = ({
                     width: "100%",
                 }}
                 >
-                <span>Skip to end ({totalEvents - visibleEvents.length} more)</span>
+                <span>Aller à la fin ({totalEvents - visibleEvents.length} de plus)</span>
                 </button>
                 </>
             )}
@@ -1453,7 +1453,7 @@ const DateWidget = ({
                 setError("");
             } else {
                 console.error("Failed to simulate jump:", jumpError);
-                setError(jumpError.message || "Failed to simulate timeline jump.");
+                setError(jumpError.message || "Le saut dans le temps a échoué.");
             }
         } finally {
             jumpAbortRef.current = null;
@@ -1498,7 +1498,7 @@ const DateWidget = ({
             }
         } catch (undoError) {
             console.error("Failed to undo turn:", undoError);
-            setError(undoError.message || "Failed to undo the last turn.");
+            setError(undoError.message || "Le dernier tour n'a pas pu être annulé.");
         } finally {
             setIsLoading(false);
         }
@@ -1571,7 +1571,7 @@ const DateWidget = ({
     const displayDate = !gameData
     ? "Loading..."
     : hasValidGameDate
-    ? parsedGameDate.format(isMobile && playerCountry ? "MMM Do, YYYY" : "MMMM Do, YYYY")
+    ? parsedGameDate.format(isMobile && playerCountry ? "D MMM YYYY" : "D MMMM YYYY")
     : String(rawGameDate).trim() || "Undated";
     const currentDate = hasValidGameDate
     ? parsedGameDate.format("YYYY-MM-DD")

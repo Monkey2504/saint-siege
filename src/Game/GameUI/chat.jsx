@@ -363,7 +363,7 @@ const MessageBubble = ({ msg }) => {
     const accentColor = nationColor ?? ((!isPlayer && !isError) ? countryAccentColor(msg.speaker ?? "") : null);
 
     const received = msg.time
-        ? new Date(msg.time).toLocaleDateString([], { year: "numeric", month: "long", day: "numeric" })
+        ? new Date(msg.time).toLocaleDateString("fr-FR", { year: "numeric", month: "long", day: "numeric" })
         : "";
 
     // A dispatch is a document: a ruled masthead naming who sent it and when,

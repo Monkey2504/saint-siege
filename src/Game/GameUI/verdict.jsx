@@ -33,6 +33,7 @@ const FACTEUR = {
     opposition: "Opposition",
     time: "Délai",
     forces: "Forces",
+    patrimoine: "Patrimoine",
 };
 
 // The same two thresholds the verdict itself uses (runtime/realityCheck.js):
