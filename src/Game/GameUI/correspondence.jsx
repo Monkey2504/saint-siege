@@ -1,4 +1,5 @@
 /*! Open Historia — the correspondence: the pope's letters, as a page © 2026 Nicholas Krol, MIT (see src/Editor/LICENSE). */
+import { nomFrancaisDOrganisation, nomFrancaisDuPays } from "../../runtime/nomsDePays.js";
 import React, { useEffect, useMemo, useState } from "react";
 import { readGameData, readWorldState } from "../../runtime/gameState.js";
 import { groupsOn, normalizeAssembly, temperWord } from "../../runtime/factions.js";
@@ -170,7 +171,7 @@ const Correspondence = ({ nav = null }) => {
                 loadCountryNames().catch(() => []),
             ]);
             const date = nextGame?.gameDate || "";
-            const bodies = await ensureOrganizations(date).then((list) => list.filter((o) => o.status === "active").map((o) => ({ name: o.name, code: "", organization: true }))).catch(() => []);
+            const bodies = await ensureOrganizations(date).then((list) => list.filter((o) => o.status === "active").filter((o) => o.name !== "Catholic Church" || !list.some((x) => x.name === "Église catholique")).map((o) => ({ name: o.name, label: nomFrancaisDOrganisation(o.name), code: "", organization: true }))).catch(() => []);
             // Anyone who ACTS in the world can be written to. The list held
             // countries and organizations only, so the currents carrying the
             // standing intents — the ones actually working for and against the
@@ -189,7 +190,13 @@ const Correspondence = ({ nav = null }) => {
             const list = Array.isArray(saved) ? saved : [];
             setChats(list);
             setFactions(currents);
-            setCountries([...(Array.isArray(countryList) ? countryList : []), ...bodies, ...currents]);
+            // Ceux qui font la partie d'abord — les courants, puis les organismes
+            // de l'Église —, les États ensuite, sous leur nom français. La liste
+            // s'ouvrait sur « Afghanistan, Akrotiri and Dhekelia, Åland… ».
+            const etats = (Array.isArray(countryList) ? countryList : [])
+                .map((c) => ({ ...c, label: nomFrancaisDuPays(c.name, c.code) }))
+                .sort((a, b) => a.label.localeCompare(b.label, "fr"));
+            setCountries([...currents, ...bodies, ...etats]);
             setLoadingCountries(false);
             const open = list.filter((c) => c.status !== "closed");
             setUnreadIds(new Set(open.filter((c) => isChatUnread(c, readSeen())).map((c) => String(c.id))));

@@ -16,6 +16,7 @@ import {
     writeActionsState,
 } from "../../runtime/gameState.js";
 import { assessAction } from "../../runtime/realityCheck.js";
+import { nextEdition } from "../../runtime/nextEdition.js";
 import { RealityTally } from "./verdict.jsx";
 import { CahierVide } from "./journal.jsx";
 
@@ -273,11 +274,19 @@ const ActionsPanel = ({ isOpen, onClose, onOpenAdvisor, embedded = false }) => {
     const [country, setCountry] = React.useState("votre puissance");
     // The normalized world (plus a cheap change stamp) behind the live verdicts.
     const [realityWorld, setRealityWorld] = React.useState(null);
+    // Le verdict du bureau doit être celui que le tour appliquera. Il était
+    // calculé avec un saut de zéro jour — aucun délai ne pesait — puis le tour
+    // le recalculait sur ses vingt-neuf jours : « Exécuté en entier » avant la
+    // presse, « Accordé en partie » après, pour le même ordre. Le saut attendu
+    // est celui que la presse annonce (runtime/nextEdition.js).
+    const [isoDate, setIsoDate] = React.useState("");
     const realityContext = React.useMemo(
-        () => (realityWorld?.world && country
-            ? { playerPolity: country, economy: realityWorld.world.economies?.[country] ?? null, world: realityWorld.world, jumpDays: 0 }
-            : null),
-        [realityWorld, country],
+        () => {
+            if (!realityWorld?.world || !country) return null;
+            const saut = isoDate ? nextEdition(realityWorld.world, actions, { today: isoDate }).days : 0;
+            return { playerPolity: country, economy: realityWorld.world.economies?.[country] ?? null, world: realityWorld.world, jumpDays: saut };
+        },
+        [realityWorld, country, actions, isoDate],
     );
     // Full display name for the header, never the code.
     const countryDisplayName = useCountryDisplayName(country);
@@ -330,6 +339,7 @@ const ActionsPanel = ({ isOpen, onClose, onOpenAdvisor, embedded = false }) => {
                 }
 
                 if (data.gameDate) {
+                    setIsoDate(String(data.gameDate).slice(0, 10));
                     // « septembre 1er, 2026 » était un ordre de mots anglais : le formateur
                     // sait écrire la date, la chaîne ne le lui demandait pas.
                     setGameDate(dayjs(data.gameDate).format("Do MMMM YYYY"));
