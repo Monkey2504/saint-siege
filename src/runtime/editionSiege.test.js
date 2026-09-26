@@ -88,7 +88,7 @@ test("an unprovoked hostile scheme moves at most once per cool-down; the player'
 test("the preset models the Church that carries a pontificate out, not only the powers that resist it", () => {
   const world = applyChurchPreset({}, { date: "2026-09-01" });
   const supportive = world.intents.filter((it) => it.stance === "supportive").map((it) => it.owner);
-  assert.ok(supportive.includes("Catholic Church"), "the universal Church executes what Rome decides");
+  assert.ok(supportive.includes("Église catholique"), "the universal Church executes what Rome decides");
   assert.ok(supportive.includes("Curie romaine"), "the Curia's default is execution, inertia slowing it, never annulling it");
   const hostile = world.intents.filter((it) => it.stance === "hostile");
   assert.ok(supportive.length >= hostile.length - 2, `the world is not modelled as ${hostile.length} plots against ${supportive.length} allies`);

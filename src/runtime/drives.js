@@ -107,11 +107,18 @@ export const driveFromOrder = (order, { owner = "", date = "" } = {}) => {
   // it is and what it seeks, so the register reads "Road show (500 M EUR)"
   // rather than a sentence cut in the middle.
   const title = str(typeof order === "object" ? order?.title : "") || text.slice(0, 60);
-  const kind = (text.match(/road ?show|souscription|subscription|bond drive|emprunt public|appel aux dons|fundrais\w*|levée de fonds|levee de fonds|campagne de financement|financing campaign/i) || [""])[0];
-  const named = kind ? kind.charAt(0).toUpperCase() + kind.slice(1).toLowerCase() : "Fundraising drive";
+  // Le nom s'écrit en français : « Fundraising drive (50 M EUR) » s'imprimait
+  // tel quel dans le cahier des Comptes d'un jeu entièrement en français.
+  const kind = (text.match(/road ?show|souscription|subscription|bond drive|emprunt public|appel aux dons|campagne de dons|fundrais\w*|levée de fonds|levee de fonds|campagne de financement|financing campaign/i) || [""])[0];
+  const NOMS = { "road show": "Road show", roadshow: "Road show", subscription: "Souscription", "bond drive": "Emprunt public", fundraising: "Campagne de dons", "financing campaign": "Campagne de financement", "levee de fonds": "Levée de fonds" };
+  const named = kind ? (NOMS[kind.toLowerCase()] ?? kind.charAt(0).toUpperCase() + kind.slice(1).toLowerCase()) : "Campagne de dons";
+  const SYMBOLE = { EUR: "€", USD: "$", GBP: "£" };
+  const somme = amount.millions >= 1000
+    ? `${String(round1(amount.millions / 1000)).replace(".", ",")} Md${SYMBOLE[amount.currency] ?? ` ${amount.currency}`}`
+    : `${String(round1(amount.millions)).replace(".", ",")} M${SYMBOLE[amount.currency] ?? ` ${amount.currency}`}`;
   const short = title.length <= 48 && !/[.!?]\s+\S/.test(title)
     ? title
-    : `${named}${amount.millions > 0 ? ` (${amount.millions >= 1000 ? `${round1(amount.millions / 1000)} bn` : `${round1(amount.millions)} M`} ${amount.currency})` : ""}`;
+    : `${named}${amount.millions > 0 ? ` (${somme})` : ""}`;
   return normalizeDrive({
     id: str(typeof order === "object" ? order?.id : "") ? `drive-${order.id}` : `drive-${Date.now()}`,
     actionId: str(typeof order === "object" ? order?.id : ""),
@@ -393,6 +400,7 @@ const LAUNCHES = /\b(lanc\w*|launch\w*|ouvre\w*|opens?\b|inaugur\w*|d[ée]marr\w
 
 export const reconcileNarration = (events, { drives = [], player = "" } = {}) => {
   const known = normalizeDrives(drives);
+  const tenues = known;
   const names = known.map((d) => d.name.toLowerCase());
   const out = [];
   for (const event of Array.isArray(events) ? events : []) {
@@ -404,7 +412,14 @@ export const reconcileNarration = (events, { drives = [], player = "" } = {}) =>
       const target = parseAmountMillions(text);
       const ops = Array.isArray(event.impacts?.driveOps) ? event.impacts.driveOps : [];
       const opened = ops.some((o) => str(o?.op).toLowerCase() === "create");
-      const alreadyKnown = names.some((n) => n.length > 4 && text.toLowerCase().includes(n));
+      // Une campagne ouverte par l'ORDRE (ensureDrivesFromOrders) porte un nom
+      // court — « Campagne de dons (50 M€) » — que le récit ne reprend pas mot
+      // pour mot. La reconnaître à sa cible évitait de la déclarer « non
+      // ouverte » alors qu'elle l'était, et d'envoyer le modèle la rouvrir.
+      const sameTarget = target && tenues.some((d) => d.status !== "closed"
+        && str(d.currency).toUpperCase() === str(target.currency).toUpperCase()
+        && Math.abs(num(d.target) - target.millions) <= Math.max(0.5, target.millions * 0.02));
+      const alreadyKnown = sameTarget || names.some((n) => n.length > 4 && text.toLowerCase().includes(n));
       if (target && !opened && !alreadyKnown) {
         out.push({
           text: `"${str(event.title).slice(0, 70)}" launches a campaign for ${fmtM(target.millions)} ${target.currency} and opens no drive: the ledger has no target to follow, so nothing it raises can ever be counted. Open it with driveOps {"op":"create", name, target, currency} in the edition that launches it.`,

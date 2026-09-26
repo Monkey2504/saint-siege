@@ -624,6 +624,10 @@ export const describeAssembly = (assembly) => {
   }
   const loose = a.electors.filter((e) => !e.follows).length;
   if (loose) lines.push(`${loose} follow no current at all and can be won by any of them.`);
+  // Les seuls chiffres du collège que le récit a le droit d'écrire. Sans eux, le
+  // modèle titrait « 56 cardinaux réformateurs contre 37 traditionnels » — deux
+  // nombres qui n'existent nulle part, dans un journal qui promet des comptes.
+  lines.push(`Majority to carry a vote: ${s.majority} of ${a.seats}. The only headcounts you may print are the ones above; never invent a split such as "56 reformers against 37 traditionalists". A vote is decided by the engine's count, not by the story: if the order puts a question to the body, report the count the Reality Check gives.`);
   if (s.zealous) lines.push(`${s.zealous} of them would follow you anywhere.`);
   if (s.radical) lines.push(`${s.radical} have radicalised against you and no longer hear an argument.`);
   if (s.schismatic) lines.push(`${s.schismatic} are leaving.`);
