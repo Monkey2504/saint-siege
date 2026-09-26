@@ -9,7 +9,7 @@
  * À droite, ce que la feuille contient. La maquette met ce compte sur la même
  * ligne, en regard des cahiers.
  */
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { openLibraryTab } from "./libraryBar.jsx";
 import { ouvrirLEcranDesCles, ouvrirLaTriche } from "./triche.js";
 
@@ -75,69 +75,72 @@ export const BarreDesCahiers = ({ sections, current, onSelect, apercu = "" }) =>
           {apercu}
         </span>
       )}
-      {/* L'écran des clés. Il ne paraissait qu'au tout premier lancement — et
-          c'est le jour où la clé cesse de marcher qu'on veut le relire. */}
-      <button
-        type="button"
-        onClick={() => ouvrirLEcranDesCles()}
-        title="Rouvrir l'écran des clés"
-        style={{
-          background: "none",
-          border: 0,
-          color: "var(--oh-text-dim)",
-          cursor: "pointer",
-          fontFamily: "var(--oh-font-label)",
-          fontSize: "var(--oh-t-2xs)",
-          letterSpacing: "var(--oh-label-track)",
-          lineHeight: 1,
-          padding: 0,
-          textTransform: "var(--oh-label-case)",
-        }}
-      >
-        Clé
-      </button>
-      {/* Le banc d'essai. Il vit derrière les Réglages, eux-mêmes derrière un
-          bouton que le journal ne montre pas : depuis que la feuille part du
-          bord de l'écran, il n'y avait plus d'endroit d'où l'atteindre en
-          jouant. Il est ici, discret, à côté de la porte de la bibliothèque. */}
-      <button
-        type="button"
-        onClick={() => ouvrirLaTriche()}
-        title="Banc d'essai — forcer l'état du monde"
-        style={{
-          background: "none",
-          border: 0,
-          color: "var(--oh-text-dim)",
-          cursor: "pointer",
-          fontFamily: "var(--oh-font-label)",
-          fontSize: "var(--oh-t-2xs)",
-          letterSpacing: "var(--oh-label-track)",
-          lineHeight: 1,
-          padding: 0,
-          textTransform: "var(--oh-label-case)",
-        }}
-      >
-        Triche
-      </button>
-      {/* La porte de la bibliothèque. Elle flottait sur la page ; depuis que la
-          feuille part du bord de l'écran, elle passait dessous et le joueur se
-          retrouvait enfermé dans sa partie. Elle est ici, au bout de la ligne. */}
-      <button
-        type="button"
-        onClick={() => openLibraryTab("games")}
-        title="Votre bibliothèque"
-        style={{
-          background: "none",
-          border: 0,
-          color: "var(--oh-text-dim)",
-          cursor: "pointer",
-          fontSize: "var(--oh-t-sm)",
-          lineHeight: 1,
-          padding: "0 0 0 0.2rem",
-        }}
-      >
-        ⋮
-      </button>
+      {/* Clé, Triche et Bibliothèque vivaient en clair sur la ligne des
+          cahiers, à égalité avec eux. Un joueur qui découvrait le jeu lisait
+          « TRICHE » à côté de « COLLÈGE ». Ils passent sous le ⋮ : toujours à
+          un clic, plus en vitrine. */}
+      <MenuDeLaFeuille />
     </div>
   </nav>
 );
+
+const entreeDuMenu = {
+  background: "none",
+  border: 0,
+  color: "var(--oh-text)",
+  cursor: "pointer",
+  display: "block",
+  fontFamily: "var(--oh-font-body)",
+  fontSize: "var(--oh-t-xs)",
+  padding: "0.45rem 0.9rem",
+  textAlign: "left",
+  whiteSpace: "nowrap",
+  width: "100%",
+};
+
+const MenuDeLaFeuille = () => {
+  const [ouvert, setOuvert] = useState(false);
+  const boite = useRef(null);
+  useEffect(() => {
+    if (!ouvert) return undefined;
+    const fermer = (e) => { if (boite.current && !boite.current.contains(e.target)) setOuvert(false); };
+    const echap = (e) => { if (e.key === "Escape") setOuvert(false); };
+    document.addEventListener("mousedown", fermer);
+    document.addEventListener("keydown", echap);
+    return () => { document.removeEventListener("mousedown", fermer); document.removeEventListener("keydown", echap); };
+  }, [ouvert]);
+  const choisir = (faire) => () => { setOuvert(false); faire(); };
+  return (
+    <span ref={boite} style={{ position: "relative" }}>
+      <button
+        type="button"
+        onClick={() => setOuvert((o) => !o)}
+        title="Plus"
+        aria-haspopup="menu"
+        aria-expanded={ouvert}
+        style={{ background: "none", border: 0, color: "var(--oh-text-dim)", cursor: "pointer", fontSize: "var(--oh-t-sm)", lineHeight: 1, padding: "0 0 0 0.2rem" }}
+      >
+        ⋮
+      </button>
+      {ouvert && (
+        <div
+          role="menu"
+          style={{
+            background: "var(--oh-plate)",
+            border: "1px solid var(--oh-line)",
+            boxShadow: "0 6px 18px rgba(0,0,0,0.12)",
+            padding: "0.3rem 0",
+            position: "absolute",
+            right: 0,
+            top: "calc(100% + 0.4rem)",
+            zIndex: 50,
+          }}
+        >
+          <button type="button" role="menuitem" style={entreeDuMenu} onClick={choisir(() => openLibraryTab("games"))}>Vos parties</button>
+          <button type="button" role="menuitem" style={entreeDuMenu} onClick={choisir(() => ouvrirLEcranDesCles())}>Clé d'accès au modèle</button>
+          <button type="button" role="menuitem" style={{ ...entreeDuMenu, color: "var(--oh-text-dim)" }} onClick={choisir(() => ouvrirLaTriche())}>Banc d'essai (triche)</button>
+        </div>
+      )}
+    </span>
+  );
+};

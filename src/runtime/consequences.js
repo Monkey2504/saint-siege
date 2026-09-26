@@ -33,7 +33,7 @@ import { normalizeGatherings } from "./gatherings.js";
 import { normalizeDrives, driveMovement, overduePledges } from "./drives.js";
 import { normalizeAssembly, standing } from "./factions.js";
 import { frontRows } from "./fronts.js";
-import { fmtSY } from "./money.js";
+import { fmtSY, fmtMoneyFromUsd } from "./money.js";
 
 const finite = (v, d = 0) => (Number.isFinite(Number(v)) ? Number(v) : d);
 const str = (v) => String(v ?? "").trim();
@@ -81,7 +81,7 @@ const event = ({ date, title, description, kind = "world", importance = "minor",
 // ── The rules ────────────────────────────────────────────────────────────────
 
 /** A purse that no longer covers what it has taken on. */
-const emptyingPurse = ({ world, to }) => {
+const emptyingPurse = ({ world, player, to }) => {
   const purses = normalizeTreasuries(world?.treasuries);
   const short = purses
     .map((p) => ({ p, owed: Math.max(0, finite(p.assumedLiabilities)), held: finite(p.treasury) }))
@@ -89,10 +89,12 @@ const emptyingPurse = ({ world, to }) => {
     .sort((a, b) => (a.held - a.owed) - (b.held - b.owed));
   if (!short.length) return null;
   const { p, owed, held } = short[0];
+  const usdPerSY = Number(world?.economies?.[player]?.usdPerSY) || 0;
+  const somme = (sy) => chiffreDeFront("money", sy, usdPerSY);
   return event({
     date: to,
     title: `${p.body} ne peut couvrir ce qu'il a pris sur lui`,
-    description: `${p.body} détient ${Math.round(held)} AS contre ${Math.round(owed)} AS de promesses qu'il a assumées. Il manque ${Math.round(owed - held)} AS. Rien n'a encore fait défaut ; c'est le prochain appel sur cette bourse qui en décidera.`,
+    description: `${p.body} détient ${somme(held)} contre ${somme(owed)} de promesses qu'il a assumées. Il manque ${somme(owed - held)}. Rien n'a encore fait défaut ; c'est le prochain appel sur cette bourse qui en décidera.`,
     importance: "major",
     kind: "economy",
     playerRelated: true,
@@ -184,7 +186,12 @@ const collegeFracture = ({ world, to }) => {
 // tous les trois de la même façon : nus. L'unité est déjà dans la définition du
 // front (fronts.js), il suffisait de l'écrire.
 const UNITE = Object.freeze({ count: "", money: " AS", share: " %" });
-export const chiffreDeFront = (unit, value) => `${unit === "money" ? fmtSY(value) : Math.round(value)}${UNITE[unit] ?? ""}`;
+// L'argent en euros quand l'économie porte son ancre en dollars : le modèle et
+// le joueur lisaient sinon « 18 641 AS » dans une page tenue en euros.
+export const chiffreDeFront = (unit, value, usdPerSY = 0) => {
+  if (unit === "money" && usdPerSY > 0) return fmtMoneyFromUsd(value * usdPerSY) ?? "0 €";
+  return `${unit === "money" ? fmtSY(value) : Math.round(value)}${UNITE[unit] ?? ""}`;
+};
 
 /** A front that has moved measurably since the pontificate began. */
 const frontMoved = ({ world, player, to }) => {
@@ -193,11 +200,13 @@ const frontMoved = ({ world, player, to }) => {
     .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta));
   if (!moved.length) return null;
   const row = moved[0];
+  const usdPerSY = Number(world?.economies?.[player]?.usdPerSY) || 0;
+  const chiffre = (v) => chiffreDeFront(row.unit, v, usdPerSY);
   const way = row.good ? "dans le bon sens" : "dans le mauvais sens";
   return event({
     date: to,
-    title: `${row.label} : ${row.direction === "up" ? "en hausse de" : "en baisse de"} ${chiffreDeFront(row.unit, Math.abs(row.delta))} depuis le début du pontificat`,
-    description: `${row.label} est à ${chiffreDeFront(row.unit, row.value)}, contre ${chiffreDeFront(row.unit, row.from)} au début de ce pontificat. C'est ${way}. Ce compte est celui du moteur, non un récit à son sujet.`,
+    title: `${row.label} : ${row.direction === "up" ? "en hausse de" : "en baisse de"} ${chiffre(Math.abs(row.delta))} depuis le début du pontificat`,
+    description: `${row.label} est à ${chiffre(row.value)}, contre ${chiffre(row.from)} au début de ce pontificat. C'est ${way}. Ce compte est celui du moteur, non un récit à son sujet.`,
     importance: row.good === false ? "major" : "minor",
     kind: "church",
     playerRelated: true,
@@ -272,7 +281,7 @@ export const bequestEvent = ({ amount, player, date, economy }) => {
   return event({
     date,
     title: "Legs et dons spontanés",
-    description: `${Math.round(sy)} AS parviennent au ${player} par des legs et des dons que personne n'a sollicités — successions réglées, paroisses versant plus qu'elles ne devaient, donateurs qui ont donné sans qu'on le leur demande. Le flux suit le crédit du pontificat, qui est de ${Math.round(trust)}/100 : il enfle quand l'Église inspire confiance, et se tarit quand elle n'en inspire plus.`,
+    description: `${chiffreDeFront("money", sy, Number(economy?.usdPerSY) || 0)} parviennent au ${player} par des legs et des dons que personne n'a sollicités — successions réglées, paroisses versant plus qu'elles ne devaient, donateurs qui ont donné sans qu'on le leur demande. Le flux suit le crédit du pontificat, qui est de ${Math.round(trust)}/100 : il enfle quand l'Église inspire confiance, et se tarit quand elle n'en inspire plus.`,
     importance: "minor",
     kind: "economy",
     playerRelated: true,
