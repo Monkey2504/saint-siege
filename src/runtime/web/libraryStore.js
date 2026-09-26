@@ -1172,10 +1172,39 @@ const defaultScenarioSeedRecord = async () => {
   return record;
 };
 
+// Le scénario par défaut suit la version publiée. Les PARTIES du joueur ne sont
+// jamais touchées : seul le modèle d'où partent les nouvelles parties est
+// remplacé. S'il avait été modifié à la main, l'ancien est gardé à côté.
+const refreshDefaultScenario = async () => {
+  const seed = await loadDefaultSeed();
+  if (!seed?.revision) return;
+  const stored = await getScenario(DEFAULT_SCENARIO_ID);
+  if (!stored || stored.meta?.seedRevision === seed.revision) return;
+  // Deux appels à nowIso() à la création peuvent différer d'une milliseconde :
+  // seule une écriture postérieure de plus de quelques secondes est une retouche.
+  const edited = Date.parse(stored.meta?.updatedAt) - Date.parse(stored.meta?.createdAt) > 5000;
+  const manifest = await getScenarioManifest();
+  if (edited) {
+    const keptId = `${DEFAULT_SCENARIO_ID}-precedent-${String(stored.meta?.seedRevision || "ancien")}`;
+    if (!(await getScenario(keptId))) {
+      await putScenario({ ...stored, id: keptId, meta: { ...stored.meta, name: `${stored.meta?.name || "Saint-Siège"} (version précédente)` } });
+      if (!manifest.order.includes(keptId)) manifest.order.push(keptId);
+    }
+  }
+  const fresh = await defaultScenarioSeedRecord();
+  fresh.meta.seedRevision = seed.revision;
+  await putScenario(fresh);
+  await saveScenarioManifest({ order: manifest.order, selectedScenarioId: manifest.selectedScenarioId || DEFAULT_SCENARIO_ID });
+};
+
 export const ensureSeeded = async () => {
+  try { await refreshDefaultScenario(); } catch (error) { console.warn("Default scenario refresh skipped:", error?.message); }
   if (await kvGet("seeded", false)) return;
   if (!(await getScenario(DEFAULT_SCENARIO_ID))) {
-    await putScenario(await defaultScenarioSeedRecord());
+    const record = await defaultScenarioSeedRecord();
+    const seed = await loadDefaultSeed();
+    if (seed?.revision) record.meta.seedRevision = seed.revision;
+    await putScenario(record);
     const manifest = await getScenarioManifest();
     if (!manifest.order.includes(DEFAULT_SCENARIO_ID)) manifest.order.unshift(DEFAULT_SCENARIO_ID);
     await saveScenarioManifest({ order: manifest.order, selectedScenarioId: manifest.selectedScenarioId || DEFAULT_SCENARIO_ID });
