@@ -325,7 +325,7 @@ export const assessAction = (action, ctx = {}) => {
   if (years > 0 && years < lag) {
     push("time", clamp(0.35 * (1 - years / lag) + 0.15, 0, 0.5),
       `ce genre d'ordre met environ ${delai(lag)} à porter ; ce saut en couvre ${duree(years)}`,
-      "il est commencé ce tour-ci, jugé à un tour ultérieur");
+      "il est engagé ce tour-ci et ne porte qu'en partie ; la suite se joue dans les tours suivants");
   }
   // --- forces ---
   // Only an order that actually commits armed force can be stopped for having
