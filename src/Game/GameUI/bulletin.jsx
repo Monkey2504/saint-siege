@@ -31,7 +31,7 @@ import { ChampDeCle } from "../../runtime/FirstRunKey.jsx";
 import { preferredLanguage } from "../../runtime/i18n.js";
 import { nextEdition } from "../../runtime/nextEdition.js";
 import { useSurface } from "../../runtime/useSurface.js";
-import { simulateAutoJump, simulateTimelineJump } from "../AI/gameplay.js";
+import { isSimulationBusy, simulateAutoJump, simulateTimelineJump } from "../AI/gameplay.js";
 import { CONTENU_TOP } from "./chrome.js";
 import { CahierVide, SectionHead, fmtCount, fmtDate, fmtEntier, fmtMoney, fmtSY, moneyOf } from "./journal.jsx";
 import { ligneDeRegistre } from "../../runtime/registerWords.js";
@@ -293,7 +293,12 @@ const Situation = ({ briefing, date, world, awaitingInauguration }) => {
     }
 
     const corpsRepeteLaDeclaration = Boolean(elu && declaration && briefing && briefing.includes(declaration));
-    const texte = corpsRepeteLaDeclaration ? "" : (briefing || "");
+    // Une fois le pape élu, l'appel « Prenez un nom… » n'a plus d'objet.
+    const brut = corpsRepeteLaDeclaration ? "" : (briefing || "");
+    const texte = elu ? brut.replace(/\n*Prenez un nom[\s\S]*$/, "") : brut;
+    // Un paragraphe par bloc : le texte d'ouverture en compte cinq, et il
+    // s'imprimait d'un seul tenant.
+    const paragraphes = texte.split(/\n{2,}/).map((p) => p.trim()).filter(Boolean);
 
     return (
     <>
@@ -305,7 +310,9 @@ const Situation = ({ briefing, date, world, awaitingInauguration }) => {
     sujet={elu ? "basilique" : ""}
     encadre={elu ? <CeQueCelaChange reactions={reactions} declaration={declaration} /> : null}
     >
-    {texte}
+    {paragraphes.length > 1
+        ? paragraphes.map((p, i) => <p key={i} style={{ margin: i ? "0.7rem 0 0" : 0 }}>{p}</p>)
+        : texte}
     </ArticleDeUne>
     </>
     );
@@ -614,6 +621,7 @@ const Press = ({ game, world, actions, focus, onPrinted }) => {
     // Une édition prend près d'une minute : le modèle écrit tout le mois. Sans
     // compteur, « Sous presse… » restait figé et le joueur croyait le jeu planté.
     const [secondes, setSecondes] = useState(0);
+    const [attente, setAttente] = useState(false);
     useEffect(() => {
         if (!running) { setSecondes(0); return undefined; }
         const debut = Date.now();
@@ -652,6 +660,19 @@ const Press = ({ game, world, actions, focus, onPrinted }) => {
         abortRef.current = controller;
         const defileur = defileurDe(ref.current);
         try {
+            // Au premier chargement d'une partie, le moteur écrit en fond
+            // l'histoire qui précède le pontificat (maybeGeneratePregameHistory),
+            // et tient le verrou du tour près d'une minute. Le bouton répondait
+            // alors en anglais « A turn is already being simulated » — ou ne
+            // semblait rien faire. On attend que le verrou se libère, et on le dit.
+            if (isSimulationBusy()) {
+                setAttente(true);
+                while (isSimulationBusy()) {
+                    if (controller.signal.aborted) throw new DOMException("Edition cancelled.", "AbortError");
+                    await new Promise((r) => setTimeout(r, 1000));
+                }
+                setAttente(false);
+            }
             // The automatic jump is a different task from the manual one: it
             // reads the desk and carries the world of its own accord, which is
             // exactly what a reader who never sets a date is asking for.
@@ -676,6 +697,7 @@ const Press = ({ game, world, actions, focus, onPrinted }) => {
             }
         } finally {
             abortRef.current = null;
+            setAttente(false);
             setRunning(false);
         }
     };
@@ -755,7 +777,7 @@ const Press = ({ game, world, actions, focus, onPrinted }) => {
         ) : running ? (
             <div style={{ alignItems: "center", display: "flex", gap: "0.8rem" }}>
             <span style={{ color: "var(--oh-text-strong)", fontFamily: "var(--oh-font-display)", fontSize: "var(--oh-t-md)", fontWeight: 700 }}>Sous presse…</span>
-            <span style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)" }}>le monde répond à vos ordres · {secondes} s — comptez environ une minute</span>
+            <span style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)" }}>{attente ? "le monde finit d'écrire ce qui précède votre élection ; l'édition part juste après" : "le monde répond à vos ordres"} · {secondes} s — comptez environ une minute</span>
             <button type="button" onClick={stop} style={{ background: "none", border: "1px solid var(--oh-alert)", color: "var(--oh-alert)", cursor: "pointer", fontFamily: "var(--oh-font-label)", fontSize: "var(--oh-t-2xs)", fontWeight: 700, letterSpacing: "var(--oh-label-track)", marginLeft: "auto", padding: "0.4rem 0.7rem", textTransform: "var(--oh-label-case)" }}>Arrêter</button>
             </div>
         ) : (

@@ -61,7 +61,8 @@ const Welcome = ({ onBegin, hasSave = false }) => {
         <div style={{ margin: "0 auto", maxWidth: "60rem", padding: "0 1.5rem 3.5rem", position: "relative", width: "100%" }}>
         <span
         className="oh-label"
-        style={{ color: "var(--oh-text-dim)", display: "block", fontSize: "var(--oh-t-2xs)", marginBottom: "0.5rem" }}
+        // Gris sur la photographie, il ne se lisait pas : encre forte, comme le titre.
+        style={{ color: "var(--oh-text-strong)", display: "block", fontSize: "var(--oh-t-2xs)", marginBottom: "0.5rem" }}
         >
         {t.eyebrow}
         </span>
@@ -107,7 +108,7 @@ const Welcome = ({ onBegin, hasSave = false }) => {
 
         {loaded && CREDIT && (
             <p style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)", margin: "1.6rem 0 0" }}>
-            {t.credit}: {CREDIT}
+            {t.credit}{t.credit === "Photographie" ? "\u00a0:" : ":"} {CREDIT}
             </p>
         )}
         </div>

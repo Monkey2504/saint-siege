@@ -93,7 +93,7 @@ const buildInitialViewportTextureUrls = (
 const ALL_STARTUP_TASKS = [
   {
     id: "state",
-    label: "Syncing saves and runtime state",
+    label: "Lecture de vos parties",
     weight: 12,
     run: ({ signal }) =>
       Promise.all([
@@ -110,7 +110,7 @@ const ALL_STARTUP_TASKS = [
   {
     id: "textures",
     needsMap: true,
-    label: "Warming world textures",
+    label: "Préparation des textures du monde",
     weight: 20,
     run: async ({ signal }) => {
       // A custom map background replaces the ESRI basemap + terrain entirely, so
@@ -132,7 +132,7 @@ const ALL_STARTUP_TASKS = [
   {
     id: "countries",
     needsMap: true,
-    label: "Caching country geometry",
+    label: "Mise en cache des frontières",
     weight: 26,
     // NOT skipped on a custom map, unlike regions below. countries.pmtiles is
     // not only rendered: loadCountryNames reads its z0 tile for the country index
@@ -145,21 +145,21 @@ const ALL_STARTUP_TASKS = [
   {
     id: "country-index",
     needsMap: true,
-    label: "Building country index",
+    label: "Index des pays",
     weight: 8,
     run: () => loadCountryNames(),
   },
   {
     id: "country-labels",
     needsMap: true,
-    label: "Building country labels",
+    label: "Noms des pays",
     weight: 14,
     run: () => warmCountryLabelCollections(),
   },
   {
     id: "cities",
     needsMap: true,
-    label: "Caching city layer",
+    label: "Mise en cache des villes",
     weight: 10,
     run: ({ signal }) => warmPmtilesArchive(PMTILES_ARCHIVES.cities, { signal }),
   },
@@ -171,7 +171,7 @@ const ALL_STARTUP_TASKS = [
     // fades in as the seed's far layer fades out), so a custom map needs it
     // just as much as a stock one. Skipping it here was the mistake the note
     // at the top of this file warns about: skipping tiles we DO need.
-    label: "Caching regional borders",
+    label: "Mise en cache des régions",
     weight: 24,
     run: ({ signal }) => warmPmtilesArchive(PMTILES_ARCHIVES.regions, { signal }),
   },

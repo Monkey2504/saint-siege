@@ -511,9 +511,13 @@ const TypingBubble = ({ speaker, code }) => {
 
 // ── Country selector ──────────────────────────────────────────────────────────
 
-const CountryTile = ({ country, code, flagUrl, isSelected, onToggle }) => {
+const CountryTile = ({ country, label, code, flagUrl, isSelected, onToggle }) => {
     const [hovered, setHovered] = React.useState(false);
-    const shortName = country.length > 12 ? country.slice(0, 11) + "…" : country;
+    // Coupé à douze lettres, « Vieille garde de la Secrétairerie d'État » se
+    // lisait « Vieille gar… » et « Akrotiri and Dhekelia » « Akrotiri an… ». Le
+    // nom tient sur deux lignes ; au-delà, on coupe.
+    const affiche = label || country;
+    const shortName = affiche.length > 40 ? affiche.slice(0, 39) + "…" : affiche;
     return (
         <button
         onClick={onToggle}
@@ -550,7 +554,7 @@ const CountryTile = ({ country, code, flagUrl, isSelected, onToggle }) => {
             <div style={{ position: "absolute", top: "0.3rem", right: "0.3rem", width: "14px", height: "14px", borderRadius: "50%", background: "var(--oh-accent)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "var(--oh-t-2xs)", color: "var(--oh-on-accent)", fontWeight: 700 }}>✓</div>
         )}
         <FlagImg url={flagUrl} alt={country} width="2.3rem" height="1.6rem" />
-        <span style={{ fontSize: "var(--oh-t-xs)", color: "var(--oh-text-strong)", textAlign: "center", lineHeight: 1.3 }}>{shortName}</span>
+        <span title={affiche} style={{ fontSize: "var(--oh-t-xs)", color: "var(--oh-text-strong)", textAlign: "center", lineHeight: 1.25, overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>{shortName}</span>
         </button>
     );
 };
@@ -572,7 +576,7 @@ const CountrySelectorModal = ({
     // tile marks another selected without highlighting it. countryList.js fixes
     // the source of the duplicates; this makes the picker safe from any source.
     const filtered = useMemo(
-        () => dedupeByName(countries).filter(c => c.name.toLowerCase().includes(search.toLowerCase())),
+        () => dedupeByName(countries).filter(c => `${c.label || ""} ${c.name}`.toLowerCase().includes(search.toLowerCase())),
         [countries, search],
     );
     const filteredFlagUrls = useCountryFlagUrls(filtered);
@@ -580,9 +584,9 @@ const CountrySelectorModal = ({
     const isSelectedName = (name) => selected.some(s => s.name === name);
     // single: the picker holds ONE country, so picking another replaces the pick
     // rather than adding to it, and picking the same one again clears it.
-    const toggle = ({ name, code }) => setSelected(prev => prev.some(s => s.name === name)
+    const toggle = ({ name, code, label }) => setSelected(prev => prev.some(s => s.name === name)
         ? prev.filter(s => s.name !== name)
-        : single ? [{ name, code }] : [...prev, { name, code }]);
+        : single ? [{ name, code, label }] : [...prev, { name, code, label }]);
 
     return (
         <div style={{ position: "absolute", inset: 0, backgroundColor: "var(--oh-plate)", borderRadius: "16px", display: "flex", flexDirection: "column", zIndex: 10 }}>
@@ -601,7 +605,7 @@ const CountrySelectorModal = ({
         <div style={{ fontSize: "var(--oh-t-xs)", color: "var(--oh-text-strong)", marginTop: "0.2rem", display: "flex", flexWrap: "wrap", alignItems: "center", gap: "0.4rem" }}>
         {selected.length === 0 ? emptyLabel : selected.map((c, i) => (
             <span key={c.name} style={{ display: "inline-flex", alignItems: "center", gap: "0.25rem" }}>
-            <FlagImg url={selectedFlagUrls[c.name]} alt={c.name} size="0.9em" />{c.name}{i < selected.length - 1 ? "," : ""}
+            <FlagImg url={selectedFlagUrls[c.name]} alt={c.name} size="0.9em" />{c.label || c.name}{i < selected.length - 1 ? "," : ""}
             </span>
         ))}
         </div>
@@ -615,9 +619,9 @@ const CountrySelectorModal = ({
         </div>
         </div>
         <div style={{ flex: 1, overflowY: "auto", scrollbarWidth: "none", padding: "0.5rem 1rem", display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gridAutoRows: "5.5rem", gap: "0.5rem", alignContent: "start" }}>
-        {loading && <p style={{ gridColumn: "1/-1", color: "var(--oh-text-strong)", fontSize: "var(--oh-t-xs)", fontStyle: "italic", textAlign: "center" }}>Loading countries…</p>}
+        {loading && <p style={{ gridColumn: "1/-1", color: "var(--oh-text-strong)", fontSize: "var(--oh-t-xs)", fontStyle: "italic", textAlign: "center" }}>Chargement des correspondants…</p>}
         {filtered.map(c => (
-            <CountryTile key={c.name} country={c.name} code={c.code} flagUrl={filteredFlagUrls[c.name] ?? null} isSelected={isSelectedName(c.name)} onToggle={() => toggle(c)} />
+            <CountryTile key={c.name} country={c.name} label={c.label} code={c.code} flagUrl={filteredFlagUrls[c.name] ?? null} isSelected={isSelectedName(c.name)} onToggle={() => toggle(c)} />
         ))}
         </div>
         <div style={{ padding: "0.75rem 1rem", borderTop: "1px solid var(--oh-line)", display: "flex", gap: "0.5rem", flexShrink: 0 }}>

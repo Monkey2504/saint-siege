@@ -2933,7 +2933,7 @@ export const simulateTimelineJump = async ({ days, mode = "jump", signal } = {})
   // beginSimulation so the refusal's own exit cannot decrement the count of
   // the turn that is genuinely running.
   if (isSimulationBusy()) {
-    throw new Error("A turn is already being simulated. Wait for it to finish before starting another.");
+    throw new Error("Un tour est déjà en cours d'écriture. Attendez qu'il se termine avant d'en lancer un autre.");
   }
   beginSimulation();
   try {

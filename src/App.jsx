@@ -127,7 +127,7 @@ function GameApp() {
 
     setStartupState((current) => ({
       ...current,
-      stage: "Syncing games and scenarios",
+      stage: "Lecture des parties et des scénarios",
     }));
 
     ensureLibraryCatalog()
@@ -200,7 +200,7 @@ function GameApp() {
     return {
       ...startupState,
       progress: Math.max(startupState.progress, 97),
-      stage: "Finalizing first world render",
+      stage: "Mise en page de l'édition",
     };
   }, [hasFirstWorldIdle, isReady, startupState]);
 
