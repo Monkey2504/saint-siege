@@ -93,6 +93,13 @@ const seed = {
   },
 };
 
+// Une empreinte du contenu. Un navigateur qui a déjà ensemencé garde son
+// scénario par défaut pour toujours : sans elle, la situation d'ouverture,
+// les noms en français ou un préréglage corrigé n'arrivaient jamais chez un
+// joueur qui avait déjà ouvert le jeu une fois (libraryStore.ensureSeeded).
+const { createHash } = await import("node:crypto");
+seed.revision = createHash("sha1").update(JSON.stringify(seed.data)).digest("hex").slice(0, 12);
+
 mkdirSync(OUT_DIR, { recursive: true });
 writeFileSync(
   OUT_FILE,
