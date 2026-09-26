@@ -314,7 +314,29 @@ const Situation = ({ briefing, date, world, awaitingInauguration }) => {
 // was elected to change, in front of it — and both become state the whole engine
 // reads (runtime/inauguration.js). Until this sheet is signed the first turn
 // cannot be run; the tab at the foot of the page says so.
+// Remonter la feuille en haut de page. La page défile dans un conteneur, pas
+// dans la fenêtre : quand le formulaire de signature (long de vingt cartes) ou
+// l'édition précédente est remplacé par une feuille neuve, le conteneur gardait
+// sa position, et le joueur atterrissait au milieu des comptes, en bas de la
+// nouvelle page, sans avoir vu la une.
+// Le conteneur est cherché AVANT l'attente : au retour de l'écriture, la feuille
+// a souvent déjà été redessinée, et l'élément de départ n'est plus dans la page.
+const defileurDe = (el) => {
+    let n = el;
+    while (n && n !== document.body) {
+        const { overflowY } = getComputedStyle(n);
+        if (/(auto|scroll)/.test(overflowY) && n.scrollHeight > n.clientHeight) return n;
+        n = n.parentElement;
+    }
+    return null;
+};
+const remonterALaUne = (defileur) => {
+    if (defileur) defileur.scrollTo({ top: 0 });
+    else window.scrollTo({ top: 0 });
+};
+
 const Inauguration = ({ world, player, onDone }) => {
+    const racine = useRef(null);
     const [name, setName] = useState("");
     const [declaration, setDeclaration] = useState("");
     const [seated, setSeated] = useState([]);
@@ -342,7 +364,9 @@ const Inauguration = ({ world, player, onDone }) => {
         setBusy(true);
         try {
             const next = seatCabinet(inaugurate(world, { name, declaration }), seated, { date: world?.asOf || "" });
+            const defileur = defileurDe(racine.current);
             await writeWorldState(next);
+            remonterALaUne(defileur);
             onDone(next);
         } catch (failure) {
             setError(failure?.message || "La déclaration n'a pas pu être enregistrée.");
@@ -362,7 +386,7 @@ const Inauguration = ({ world, player, onDone }) => {
     };
 
     return (
-        <div>
+        <div ref={racine}>
         <div style={{ maxWidth: "62ch" }}>
         <SectionHead aside={player}>Habemus papam</SectionHead>
         <p style={{ color: "var(--oh-text)", fontSize: "var(--oh-t-md)", lineHeight: 1.55, margin: "1rem 0 1.4rem" }}>
@@ -488,8 +512,12 @@ const FRONT_FORMAT = {
     money: (v) => `${fmtEntier(v)}\u202fAS`,
 };
 
-const Front = ({ row }) => {
-    const format = FRONT_FORMAT[row.unit] ?? fmtCount;
+const Front = ({ row, usdPerSY }) => {
+    // L'argent dans la monnaie du cahier des comptes : les deux blocs sont sur
+    // la même page, et l'un disait « −28 M€ » quand l'autre disait « −18 641 AS ».
+    const format = row.unit === "money" && usdPerSY > 0
+        ? (v) => moneyOf(v, usdPerSY)
+        : FRONT_FORMAT[row.unit] ?? fmtCount;
     const held = row.value != null;
     return (
         <div style={{ borderTop: "1px solid var(--oh-line)", padding: "0.55rem 0 0.6rem" }}>
@@ -506,15 +534,15 @@ const Front = ({ row }) => {
     );
 };
 
-const Fronts = ({ rows }) => (
+const Fronts = ({ rows, usdPerSY = 0 }) => (
     <section style={{ borderBottom: "1px solid var(--oh-line)", padding: "0.9rem 0 1rem" }}>
     <SectionHead aside="depuis le début du pontificat">Les six fronts</SectionHead>
     <p style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)", lineHeight: 1.5, margin: "0.5rem 0 0.7rem", maxWidth: "54ch" }}>
     Un pontificat se juge sur les six à la fois. L&apos;argent est l&apos;un d&apos;eux.
     <br />
-    Unités : part en pourcentage, effectifs en nombre de personnes, argent en années-subsistance (AS).
+    Unités : part en pourcentage, effectifs en nombre de personnes, argent en {usdPerSY > 0 ? "euros" : "années-subsistance (AS)"}.
     </p>
-    {rows.map((row) => <Front key={row.key} row={row} />)}
+    {rows.map((row) => <Front key={row.key} row={row} usdPerSY={usdPerSY} />)}
     </section>
 );
 
@@ -555,6 +583,15 @@ const Press = ({ game, world, actions, focus, onPrinted }) => {
     const [running, setRunning] = useState(false);
     const [error, setError] = useState("");
     const [stopped, setStopped] = useState(false);
+    // Une édition prend près d'une minute : le modèle écrit tout le mois. Sans
+    // compteur, « Sous presse… » restait figé et le joueur croyait le jeu planté.
+    const [secondes, setSecondes] = useState(0);
+    useEffect(() => {
+        if (!running) { setSecondes(0); return undefined; }
+        const debut = Date.now();
+        const id = setInterval(() => setSecondes(Math.floor((Date.now() - debut) / 1000)), 1000);
+        return () => clearInterval(id);
+    }, [running]);
     // The exception, not the rule: a reader who wants a particular date opens
     // this and picks a span. Closed, the engine decides.
     const [byHand, setByHand] = useState(false);
@@ -585,6 +622,7 @@ const Press = ({ game, world, actions, focus, onPrinted }) => {
         setStopped(false);
         const controller = new AbortController();
         abortRef.current = controller;
+        const defileur = defileurDe(ref.current);
         try {
             // The automatic jump is a different task from the manual one: it
             // reads the desk and carries the world of its own accord, which is
@@ -592,6 +630,7 @@ const Press = ({ game, world, actions, focus, onPrinted }) => {
             await (byHand
                 ? simulateTimelineJump({ days, signal: controller.signal })
                 : simulateAutoJump({ days, signal: controller.signal }));
+            remonterALaUne(defileur);
             onPrinted();
         } catch (err) {
             // Field report: Stop left the page on the pre-press sheet and said
@@ -685,7 +724,7 @@ const Press = ({ game, world, actions, focus, onPrinted }) => {
         ) : running ? (
             <div style={{ alignItems: "center", display: "flex", gap: "0.8rem" }}>
             <span style={{ color: "var(--oh-text-strong)", fontFamily: "var(--oh-font-display)", fontSize: "var(--oh-t-md)", fontWeight: 700 }}>Sous presse…</span>
-            <span style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)" }}>le monde répond à vos ordres</span>
+            <span style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)" }}>le monde répond à vos ordres · {secondes} s — comptez environ une minute</span>
             <button type="button" onClick={stop} style={{ background: "none", border: "1px solid var(--oh-alert)", color: "var(--oh-alert)", cursor: "pointer", fontFamily: "var(--oh-font-label)", fontSize: "var(--oh-t-2xs)", fontWeight: 700, letterSpacing: "var(--oh-label-track)", marginLeft: "auto", padding: "0.4rem 0.7rem", textTransform: "var(--oh-label-case)" }}>Arrêter</button>
             </div>
         ) : (
@@ -1210,7 +1249,7 @@ const Bulletin = ({ onOpenAdvisor, pressFocus = 0, nav = null }) => {
         <div className="oh-label" style={{ color: "var(--oh-text-strong)" }}>
         {game?.gameDate ? `Rome, ${fmtDate(game.gameDate)}` : "Rome"}
         </div>
-        {pape && <div>{pape}{jourDuPontificat ? ` · ${jourDuPontificat}ᵉ jour` : ""}</div>}
+        {pape && <div>{pape}{jourDuPontificat ? ` · ${jourDuPontificat}${jourDuPontificat === 1 ? "ᵉʳ" : "ᵉ"} jour` : ""}</div>}
         {baptises && <div>{baptises} de baptisés</div>}
         </div>
         </div>
@@ -1368,7 +1407,7 @@ const Bulletin = ({ onOpenAdvisor, pressFocus = 0, nav = null }) => {
         {/* What the pontificate has moved, on all six fronts — above the money,
             because it was the money being the only answer that made a player
             who never touches finance read a page about nothing he did. */}
-        {fronts.length > 0 && <Fronts rows={fronts} />}
+        {fronts.length > 0 && <Fronts rows={fronts} usdPerSY={usdPerSY} />}
 
         <Drives drives={world?.drives} sinceDate={world?.simulationHistory?.[0]?.fromDate || ""} player={player} />
 
@@ -1402,7 +1441,7 @@ const Bulletin = ({ onOpenAdvisor, pressFocus = 0, nav = null }) => {
                 || `${indicators.balance < 0 ? "−" : "+"}${fmtSY(Math.abs(indicators.balance))}`}
             </div>
             <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)", marginTop: "0.35rem" }}>
-            solde de l'année{usdPerSY > 0 ? ` · ${fmtSY(indicators.balance)} AS` : ""}
+            solde de l'année
             <Movement row={rows.balance} format={(v) => (usdPerSY > 0 ? fmtMoney(v * usdPerSY) : `${fmtSY(v)} AS`)} />
             </div>
             </div>
