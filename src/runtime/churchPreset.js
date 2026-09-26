@@ -31,7 +31,7 @@ import { normalizeIntents } from "./intents.js";
 import { normalizeOrganizations } from "./organizations.js";
 import { FAITHFUL_2023, normalizeChurch, totalFaithful } from "./churchFaithful.js";
 import { normalizeExtraRegions } from "./extraRegions.js";
-import { seatAssembly } from "./factions.js";
+import { ownBloc, seatAssembly, standing } from "./factions.js";
 import { normalizeChurchBody } from "./fronts.js";
 import { VATICAN_CITY_CENTER, VATICAN_CITY_GEOMETRY } from "./vaticanBoundary.js";
 
@@ -394,6 +394,16 @@ export const holySeeEconomy = () => {
   });
 };
 
+// ---- la situation d'ouverture ----------------------------------------------------------------
+
+export const situationOuverture = ({ seats = 160, mine = 42, majority = 81 } = {}) => [
+  "Le conclave a rendu son verdict, et l'Église que vous recevez tient en quelques chiffres. Un milliard quatre cent six millions de baptisés, de plus en plus au Sud : l'Afrique et l'Asie remplissent les séminaires que l'Europe vide. 5 430 évêques, 406 996 prêtres, 106 495 séminaristes.",
+  "Les comptes ne tiennent pas seuls. Le Saint-Siège ne lève aucun impôt ; il vit de dons, de ses loyers, de ses placements et des musées, et dépense plus qu'il ne reçoit. La différence se paie en entamant un patrimoine d'environ 2,6 milliards d'euros. Le fonds de pension de la Curie porte en outre un déficit de quelque 664 millions de dollars, hors bilan.",
+  `Le collège compte ${seats} électeurs. Aucun ne vous est hostile d'avance, aucun ne vous est acquis : un pontificat se gagne sur ce qu'il fait. Votre propre courant en rassemble ${mine} ; il en faut ${majority} pour emporter un vote. Six autres courants se partagent la salle : d'un côté la vieille garde de la Secrétairerie d'État, l'appareil financier et le bloc des cardinaux des dubia, attachés à ce qui est ; de l'autre la Compagnie de Jésus, le chemin synodal allemand et l'Opus Dei, chacun sur sa propre ligne. Aucun n'est sous vos ordres.`,
+  "Les dossiers d'abus attendent d'être jugés. La réforme de la Curie de 2022 est appliquée à moitié. L'affaire de l'immeuble de Londres n'est pas refermée dans les esprits.",
+  "Prenez un nom, choisissez trois conseillers, et dites ce que vous avez été élu pour changer. L'Église vous y tiendra.",
+].join("\n\n");
+
 // ---- the reference the model reads: everything real, once -----------------------------------
 
 export const CHURCH_REFERENCE = `[Mode de jeu — Pape réformateur]
@@ -535,5 +545,14 @@ export const applyChurchPreset = (world, { date = "", availableCountries = [] } 
   // edition concludes the game does not track it at all.
   const churchBody = w.churchBody ?? normalizeChurchBody({ asOf: "2022-12-31" });
 
-  return { ...w, polityOverrides, countryTags, countryStats, organizations, intents, economies, simulationRules, canonFacts, church, assembly, churchBody, extraRegions, regionOwnershipOverrides, markers, customRegions: true };
+  // La première page qu'un nouveau pape lit. Elle disait « Aucune situation
+  // d'ouverture n'a été écrite pour ce début » — la décision la plus lourde du
+  // jeu (le nom, le cabinet, le programme) se prenait sans une ligne sur l'état
+  // de l'Église. Chaque chiffre ci-dessous est un chiffre que le moteur tient.
+  const salle = standing(assembly);
+  const startingTimelineText = str(w.startingTimelineText) || situationOuverture({
+    seats: salle?.seats, mine: ownBloc(assembly, HOLY_SEE).seats, majority: salle?.majority,
+  });
+
+  return { ...w, startingTimelineText, polityOverrides, countryTags, countryStats, organizations, intents, economies, simulationRules, canonFacts, church, assembly, churchBody, extraRegions, regionOwnershipOverrides, markers, customRegions: true };
 };

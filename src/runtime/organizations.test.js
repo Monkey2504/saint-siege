@@ -96,9 +96,9 @@ test("seedOrganizations: the bodies of the era, once, without touching what exis
   const interwar = seedOrganizations([], 1939).map((o) => o.name);
   assert.ok(interwar.includes("League of Nations") && !interwar.includes("United Nations"));
   const rome = seedOrganizations([], 117).map((o) => o.name);
-  assert.ok(!rome.includes("Delian League") && !rome.includes("Catholic Church"), "nothing of the era of Trajan in the catalogue");
+  assert.ok(!rome.includes("Delian League") && !rome.includes("Église catholique"), "nothing of the era of Trajan in the catalogue");
   const medieval = seedOrganizations([], 1400).map((o) => o.name);
-  assert.ok(medieval.includes("Hanseatic League") && medieval.includes("Imperial Diet of the Holy Roman Empire") && medieval.includes("Catholic Church"));
+  assert.ok(medieval.includes("Hanseatic League") && medieval.includes("Imperial Diet of the Holy Roman Empire") && medieval.includes("Église catholique"));
 
   // Idempotent, and it never overwrites a body the world already has.
   const custom = [{ name: "NATO", kind: "alliance", members: ["Atlantis"] }];

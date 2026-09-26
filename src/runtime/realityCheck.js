@@ -34,6 +34,10 @@ const argent = (e, sy) => {
   return `${fmtSY(sy)} AS`;
 };
 const pct = (n) => pourcent(finite(n));
+// Les parties commencées avant la francisation du préréglage gardent le nom
+// anglais de l'Église universelle dans leurs chantiers.
+const NOMS_LISIBLES = { "Catholic Church": "Église catholique" };
+const nomLisible = (nom) => NOMS_LISIBLES[nom] ?? nom;
 // « ce saut en couvre 0.08 » : 0.08 quoi ? Un mois, en jours.
 const delai = (annees) => {
   const a = finite(annees);
@@ -306,7 +310,7 @@ export const assessAction = (action, ctx = {}) => {
     const strongest = relevant.reduce((m, it) => Math.max(m, it.stage), 0);
     // One early scheme is a warning, not a wall; several far along are a wall.
     push("opposition", clamp(0.15 + 0.08 * relevant.length + 0.25 * (strongest / 100) - 0.05 * Math.min(3, supportive.length), 0.05, 0.7),
-      `${relevant.length} puissance${relevant.length > 1 ? "s ont" : " a"} un chantier sur ce terrain : ${relevant.map((it) => `${it.owner} (${it.secret ? "en secret, " : ""}${it.stance === "hostile" ? "contre vous" : "sur sa propre ligne"}, ${it.stage}% du chemin)`).join("; ")}${supportive.length ? ` ; travaillent pour vous : ${supportive.map((it) => it.owner).join(", ")}` : ""}`,
+      `${relevant.length} puissance${relevant.length > 1 ? "s ont" : " a"} un chantier sur ce terrain : ${relevant.map((it) => `${nomLisible(it.owner)} (${it.secret ? "en secret, " : ""}${it.stance === "hostile" ? "contre vous" : "sur sa propre ligne"}, ${it.stage} % du chemin)`).join(" ; ")}${supportive.length ? ` ; travaillent pour vous : ${supportive.map((it) => nomLisible(it.owner)).join(", ")}` : ""}`,
       "agir sur elles avant qu'elles n'agissent sur vous — les exposer, les acheter, les diviser ; s'appuyer sur celles qui vous suivent");
   }
   // --- l'inaliénable ---

@@ -29,7 +29,7 @@ const StartupScreen = ({
   elapsedMs = 0,
   loadedBytes = 0,
   progress = 0,
-  stage = "Warming world textures",
+  stage = "L'édition se prépare",
   steps = [],
   timeBudgetMs = 30_000,
   timedOut = false,
@@ -397,9 +397,9 @@ const StartupScreen = ({
       <div className="ss-identity">
       <img className="ss-logo" src="/keys.svg" alt="" />
       <div className="ss-title-block">
-      <div className="ss-game-name">Open Historia</div>
+      <div className="ss-game-name">Saint-Siège</div>
       <div className="ss-title">
-      {timedOut ? "Continuing…" : "Preparing the World"}
+      {timedOut ? "On continue…" : "L'édition se prépare"}
       </div>
       </div>
       </div>
