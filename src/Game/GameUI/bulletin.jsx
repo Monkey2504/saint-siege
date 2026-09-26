@@ -777,7 +777,7 @@ const Press = ({ game, world, actions, focus, onPrinted }) => {
         ) : running ? (
             <div style={{ alignItems: "center", display: "flex", gap: "0.8rem" }}>
             <span style={{ color: "var(--oh-text-strong)", fontFamily: "var(--oh-font-display)", fontSize: "var(--oh-t-md)", fontWeight: 700 }}>Sous presse…</span>
-            <span style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)" }}>{attente ? "le monde finit d'écrire ce qui précède votre élection ; l'édition part juste après" : "le monde répond à vos ordres"} · {secondes} s — comptez environ une minute</span>
+            <span style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)" }}>{attente ? "le monde finit d'écrire ce qui précède votre élection ; l'édition part juste après" : "le monde répond à vos ordres"} · {secondes} s — comptez une à deux minutes</span>
             <button type="button" onClick={stop} style={{ background: "none", border: "1px solid var(--oh-alert)", color: "var(--oh-alert)", cursor: "pointer", fontFamily: "var(--oh-font-label)", fontSize: "var(--oh-t-2xs)", fontWeight: 700, letterSpacing: "var(--oh-label-track)", marginLeft: "auto", padding: "0.4rem 0.7rem", textTransform: "var(--oh-label-case)" }}>Arrêter</button>
             </div>
         ) : (

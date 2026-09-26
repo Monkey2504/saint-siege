@@ -450,3 +450,13 @@ test("un ordre que le récit oublie prend le sort de son verdict, daté", () => 
   const parTitre = applyActionOutcomes([order("Publier les comptes consolidés 2025", { id: "c1" })], [{ actionId: "Publier les comptes consolidés 2025", outcome: "partial", reason: "la vieille garde freine" }], [{ id: "c1", verdict: "feasible", constraints: [] }]);
   assert.equal(parTitre[0].status, "partial");
 });
+
+test("une lettre n'est ni un vote ni un chantier de six mois", () => {
+  const world = normalizeWorldState(applyChurchPreset({}, { date: "2026-09-01" }));
+  const ctx = { playerPolity: HOLY_SEE, economy: world.economies[HOLY_SEE], world, jumpDays: 30 };
+  const lettre = assessAction(order("Écrire aux cardinaux des dubia pour leur proposer une rencontre privée au Vatican avant le consistoire."), ctx);
+  assert.ok(!lettre.constraints.some((c) => c.factor === "vote"), "le mot consistoire ne fait pas un vote");
+  assert.ok(!lettre.constraints.some((c) => c.factor === "time"), "une lettre part ce mois-ci");
+  const vote = assessAction(order("Mettre au vote du consistoire la suppression des exemptions liturgiques."), ctx);
+  assert.ok(vote.constraints.some((c) => c.factor === "vote"));
+});

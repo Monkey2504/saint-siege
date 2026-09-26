@@ -59,7 +59,12 @@ const ALIENER = /\b(vend|céd|aliéner|brad|hypothéqu|mettre en vente|mise en v
 // du diaconat aux femmes, et le faire voter » passait « exécuté en entier »
 // alors que personne dans la salle n'était acquis au pape : le collège n'était
 // compté que s'il portait le nom d'une organisation, ce qu'il n'est pas.
-const AU_VOTE = /(fai(re|s|t) voter|mettre au vote|soumettre au (vote|collège|consistoire)|soumet(s|tre)? .{0,40}(collège|consistoire|cardinaux)|(vote|voter) (du|au|par le) (collège|consistoire|synode)|consistoire|conclave|put (it )?to (a|the) vote|college of cardinals)/i;
+const AU_VOTE = /(fai(re|s|t) voter|mettre au vote|mis au vote|soumettre au vote|soumettre au (collège|consistoire)|soumet(s|tre)? .{0,60}(collège|consistoire|cardinaux).{0,40}vot|(vote|voter) (du|au|par le|en) (collège|consistoire|synode)|put (it )?to (a|the) vote)/i;
+// Écrire, recevoir, rencontrer : un geste, pas un chantier. « Écrire aux
+// cardinaux des dubia pour leur proposer une rencontre avant le consistoire »
+// était compté comme un vote du collège (le mot « consistoire ») et comme un
+// chantier de six mois, donc « accordé en partie » — pour une lettre.
+const CONTACT = /\b(écrire (à|aux|au)|écris (à|aux|au)|envoyer une lettre|une lettre (à|aux|au)|proposer une rencontre|rencontrer|recevoir en audience|audience privée|inviter)\b/i;
 const COLLECTE = /(campagne de (dons|collecte|souscription)|collecte de fonds|lev(ée|er) de fonds|lever des fonds|appel (aux|à des) dons|quête|souscription|denier de saint-pierre|fundrais|donation drive|appeal for donations)/i;
 const DEPENSE_EXPLICITE = /(construire|acheter|dépenser|verser .{0,20}(salaire|prime)|embaucher|subventionner)/i;
 const INALIENABLE = /(chapelle sixtine|sixtine|sistine|basilique saint-pierre|saint-pierre de rome|st\.? peter'?s basilica|place saint-pierre|musées du vatican|musees du vatican|vatican museums|bibliothèque (apostolique )?vaticane|archives (apostoliques )?vaticanes|archives apostoliques|pietà|pieta|saint-jean-de-latran|latran)/i;
@@ -146,16 +151,17 @@ const IMPLEMENTATION_LAG_YEARS = Object.freeze({
   // Une collecte s'ouvre dans le mois ; l'argent, lui, arrive au fil des
   // tours et le cahier des Comptes le suit.
   fundraising: 0.05,
+  outreach: 0.05,
   spending: 2, tax: 1, reform: 2, personnel: 0.1, diplomatic: 0.75, military: 0.25, monetary: 1, coercion: 0.25, social: 1.5, general: 0.5,
 });
 
 // Which intent kinds threaten which orders.
 const INTENT_KIND_DOMAINS = Object.freeze({
-  political: ["reform", "personnel", "social", "coercion", "tax", "general"],
+  political: ["reform", "personnel", "social", "coercion", "tax", "general", "outreach"],
   economic: ["spending", "tax", "monetary", "reform", "fundraising"],
   military: ["military", "diplomatic"],
-  diplomatic: ["diplomatic", "reform", "general"],
-  espionage: ["reform", "personnel", "military", "diplomatic", "spending", "monetary", "coercion", "social", "tax", "general", "fundraising"],
+  diplomatic: ["diplomatic", "reform", "general", "outreach"],
+  espionage: ["reform", "personnel", "military", "diplomatic", "spending", "monetary", "coercion", "social", "tax", "general", "fundraising", "outreach"],
 });
 
 const VERDICT_BLOCKED = 0.9;
@@ -180,7 +186,8 @@ export const assessAction = (action, ctx = {}) => {
   const bruts = classifyAction(text);
   // « pour le fonds de pension de la Curie » la classait aussi en réforme (la
   // Curie), avec deux ans de délai : une collecte est un acte simple.
-  const domains = estCollecte ? ["fundraising"] : bruts;
+  const geste = CONTACT.test(text) && bruts.every((d) => ["general", "diplomatic", "personnel"].includes(d));
+  const domains = estCollecte ? ["fundraising"] : geste ? ["outreach"] : bruts;
   const has = (d) => domains.includes(d);
   const player = str(ctx.playerPolity);
   const years = Math.max(0, finite(ctx.jumpDays, 0)) / 365.25;
