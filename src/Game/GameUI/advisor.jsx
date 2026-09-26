@@ -358,7 +358,7 @@ const AdvisorPanel = ({ isAdvisorOpen, onClose, width, onResize, fullPage = fals
 
     const formatDate = (dateStr) => {
         if (!dateStr) return "";
-        return new Date(dateStr).toLocaleDateString([], { year: "numeric", month: "short", day: "numeric" });
+        return new Date(dateStr).toLocaleDateString("fr-FR", { year: "numeric", month: "short", day: "numeric" });
     };
 
     if (!hasOpened) return null;

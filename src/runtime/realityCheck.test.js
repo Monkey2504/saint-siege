@@ -115,9 +115,9 @@ test("applyActionOutcomes: the model's outcome is capped by the verdict and the 
     { actionId: "a4", outcome: "success", reason: "done" },
   ], assessments);
   assert.equal(out[0].status, "partial");
-  assert.match(out[0].outcomeNote, /short by 10 \(narrated: everyone cheered\)/);
+  assert.match(out[0].outcomeNote, /short by 10 \(le récit : everyone cheered\)/);
   assert.equal(out[1].status, "failed");
-  assert.equal(out[1].outcomeNote, "no forces (narrated: advanced 20 km)");
+  assert.equal(out[1].outcomeNote, "no forces (le récit : advanced 20 km)");
   assert.equal(out[2].status, "resolved", "a chat is not judged; it takes the default");
   assert.equal(out[3].status, "succeeded");
   assert.equal(out[3].outcomeNote, "done");
@@ -417,4 +417,36 @@ test("la chapelle Sixtine ne se vend pas, et le budget se lit en euros", () => {
     assert.match(budget.detail, /€/);
     assert.doesNotMatch(budget.detail, /\d\.\d%/);
   }
+});
+
+test("un vote du collège sans majorité n'est pas « exécuté en entier », et une collecte n'est pas une dépense", () => {
+  const world = normalizeWorldState(applyChurchPreset({}, { date: "2026-09-01" }));
+  const ctx = { playerPolity: HOLY_SEE, economy: world.economies[HOLY_SEE], world, jumpDays: 30 };
+  const vote = assessAction(order("Soumettre au collège des cardinaux l'ouverture du diaconat aux femmes, et le faire voter."), ctx);
+  assert.equal(vote.verdict, "constrained");
+  const college = vote.constraints.find((c) => c.factor === "vote");
+  assert.ok(college, "le collège est compté");
+  assert.match(college.detail, /il en faut 81/);
+  const collecte = assessAction(order("Lancer une campagne de dons de 50 millions d'euros pour combler le déficit du fonds de pension de la Curie."), ctx);
+  assert.ok(!collecte.constraints.some((c) => c.factor === "budget"), "une collecte ne se paie pas sur le budget");
+  const achat = assessAction(order("Acheter un immeuble à Londres pour 200 millions"), ctx);
+  assert.ok(achat.constraints.some((c) => c.factor === "budget"), "une vraie dépense reste une dépense");
+});
+
+test("un ordre que le récit oublie prend le sort de son verdict, daté", () => {
+  const actions = [order("Publier les comptes", { id: "b1" }), order("Faire voter le collège", { id: "b2" }), order("Parler", { id: "b3", kind: "chat" })];
+  const assessments = [
+    { id: "b1", verdict: "feasible", constraints: [] },
+    { id: "b2", verdict: "constrained", constraints: [{ factor: "vote", detail: "il en manque 39" }] },
+  ];
+  const out = applyActionOutcomes(actions, [], assessments, { date: "2026-10-14" });
+  assert.equal(out[0].status, "succeeded");
+  assert.equal(out[0].verdict, "feasible");
+  assert.equal(out[1].status, "partial");
+  assert.equal(out[1].outcomeNote, "il en manque 39");
+  assert.equal(out[1].judgedOn, "2026-10-14");
+  assert.equal(out[2].status, "resolved", "une conversation n'est pas jugée");
+  // Le modèle cite l'ordre par son titre : on le retrouve quand même.
+  const parTitre = applyActionOutcomes([order("Publier les comptes consolidés 2025", { id: "c1" })], [{ actionId: "Publier les comptes consolidés 2025", outcome: "partial", reason: "la vieille garde freine" }], [{ id: "c1", verdict: "feasible", constraints: [] }]);
+  assert.equal(parTitre[0].status, "partial");
 });

@@ -136,6 +136,15 @@ export const showHomePage = () => {
 
 // Si cette porte doit s'ouvrir au chargement (une fois franchie, plus pour cet
 // onglet).
+//
+// Elle ne s'ouvre plus. Rejoué en inconnu, le parcours comptait trois écrans
+// avant de jouer : cette porte (« Entrer »), l'écran de la clé, puis l'accueil
+// « Devenez le nouveau pape » (runtime/Welcome.jsx), qui dit la même chose avec
+// la photographie et les deux seuls boutons utiles, Commencer et Reprendre.
+// Deux unes pour un seul journal : l'accueil reste, la porte se tait. Le code
+// est gardé ; rendre `true` ici la rétablit.
+const PORTE_OUVERTE = false;
 export const shouldShowHome = () => {
+  if (!PORTE_OUVERTE) return false;
   try { return sessionStorage.getItem(ENTERED_KEY) !== "1"; } catch { return true; }
 };

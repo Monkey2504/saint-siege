@@ -363,6 +363,9 @@ export const normalizeActionEntry = (entry, index = 0) => {
     ...(normalizeOptionalString(entry.outcome) ? { outcome: normalizeOptionalString(entry.outcome) } : {}),
     ...(normalizeOptionalString(entry.outcomeNote) ? { outcomeNote: normalizeOptionalString(entry.outcomeNote) } : {}),
     ...(normalizeOptionalString(entry.verdict) ? { verdict: normalizeOptionalString(entry.verdict) } : {}),
+    // La date de l'édition qui l'a jugé : l'édition suivante imprime le sort
+    // des ordres qu'ELLE a réglés, pas celui de tout le dossier.
+    ...(normalizeOptionalString(entry.judgedOn) ? { judgedOn: normalizeOptionalString(entry.judgedOn) } : {}),
   };
 };
 

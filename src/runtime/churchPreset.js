@@ -128,12 +128,19 @@ const OPUS = CHURCH_FACTIONS[4].name;
 const JESUITS = CHURCH_FACTIONS[5].name;
 void F;
 
+// L'Église universelle, sous son nom français. Le catalogue d'origine la nomme
+// « Catholic Church », et ce nom anglais s'imprimait dans les verdicts
+// (« travaillent pour vous : Compagnie de Jésus, Catholic Church, Curie
+// romaine »). Le préréglage la remplace sous l'un ou l'autre nom.
+export const EGLISE = "Église catholique";
+const ANCIENS_NOMS = new Set(["Catholic Church"]);
+
 export const churchBodies = (availableCountries = []) => {
   const known = new Set(availableCountries.map((n) => String(n ?? "").trim()));
   const catholicMembers = CATHOLIC_MAJORITY_COUNTRIES.filter((n) => known.size === 0 || known.has(n));
   return [
     {
-      name: "Catholic Church", kind: "religious", founded: "0033-01-01", seat: "Rome",
+      name: EGLISE, kind: "religious", founded: "0033-01-01", seat: "Rome",
       leader: HOLY_SEE, votingRule: "hegemon", universal: false,
       charter: "1,406 milliard de catholiques, 5 430 évêques, 406 996 prêtres (38 % en Europe, 29 % en Amérique, 18 % en Asie, 13,5 % en Afrique), 589 423 religieux, 106 495 séminaristes (Annuario 2025). Le pape gouverne seul en droit ; les pays membres sont ceux à majorité catholique. Les plus peuplés : Brésil 140 M, Mexique 101 M, Philippines 85 M.",
       members: [HOLY_SEE, ...catholicMembers],
@@ -256,7 +263,7 @@ export const seededIntents = (date = "") => [
   // 1,4 milliard de fidèles are not a backdrop — they are the apparatus a pope
   // commands, and their default is execution, not resistance. Without these the
   // world could only ever narrate obstruction.
-  { ownerType: "organization", owner: "Catholic Church", target: HOLY_SEE, kind: "political", secret: false, stage: 50, stance: "supportive", scope: [],
+  { ownerType: "organization", owner: EGLISE, target: HOLY_SEE, kind: "political", secret: false, stage: 50, stance: "supportive", scope: [],
     summary: "Appliquer ce que Rome décide : les 5 430 évêques, les nonciatures et les conférences épiscopales traduisent chaque décision pontificale en actes dans les diocèses, à la vitesse de l'appareil et non contre lui.",
     triggerHint: "chaque décision pontificale promulguée ; chaque visite et chaque nomination" },
   { ownerType: "organization", owner: "Curie romaine", target: HOLY_SEE, kind: "political", secret: false, stage: 40, stance: "supportive", scope: [],
@@ -452,7 +459,7 @@ export const applyChurchPreset = (world, { date = "", availableCountries = [] } 
     countryStats[f.name] = { ...(countryStats[f.name] ?? {}), capital: "Rome", continent: "Europe", government: "Faction interne de l'Église catholique", ...(f.leader ? { leader: f.leader } : {}), history: [...(countryStats[f.name]?.history ?? []), ...f.history].slice(-10) };
   }
 
-  const existingOrgs = normalizeOrganizations(w.organizations).filter((o) => !churchBodies().some((b) => b.name === o.name));
+  const existingOrgs = normalizeOrganizations(w.organizations).filter((o) => !ANCIENS_NOMS.has(o.name) && !churchBodies().some((b) => b.name === o.name));
   const organizations = normalizeOrganizations([...churchBodies(availableCountries), ...existingOrgs]);
 
   const existingIntents = normalizeIntents(w.intents);

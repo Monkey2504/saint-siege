@@ -16,6 +16,7 @@ import { normalizeEconomy, annualRevenue, fiscalBalance, debtCeiling, interestRa
 import { normalizeIntents } from "./intents.js";
 import { normalizeOrganizations, isMember } from "./organizations.js";
 import { fmtMoneyFromUsd, fmtSY, pourcent } from "./money.js";
+import { coalition, groupsOn, normalizeAssembly, standing } from "./factions.js";
 
 const str = (v) => String(v ?? "").trim();
 const lower = (v) => str(v).toLowerCase();
@@ -34,6 +35,11 @@ const argent = (e, sy) => {
 };
 const pct = (n) => pourcent(finite(n));
 // « ce saut en couvre 0.08 » : 0.08 quoi ? Un mois, en jours.
+const delai = (annees) => {
+  const a = finite(annees);
+  if (a < 1) return `${Math.max(1, Math.round(a * 12))} mois`;
+  return `${String(Math.round(a * 10) / 10).replace(".", ",")} an${a >= 2 ? "s" : ""}`;
+};
 const duree = (annees) => {
   const jours = Math.round(finite(annees) * 365.25);
   if (jours < 365) return `${jours} jour${jours > 1 ? "s" : ""}`;
@@ -45,6 +51,13 @@ const duree = (annees) => {
 // montre, et ne vend pas. « Vendre la chapelle Sixtine » passait « accordé en
 // partie », au seul motif du déficit — comme si l'obstacle était le prix.
 const ALIENER = /\b(vend|céd|aliéner|brad|hypothéqu|mettre en vente|mise en vente|privatis|sell|auction|enchères)/i;
+// Un ordre qui se décide au vote du collège. « Soumettre au collège l'ouverture
+// du diaconat aux femmes, et le faire voter » passait « exécuté en entier »
+// alors que personne dans la salle n'était acquis au pape : le collège n'était
+// compté que s'il portait le nom d'une organisation, ce qu'il n'est pas.
+const AU_VOTE = /(fai(re|s|t) voter|mettre au vote|soumettre au (vote|collège|consistoire)|soumet(s|tre)? .{0,40}(collège|consistoire|cardinaux)|(vote|voter) (du|au|par le) (collège|consistoire|synode)|consistoire|conclave|put (it )?to (a|the) vote|college of cardinals)/i;
+const COLLECTE = /(campagne de (dons|collecte|souscription)|collecte de fonds|lev(ée|er) de fonds|lever des fonds|appel (aux|à des) dons|quête|souscription|denier de saint-pierre|fundrais|donation drive|appeal for donations)/i;
+const DEPENSE_EXPLICITE = /(construire|acheter|dépenser|verser .{0,20}(salaire|prime)|embaucher|subventionner)/i;
 const INALIENABLE = /(chapelle sixtine|sixtine|sistine|basilique saint-pierre|saint-pierre de rome|st\.? peter'?s basilica|place saint-pierre|musées du vatican|musees du vatican|vatican museums|bibliothèque (apostolique )?vaticane|archives (apostoliques )?vaticanes|archives apostoliques|pietà|pieta|saint-jean-de-latran|latran)/i;
 
 // ---- what kind of order this is -----------------------------------------------------------
@@ -126,16 +139,19 @@ export const classifyAction = (text) => {
 // what history shows, not the average. An order that needs longer than the
 // jump is "begun", not done.
 const IMPLEMENTATION_LAG_YEARS = Object.freeze({
+  // Une collecte s'ouvre dans le mois ; l'argent, lui, arrive au fil des
+  // tours et le cahier des Comptes le suit.
+  fundraising: 0.05,
   spending: 2, tax: 1, reform: 2, personnel: 0.1, diplomatic: 0.75, military: 0.25, monetary: 1, coercion: 0.25, social: 1.5, general: 0.5,
 });
 
 // Which intent kinds threaten which orders.
 const INTENT_KIND_DOMAINS = Object.freeze({
   political: ["reform", "personnel", "social", "coercion", "tax", "general"],
-  economic: ["spending", "tax", "monetary", "reform"],
+  economic: ["spending", "tax", "monetary", "reform", "fundraising"],
   military: ["military", "diplomatic"],
   diplomatic: ["diplomatic", "reform", "general"],
-  espionage: ["reform", "personnel", "military", "diplomatic", "spending", "monetary", "coercion", "social", "tax", "general"],
+  espionage: ["reform", "personnel", "military", "diplomatic", "spending", "monetary", "coercion", "social", "tax", "general", "fundraising"],
 });
 
 const VERDICT_BLOCKED = 0.9;
@@ -153,7 +169,14 @@ const verdictOf = (constraints) => {
 
 export const assessAction = (action, ctx = {}) => {
   const text = `${str(action?.title)} ${str(action?.text)} ${str(action?.rawInput)}`;
-  const domains = classifyAction(text);
+  // Lancer une collecte n'est pas bâtir : l'ordre s'exécute ce mois-ci, c'est
+  // l'argent qui arrive au fil des tours (le cahier des Comptes le suit). Il ne
+  // porte donc ni le délai de deux ans d'un chantier, ni la dépense.
+  const estCollecte = COLLECTE.test(text) && !DEPENSE_EXPLICITE.test(text);
+  const bruts = classifyAction(text);
+  // « pour le fonds de pension de la Curie » la classait aussi en réforme (la
+  // Curie), avec deux ans de délai : une collecte est un acte simple.
+  const domains = estCollecte ? ["fundraising"] : bruts;
   const has = (d) => domains.includes(d);
   const player = str(ctx.playerPolity);
   const years = Math.max(0, finite(ctx.jumpDays, 0)) / 365.25;
@@ -170,7 +193,12 @@ export const assessAction = (action, ctx = {}) => {
     // and leaving it out meant a debt reform never met the deficit it was meant
     // to cure. Tax stays out on purpose: an order whose whole point is to change
     // revenue should not be told that revenue is short.
-    if ((has("spending") || has("military") || has("social") || has("monetary")) && revenue > 0) {
+    // Une collecte fait ENTRER de l'argent. « Lancer une campagne de dons de 50
+    // millions pour combler le déficit du fonds de pension » était jugée comme
+    // une dépense — « toute dépense nouvelle est payée en entamant le
+    // patrimoine » — parce que « pension » et « fonds » la classaient ainsi.
+    const collecte = estCollecte;
+    if ((has("spending") || has("military") || has("social") || has("monetary")) && revenue > 0 && !collecte) {
       const deficitShare = balance < 0 ? -balance / revenue : 0;
       const room = e.financing === "drawdown" ? e.endowment + Math.max(0, e.treasury)
         : e.financing === "print" ? Infinity
@@ -247,6 +275,19 @@ export const assessAction = (action, ctx = {}) => {
       `${o.name} décide au vote ${o.votingRule} de ${voters.length} autres membres ; contre vous là-dessus : ${against.length} (${against.join(", ") || "aucun"}) ; avec vous : ${forIt.length} (${forIt.join(", ") || "aucun"}) ; les autres ne se sont pas déclarés${share >= need ? " — en l'état, le vote est perdu" : ""}`,
       "traiter, diviser ou déborder le bloc : une concession à un membre, un consistoire, une règle mise au vote du corps");
   }
+  // --- le collège, quand l'ordre se décide à son vote ---
+  const assembly = normalizeAssembly(ctx.world?.assembly);
+  if (assembly && AU_VOTE.test(text)) {
+    const salle = standing(assembly);
+    const pacte = coalition(assembly, { player, need: salle.majority });
+    if (pacte && !pacte.carries) {
+      const courants = groupsOn(assembly, "follows").filter((g) => g.name && lower(g.name) !== lower(player))
+        .map((g) => `${g.name} ${g.seats}`).join(", ");
+      push("vote", clamp(0.45 + 0.4 * (pacte.short / salle.majority), 0.45, 0.85),
+        `le collège vote : ${salle.seats} électeurs, il en faut ${salle.majority}. Votre courant en compte ${pacte.alone} ; il en manque ${pacte.short}. Les autres courants : ${courants || "aucun"} ; ${pacte.unattached} électeurs ne suivent personne. Opinion de la salle : ${salle.with} favorables, ${salle.undecided} indécis, ${salle.against} hostiles`,
+        "gagner les voix d'abord : s'asseoir avec un courant, parler aux électeurs sans courant, ou retirer la question");
+    }
+  }
   // --- standing opposition: schemes already in motion against THIS kind of order ---
   // La seconde erreur : une portée qui correspond ne suffisait pas. Il fallait
   // EN PLUS que le genre du chantier (political, economic…) recouvre le domaine
@@ -279,7 +320,7 @@ export const assessAction = (action, ctx = {}) => {
   const lag = Math.max(...domains.map((d) => IMPLEMENTATION_LAG_YEARS[d] ?? 0.5));
   if (years > 0 && years < lag) {
     push("time", clamp(0.35 * (1 - years / lag) + 0.15, 0, 0.5),
-      `ce genre d'ordre met environ ${String(lag).replace(".", ",")} an${lag >= 2 ? "s" : ""} à porter ; ce saut en couvre ${duree(years)}`,
+      `ce genre d'ordre met environ ${delai(lag)} à porter ; ce saut en couvre ${duree(years)}`,
       "il est commencé ce tour-ci, jugé à un tour ultérieur");
   }
   // --- forces ---
@@ -339,20 +380,46 @@ export const normalizeActionOutcome = (entry) => {
 // entry, so the history the model reads next turn says "[failed]: the College
 // blocked it", not merely "[resolved]". Orders the model forgot fall back to
 // the caller's default status.
-export const applyActionOutcomes = (actions, outcomes, assessments, { defaultStatus = "resolved" } = {}) => {
-  const byId = new Map((Array.isArray(outcomes) ? outcomes : []).map(normalizeActionOutcome).filter(Boolean).map((o) => [o.actionId, o]));
+// Le sort d'un ordre que le récit a oublié : le verdict lui-même. Mesuré en
+// jouant : quatre ordres sur quatre revenaient « resolved », sans verdict ni
+// raison, parce que le modèle ne rendait pas actionOutcomes — et l'en-tête
+// affichait « 0 ordres jugés » tour après tour. Le verdict est calculé par le
+// moteur avant le récit ; il suffit à dire ce que l'ordre est devenu.
+const OUTCOME_BY_VERDICT = { feasible: "success", constrained: "partial", blocked: "failure" };
+
+// Le modèle cite parfois l'ordre par son titre au lieu de son identifiant.
+const sameOrder = (action, actionId) => {
+  const key = lower(actionId);
+  if (!key) return false;
+  return lower(action.id) === key || lower(action.title) === key || (key.length > 12 && lower(action.text).startsWith(key));
+};
+
+export const applyActionOutcomes = (actions, outcomes, assessments, { defaultStatus = "resolved", date = "" } = {}) => {
+  const list = (Array.isArray(outcomes) ? outcomes : []).map(normalizeActionOutcome).filter(Boolean);
   const verdictById = new Map((Array.isArray(assessments) ? assessments : []).map((a) => [a.id, a]));
   return (Array.isArray(actions) ? actions : []).map((action) => {
     if (!action || action.status !== "planned") return action;
-    const o = byId.get(action.id);
-    if (!o) return { ...action, status: defaultStatus };
     const a = verdictById.get(action.id);
+    const judged = date ? { judgedOn: date } : {};
+    const o = list.find((entry) => sameOrder(action, entry.actionId));
+    if (!o) {
+      if (!a || action.kind === "chat") return { ...action, status: defaultStatus, ...judged };
+      const outcome = OUTCOME_BY_VERDICT[a.verdict] ?? "success";
+      return {
+        ...action,
+        status: STATUS_BY_OUTCOME[outcome],
+        outcome,
+        outcomeNote: a.constraints[0]?.detail || "",
+        verdict: a.verdict,
+        ...judged,
+      };
+    }
     const cap = a ? CAP_BY_VERDICT[a.verdict] : "success";
     const capped = OUTCOME_RANK[o.outcome] > OUTCOME_RANK[cap] ? cap : o.outcome;
     const reason = capped !== o.outcome && a?.constraints[0]
-      ? `${a.constraints[0].detail}${o.reason ? ` (narrated: ${o.reason})` : ""}`
+      ? `${a.constraints[0].detail}${o.reason ? ` (le récit : ${o.reason})` : ""}`
       : o.reason;
-    return { ...action, status: STATUS_BY_OUTCOME[capped], outcome: capped, outcomeNote: reason, verdict: a?.verdict ?? "" };
+    return { ...action, status: STATUS_BY_OUTCOME[capped], outcome: capped, outcomeNote: reason, verdict: a?.verdict ?? "", ...judged };
   });
 };
 

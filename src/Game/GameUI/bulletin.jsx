@@ -1,5 +1,6 @@
 /*! Open Historia — the bulletin: the page the game opens on © 2026 Nicholas Krol, MIT (see src/Editor/LICENSE). */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { REJECTION_EVENT_KIND } from "../../runtime/rejections.js";
 import ReactMarkdown from "react-markdown";
 import dayjs from "dayjs";
 import advancedFormat from "dayjs/plugin/advancedFormat";
@@ -335,6 +336,33 @@ const remonterALaUne = (defileur) => {
     else window.scrollTo({ top: 0 });
 };
 
+// Ce que les ordres du tour sont devenus. Le README promet que chaque édition
+// dit « ce que vos ordres ont réellement produit » ; l'édition ne le disait
+// pas : l'ordre disparaissait du bureau et le joueur devait deviner son sort
+// dans les récits. Le verdict et la raison sont ceux du moteur.
+const SORT = {
+    success: { mot: "Exécuté en entier", couleur: "var(--oh-grant)" },
+    partial: { mot: "Accordé en partie", couleur: "var(--oh-caution)" },
+    failure: { mot: "Refusé", couleur: "var(--oh-alert)" },
+};
+const SortDesOrdres = ({ ordres }) => (
+    <section>
+    <SectionHead aside={`${ordres.length} ${ordres.length === 1 ? "ordre" : "ordres"}`}>Le sort de vos ordres</SectionHead>
+    {ordres.map((o) => {
+        const sort = SORT[o.outcome] ?? { mot: "Réglé", couleur: "var(--oh-text-dim)" };
+        return (
+            <div key={o.id} style={{ borderBottom: "1px solid var(--oh-line)", padding: "0.6rem 0" }}>
+            <div style={{ color: "var(--oh-text-strong)", fontSize: "var(--oh-t-sm)", lineHeight: 1.45 }}>{o.title || o.text}</div>
+            <div style={{ color: sort.couleur, fontFamily: "var(--oh-font-label)", fontSize: "var(--oh-t-2xs)", fontWeight: 700, letterSpacing: "var(--oh-label-track)", marginTop: "0.25rem", textTransform: "var(--oh-label-case)" }}>{sort.mot}</div>
+            {o.outcomeNote && (
+                <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)", lineHeight: 1.5, marginTop: "0.2rem" }}>{o.outcomeNote}</div>
+            )}
+            </div>
+        );
+    })}
+    </section>
+);
+
 const Inauguration = ({ world, player, onDone }) => {
     const racine = useRef(null);
     const [name, setName] = useState("");
@@ -660,10 +688,13 @@ const Press = ({ game, world, actions, focus, onPrinted }) => {
         <span style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)" }}>{from ? `depuis le ${fmtDate(from)}` : ""}</span>
         </div>
         <div style={{ color: "var(--oh-text-strong)", fontFamily: "var(--oh-font-display)", fontSize: "var(--oh-t-xl)", fontWeight: 800, letterSpacing: "-0.03em", lineHeight: 1.05, margin: "0.5rem 0 0.2rem" }}>
-        {to ? fmtDate(to) : "—"}
+        {/* En saut automatique, le monde s'arrête plus tôt quand l'actualité
+            l'exige : on annonçait « 1er octobre », l'édition sortait le 25
+            septembre, et le journal semblait se tromper sur sa propre date. */}
+        {to ? `${byHand ? "" : "au plus tard le "}${fmtDate(to)}` : "—"}
         </div>
         <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)", marginBottom: "0.7rem" }}>
-        {byHand ? "la date que portera la prochaine feuille" : `fixée par ${auto.reason}${auto.from ? ` — ${auto.from}` : ""}`}
+        {byHand ? "la date que portera la prochaine feuille" : `fixée par ${auto.reason}${auto.from ? ` — ${auto.from}` : ""} ; plus tôt si l'actualité l'exige`}
         </div>
         <div style={{ marginBottom: "0.8rem" }}>
         <button
@@ -887,8 +918,10 @@ const Record = ({ record, treasuries, player, usdPerSY }) => {
     const amountOf = (row) => {
         const size = Math.abs(row.amount);
         if (row.unit === "SY") return money(size);
-        if (row.unit === "people") return `${fmtCount(size)} people`;
-        return `${Math.round(size).toLocaleString("en-US")} ${row.unit}`;
+        if (row.unit === "people") return `${fmtCount(size)} personnes`;
+        // Des points d'opinion : une décimale sous dix, sinon « +0 pt » pour 0,4.
+        if (row.unit === "pt") return `${size < 10 ? String(Math.round(size * 10) / 10).replace(".", ",") : Math.round(size)} pt`;
+        return `${Math.round(size).toLocaleString("fr-FR")} ${row.unit}`;
     };
     return (
         <section>
@@ -1092,11 +1125,15 @@ const Bulletin = ({ onOpenAdvisor, pressFocus = 0, nav = null }) => {
         ? aujourdhui.diff(depuis, "day") + 1
         : 0;
     const anDuPontificat = jourDuPontificat > 0 ? Math.floor((jourDuPontificat - 1) / 365) + 1 : 1;
-    // Les ordres que le moteur a jugés portent un verdict ; les autres attendent.
-    const ordresJuges = useMemo(
-        () => (Array.isArray(actions) ? actions.filter((a) => a && a.verdict).length : 0),
-        [actions],
-    );
+    // Les ordres que la DERNIÈRE édition a jugés. Le compte lisait « a.verdict »
+    // sur tout le dossier, et le tour ne posait jamais de verdict : l'en-tête
+    // disait « 0 ordres jugés » à chaque tour, ordres joués ou non.
+    const jugesCeTour = useMemo(() => {
+        const list = Array.isArray(actions) ? actions.filter((a) => a && a.status !== "planned" && a.kind !== "chat" && a.judgedOn) : [];
+        const derniere = list.reduce((m, a) => (a.judgedOn > m ? a.judgedOn : m), "");
+        return derniere ? list.filter((a) => a.judgedOn === derniere) : [];
+    }, [actions]);
+    const ordresJuges = jugesCeTour.length;
     const lignesRegistre = useMemo(
         () => lignesDuRegistre(world?.record, world?.treasuries, player).length,
         [world?.record, world?.treasuries, player],
@@ -1117,7 +1154,13 @@ const Bulletin = ({ onOpenAdvisor, pressFocus = 0, nav = null }) => {
     // ids of the events it wrote, and the dates it ran between when it does
     // not (AI/gameplay.js). Anything older is history and prints as history.
     const { edition, earlier } = useMemo(() => {
-        const dated = events.filter((event) => event && event.title);
+        // Les refus du moteur sont une note au modèle, pas une nouvelle : ils
+        // s'imprimaient en manchette, en anglais et dans le jargon interne
+        // (« Not executed — The engine refused 1 change: … driveOps create … »),
+        // et contredisaient parfois la page : la campagne « refusée » était
+        // bel et bien ouverte dans le cahier des Comptes. Le modèle les relit au
+        // tour suivant ; le lecteur n'a pas à les lire.
+        const dated = events.filter((event) => event && event.title && event.kind !== REJECTION_EVENT_KIND);
         dated.sort((a, b) => String(b.date).localeCompare(String(a.date)));
         const round = Array.isArray(world?.simulationHistory) ? world.simulationHistory[0] : null;
         const ids = new Set((round?.eventIds ?? []).filter(Boolean));
@@ -1280,7 +1323,7 @@ const Bulletin = ({ onOpenAdvisor, pressFocus = 0, nav = null }) => {
             <span data-no-translate>{outage.body}</span>
             {outage.reason && (
                 <div data-no-translate style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)", marginTop: "0.4rem" }}>
-                {outage.reasonLabel}: {outage.reason}
+                {outage.reasonLabel} : {String(outage.reason).replace(/\*\*(.+?)\*\*/g, "$1").replace(/^Ouvrez les réglages et collez votre clé/, "Aucune clé n'est enregistrée : collez votre clé ci-dessous")}
                 </div>
             )}
             {/* Un quota épuisé se répare avec une autre clé, et ce bandeau était
@@ -1392,6 +1435,7 @@ const Bulletin = ({ onOpenAdvisor, pressFocus = 0, nav = null }) => {
             undone — was the first thing under the reader's hand, and a turn was
             regularly spent before a single order had been written. Orders are
             written first; the presses are what you reach when you are done. */}
+        {!awaitingInauguration && jugesCeTour.length > 0 && <SortDesOrdres ordres={jugesCeTour} />}
         <section>
         <ActionsPanel embedded isOpen onClose={() => {}} onOpenAdvisor={onOpenAdvisor} />
         </section>
@@ -1419,7 +1463,7 @@ const Bulletin = ({ onOpenAdvisor, pressFocus = 0, nav = null }) => {
 
         {/* La salle qui décide, en bas de colonne droite : la maquette la met
             là, sous le registre. C'est le même hémicycle que le cahier. */}
-        <ApercuDuCollege assembly={world?.assembly} />
+        <ApercuDuCollege assembly={world?.assembly} player={player} />
 
         {indicators && (
             <section>

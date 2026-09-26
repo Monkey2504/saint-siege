@@ -22,7 +22,7 @@ const lower = (v) => str(v).toLowerCase();
 const arr = (v) => (Array.isArray(v) ? v : []);
 
 export const REJECTION_EVENT_KIND = "engine";
-export const REJECTION_EVENT_TITLE = "Not executed";
+export const REJECTION_EVENT_TITLE = "Non exécuté";
 
 // A line is { text, playerRelated } or a plain string (world-side, not the player's).
 const toLine = (entry) => (typeof entry === "string"
@@ -38,7 +38,7 @@ export const buildRejectionEvent = (lines, { date = "", source = "engine" } = {}
   return normalizeEventEntry({
     date,
     title: REJECTION_EVENT_TITLE,
-    description: `The engine refused ${unique.length} change${unique.length === 1 ? "" : "s"} this turn:\n${unique.map((l) => `- ${l.text}`).join("\n")}`,
+    description: `Le moteur a refusé ${unique.length} changement${unique.length === 1 ? "" : "s"} ce tour-ci :\n${unique.map((l) => `- ${l.text}`).join("\n")}`,
     importance: "minor",
     kind: REJECTION_EVENT_KIND,
     notable: false,

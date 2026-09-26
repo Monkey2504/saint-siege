@@ -63,11 +63,11 @@ test("applyChurchPreset: the Holy See, six real factions, six real bodies, seede
     "Dicastère pour le Clergé",
     "Section pour les relations avec les États",
   ]) assert.ok(bodies.includes(attendu), `${attendu} est un corps de l'Église`);
-  const church = once.organizations.find((o) => o.name === "Catholic Church");
+  const church = once.organizations.find((o) => o.name === "Église catholique");
   assert.equal(church.leader, HOLY_SEE);
   assert.deepEqual([...church.members.filter((m) => m !== HOLY_SEE)].sort(), ["Brazil", "Italy", "Poland"], "membership only names countries the map has");
   assert.ok(once.organizations.some((o) => o.name === "United Nations"), "existing bodies are kept");
-  assert.equal(once.organizations.filter((o) => o.name === "Catholic Church").length, 1, "the catalogue's Catholic Church is replaced, not duplicated");
+  assert.equal(once.organizations.filter((o) => o.name === "Église catholique").length, 1, "the catalogue's Catholic Church is replaced, not duplicated");
 
   // Six factions, les deux corps qui portent un pontificat, et les trois qui
   // poursuivent les fronts orphelins. Un monde modélisé en contre-pouvoirs

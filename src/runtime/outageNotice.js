@@ -27,7 +27,9 @@ const NOTICES = Object.freeze({
     label: "Ce n'est pas une vraie édition",
     one: "Cette édition a été écrite par le simulateur hors-ligne, pas par le monde.",
     many: (run, since) => `Les ${run} dernières éditions ont été écrites par le simulateur hors-ligne, pas par le monde${since ? `, depuis le ${since}` : ""}.`,
-    consequence: () => "Aucun ordre n'y a été jugé, aucun argent n'a bougé, aucun rival n'y a avancé. Les pas du moteur, eux, ont bien tourné : les rassemblements, les budgets et les rendements ci-dessous sont réels.",
+    // Les ordres y sont jugés par le moteur seul (leur verdict), depuis que le
+    // sort d'un ordre oublié par le récit est celui de son verdict.
+    consequence: () => "Le récit n'y est qu'un canevas : aucun rival n'y a avancé, et vos ordres n'ont reçu que le verdict du moteur, sans que le monde y réponde. Les pas du moteur, eux, ont bien tourné : le sort de vos ordres, les rassemblements, les budgets et les rendements ci-dessous sont réels.",
     reason: "Raison rapportée",
   },
   es: {

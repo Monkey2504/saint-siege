@@ -315,3 +315,9 @@ test("une somme de campagne se convertit par sa monnaie, pas par le taux des ann
   const eco = { usdPerSY: 1000 };
   assert.equal(syFromMillions(96, "EUR", eco), usdFromMillions(96, "EUR") / 1000);
 });
+
+test("une campagne ouverte par l'ordre n'est pas réclamée une seconde fois par le récit", () => {
+  const event = { title: "Lancement de la campagne pour les pensions", description: "Le Saint-Siège lance une campagne de dons de 50 millions d'euros pour le fonds de pension.", impacts: {} };
+  const held = [{ id: "d1", name: "Campagne de dons (50 M€)", owner: "Saint-Siège", currency: "EUR", target: 50 }];
+  assert.deepEqual(reconcileNarration([event], { drives: held }), []);
+});

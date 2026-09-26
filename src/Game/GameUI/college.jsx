@@ -6,12 +6,12 @@ import { CONTENU_TOP } from "./chrome.js";
 import { CahierVide, EnTeteDeCahier, SectionHead, fmtDate } from "./journal.jsx";
 import {
     AXES, HOSTILE_AT, LOYAL_AT, RADICAL_AT, ZEALOUS_AT,
-    coalition, groupsOn, normalizeAssembly, putToTheVote, speechOrderText, standing, temper,
+    coalition, groupsOn, normalizeAssembly, ownBloc, putToTheVote, speechOrderText, standing, temper,
 } from "../../runtime/factions.js";
 
-// What it takes to carry a decision in this body. A threshold, because that is
-// how a body's own rules read — not a share the interface invents.
-const NEEDED = 50;
+// Ce qu'il faut pour emporter une décision : la majorité du corps, celle que le
+// moteur calcule (standing().majority). Ce cahier en imprimait une autre, fixée
+// à 50, pendant que la une disait 81 : deux seuils pour un seul vote.
 
 // A number in a table is not a room. The college is a hundred and sixty people
 // and the player has to SEE them — where they sit, which of them have come over,
@@ -110,7 +110,7 @@ const Hemicycle = ({ electors, axis, colours, selected, onSelect, byMood }) => {
  * contradiction que ce journal promet de ne pas imprimer. Les marques n'y sont
  * pas cliquables : d'ici on lit la salle, on ne l'interroge pas.
  */
-export const ApercuDuCollege = ({ assembly: brut }) => {
+export const ApercuDuCollege = ({ assembly: brut, player = "" }) => {
     const assembly = useMemo(() => normalizeAssembly(brut), [brut]);
     const room = useMemo(() => (assembly ? standing(assembly) : null), [assembly]);
     if (!assembly || !room) return null;
@@ -126,12 +126,12 @@ export const ApercuDuCollege = ({ assembly: brut }) => {
             byMood
         />
         <p style={{ fontSize: "var(--oh-t-xs)", lineHeight: 1.5, margin: "0.4rem 0 0" }}>
-        <b style={{ color: "var(--oh-grant)" }}>{room.with}</b> avec vous ·{" "}
+        Opinion : <b style={{ color: "var(--oh-grant)" }}>{room.with}</b> favorables ·{" "}
         <b style={{ color: "var(--oh-text-dim)" }}>{room.undecided}</b> indécis ·{" "}
-        <b style={{ color: "var(--oh-caution)" }}>{room.against}</b> contre
+        <b style={{ color: "var(--oh-caution)" }}>{room.against}</b> hostiles
         </p>
         <p style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)", lineHeight: 1.5, margin: "0.2rem 0 0" }}>
-        Il en faut {room.majority} pour emporter une décision.
+        {player && `Votre courant : ${ownBloc(assembly, player).seats} électeurs. `}Un vote se gagne à {room.majority} voix sur {room.seats}.
         </p>
         </section>
     );
@@ -188,8 +188,8 @@ export const College = ({ nav = null }) => {
     const player = game?.country || "";
     const [sitWith, setSitWith] = useState([]);
     const pact = useMemo(
-        () => (assembly && player ? coalition(assembly, { player, need: NEEDED, sitWith }) : null),
-        [assembly, player, sitWith],
+        () => (assembly && player ? coalition(assembly, { player, need: room?.majority ?? 81, sitWith }) : null),
+        [assembly, player, sitWith, room],
     );
     const currents = useMemo(
         () => (assembly ? groupsOn(assembly, "follows").filter((g) => g.name && g.name !== player) : []),
@@ -286,9 +286,14 @@ export const College = ({ nav = null }) => {
             plus whoever you sit with, and that count lives in its own panel —
             printing a second, different threshold here said two contradictory
             things about winning a vote on one screen. */}
-        <b style={{ color: "var(--oh-grant)" }}>{room.with}</b> vous sont acquis ·{" "}
+        {/* L'OPINION, pas le vote : « 0 vous sont acquis » sur la même page que
+            « 42 vous suivent » se lisait comme une contradiction. Les 42 sont
+            les électeurs de votre courant ; l'opinion dit ce qu'ils pensent de
+            vous ce mois-ci. Deux choses, deux mots. */}
+        Opinion :{" "}
+        <b style={{ color: "var(--oh-grant)" }}>{room.with}</b> favorables ·{" "}
         <b style={{ color: "var(--oh-text-dim)" }}>{room.undecided}</b> indécis ·{" "}
-        <b style={{ color: "var(--oh-caution)" }}>{room.against}</b> contre
+        <b style={{ color: "var(--oh-caution)" }}>{room.against}</b> hostiles
         </span>
         </div>
 
@@ -351,12 +356,15 @@ export const College = ({ nav = null }) => {
             Pour emporter une décision — il en faut {pact.need}
             </div>
             <p style={{ fontSize: "var(--oh-t-sm)", lineHeight: 1.6, margin: "0.8rem 0 0.6rem", maxWidth: "70ch" }}>
-            <b style={{ color: pact.carriesAlone ? "var(--oh-grant)" : "var(--oh-text-strong)" }}>{pact.alone} vous suivent.</b>{" "}
+            <b style={{ color: pact.carriesAlone ? "var(--oh-grant)" : "var(--oh-text-strong)" }}>{pact.alone} électeurs suivent votre courant.</b>{" "}
             {pact.carriesAlone
                 ? "Vous emportez ce corps seul, sans personne."
                 : <>Avec {pact.partners.length === 1 ? "le courant" : `les ${pact.partners.length} courants`} avec qui vous vous êtes assis, {pact.held}. {pact.carries
                     ? <b style={{ color: "var(--oh-grant)" }}>Cela l'emporte.</b>
-                    : <>Il en manque {pact.short}. {pact.unattached} électeurs ne suivent aucun courant — ce sont eux qui sont en jeu.</>}</>}
+                    : <>Il en manque {pact.short}. {pact.unattached} électeurs ne suivent aucun courant — ce sont eux qui sont en jeu.</>}</>}{" "}
+            <span style={{ color: "var(--oh-text-dim)" }}>
+            (Votre courant {pact.alone} + les autres courants {Math.max(0, pact.seats - pact.alone - pact.unattached)} + sans courant {pact.unattached} = {pact.seats}.)
+            </span>
             </p>
             <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
             {currents.map((c) => {

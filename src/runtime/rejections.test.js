@@ -18,7 +18,7 @@ test("buildRejectionEvent: one normalized event, kind engine, minor, one line pe
   assert.equal(event.playerRelated, true);
   assert.equal(event.date, "1939-09-01");
   assert.equal(event.source, "engine");
-  assert.match(event.description, /^The engine refused 2 changes this turn:\n- Order 'Invade Poland' blocked.*\n- Organization op join on 'NATOO' ignored: no such body$/);
+  assert.match(event.description, /^Le moteur a refusé 2 changements ce tour-ci :\n- Order 'Invade Poland' blocked.*\n- Organization op join on 'NATOO' ignored: no such body$/);
   assert.deepEqual(event.impacts.regionTransfers, [], "the synthetic event carries no impacts of its own");
   assert.ok(event.id && event.createdAt, "normalized like any other event");
   // Round-trips through the event log's normalizer unchanged.
@@ -26,7 +26,7 @@ test("buildRejectionEvent: one normalized event, kind engine, minor, one line pe
 
   const worldOnly = buildRejectionEvent(["Unit op move for id x rejected: no unit with that id is on the map"]);
   assert.equal(worldOnly.playerRelated, false);
-  assert.match(worldOnly.description, /refused 1 change this turn/);
+  assert.match(worldOnly.description, /refusé 1 changement ce tour-ci/);
   assert.equal(buildRejectionEvent([]), null);
   assert.equal(buildRejectionEvent([{ text: "  " }]), null);
 });

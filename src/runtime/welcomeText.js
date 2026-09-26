@@ -22,7 +22,8 @@ const EN = {
 const TEXT = Object.freeze({
   en: EN,
   fr: {
-    eyebrow: "Open Historia",
+    // Le nom du jeu, pas celui du moteur dont il dérive.
+    eyebrow: "Saint-Siège · Mensuel des affaires de l'Église",
     title: "Devenez le nouveau pape",
     lead: "Pas d'armée. Pas de territoire à conquérir. Un demi-kilomètre carré, un milliard et demi de baptisés, une Curie qui vous survivra, et des comptes qui ne mentent pas.",
     begin: "Commencer",
