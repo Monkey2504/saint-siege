@@ -64,7 +64,7 @@ const OrganizationsView = ({ playerCountry, gameDate, onTalk }) => {
 
       {visible.length === 0 && (
         <div style={{ ...muted, fontStyle: "italic", marginBottom: "0.8rem" }}>
-          No international body is recorded yet. The world founds the ones of its era on the first turn, and you can found your own.
+          Aucun organisme international n'est encore enregistré. Le monde fonde au premier tour ceux de son époque, et vous pouvez fonder les vôtres.
         </div>
       )}
 
@@ -97,24 +97,24 @@ const OrganizationsView = ({ playerCountry, gameDate, onTalk }) => {
             {o.status === "active" && (
               <div style={{ display: "flex", flexWrap: "wrap", gap: "0.35rem", marginTop: "0.55rem" }}>
                 {typeof onTalk === "function" && (
-                  <button style={button(true)} onClick={() => onTalk(o.name)}>💬 Talk to {o.name}</button>
+                  <button style={button(true)} onClick={() => onTalk(o.name)}>💬 Écrire à {o.name}</button>
                 )}
                 {member ? (
                   <>
-                    <button style={button(false)} onClick={() => setComposer({ orgName: o.name, mode: "propose" })}>Propose a resolution</button>
-                    <button style={button(false)} onClick={() => act(`Leave ${o.name}`, `${playerCountry} formally withdraws from ${o.name}, notifying its members and the seat at ${o.seat || "its headquarters"}.`)}>Leave</button>
+                    <button style={button(false)} onClick={() => setComposer({ orgName: o.name, mode: "propose" })}>Proposer une résolution</button>
+                    <button style={button(false)} onClick={() => act(`Se retirer de ${o.name}`, `${playerCountry} se retire formellement de ${o.name}, en avisant ses membres et le siège de ${o.seat || "son secrétariat"}.`)}>Se retirer</button>
                   </>
                 ) : (
-                  <button style={button(false)} onClick={() => act(`Apply to join ${o.name}`, `${playerCountry} formally applies for membership of ${o.name}, accepting its charter${o.charter ? ` (${o.charter})` : ""}; the members are to vote on admission under the body's ${o.votingRule} rule.`)}>Apply to join</button>
+                  <button style={button(false)} onClick={() => act(`Demander l'admission à ${o.name}`, `${playerCountry} demande formellement son admission à ${o.name} et en accepte la charte${o.charter ? ` (${o.charter})` : ""} ; les membres votent l'admission selon la règle « ${o.votingRule} » de l'organisme.`)}>Demander l'admission</button>
                 )}
               </div>
             )}
             {composer && composer.orgName === o.name && composer.mode === "propose" && (
               <div style={{ marginTop: "0.5rem" }}>
-                <textarea value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="What the resolution says, and what you want the members to vote on." rows={3}
+                <textarea value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="Ce que dit la résolution, et ce sur quoi vous voulez faire voter les membres." rows={3}
                   style={{ width: "100%", boxSizing: "border-box", background: "var(--oh-plate-2)", color: "var(--oh-text)", border: "1px solid var(--oh-line)", borderRadius: "8px", padding: "0.45rem", fontSize: "var(--oh-t-xs)", fontFamily: "inherit" }} />
                 <div style={{ display: "flex", gap: "0.35rem", marginTop: "0.35rem" }}>
-                  <button style={button(true)} disabled={!draft.trim()} onClick={() => act(`Resolution at ${o.name}`, `${playerCountry} tables the following resolution at ${o.name} and calls a vote under its ${o.votingRule} rule: ${draft.trim()}`)}>Table it</button>
+                  <button style={button(true)} disabled={!draft.trim()} onClick={() => act(`Résolution devant ${o.name}`, `${playerCountry} dépose la résolution suivante devant ${o.name} et en appelle au vote selon sa règle « ${o.votingRule} » : ${draft.trim()}`)}>Déposer</button>
                   <button style={button(false)} onClick={() => { setComposer(null); setDraft(""); }}>Annuler</button>
                 </div>
               </div>
@@ -131,16 +131,16 @@ const OrganizationsView = ({ playerCountry, gameDate, onTalk }) => {
       </div>
       {composer?.mode === "found" && (
         <div style={{ marginTop: "0.5rem" }}>
-          <textarea value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="Name it, say what it is for (alliance, trade bloc, monetary union, council...), whom you invite, where it sits and how it votes." rows={4}
+          <textarea value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="Nommez-le, dites à quoi il sert (alliance, union, conseil, commission…), qui vous y invitez, où il siège et comment il vote." rows={4}
             style={{ width: "100%", boxSizing: "border-box", background: "var(--oh-plate-2)", color: "var(--oh-text)", border: "1px solid var(--oh-line)", borderRadius: "8px", padding: "0.45rem", fontSize: "var(--oh-t-xs)", fontFamily: "inherit" }} />
           <div style={{ display: "flex", gap: "0.35rem", marginTop: "0.35rem" }}>
-            <button style={button(true)} disabled={!draft.trim()} onClick={() => act("Found an international organization", `${playerCountry} convenes the founding of a new international body and invites the named polities to sign its charter: ${draft.trim()}`)}>Convene</button>
+            <button style={button(true)} disabled={!draft.trim()} onClick={() => act("Fonder un organisme international", `${playerCountry} convoque la fondation d'un nouvel organisme et invite les puissances nommées à en signer la charte : ${draft.trim()}`)}>Convoquer</button>
             <button style={button(false)} onClick={() => { setComposer(null); setDraft(""); }}>Annuler</button>
           </div>
         </div>
       )}
       <div style={{ ...muted, marginTop: "0.8rem", fontSize: "var(--oh-t-2xs)" }}>
-        Each move is queued as an action for your next turn; the other members answer in character — admission can be refused and a resolution voted down.
+        Chaque geste est versé au dossier comme un ordre pour le tour suivant ; les autres membres répondent dans leur propre voix — une admission peut être refusée, une résolution rejetée.
       </div>
     </div>
   );

@@ -990,18 +990,26 @@ export const loadCountryNames = async ({ force = false } = {}) => {
       // scripts/extract-country-names.mjs with the same field precedence, so the
       // two cannot disagree, and it is 7.8 kB against 62 MB. The tiles are still
       // read for everything that is genuinely a map.
+      // La clé sert à dédoublonner sans tenir compte de la casse ; elle ne sert
+      // PAS de nom. Elle l'a servi : la Map gardait `nom en minuscules → code`,
+      // et la liste se reconstruisait à partir des clés — donc tout le jeu
+      // nommait les pays en minuscules. Le joueur a écrit à « antigua and
+      // barbuda », a lu « akrotiri and dhekelia » dans son courrier, et la même
+      // minuscule partait au modèle, à qui l'on disait « vous êtes antigua and
+      // barbuda ». Le nom propre voyage maintenant à côté de la clé.
       const seen = new Map();
       for (const entry of shippedCountryNames) {
         const code = entry?.code || "";
         const name = resolveCountryDisplayName(entry?.name, code);
-        const nameKey = String(name ?? "").trim().toLowerCase();
+        const propre = String(name ?? "").trim();
+        const nameKey = propre.toLowerCase();
         if (nameKey && !seen.has(nameKey)) {
-          seen.set(nameKey, code);
+          seen.set(nameKey, { code, name: propre });
         }
       }
 
-      const countries = Array.from(seen.entries())
-        .map(([name, code]) => ({ code, name }))
+      const countries = Array.from(seen.values())
+        .map(({ code, name }) => ({ code, name }))
         .sort((left, right) => left.name.localeCompare(right.name));
 
       try {

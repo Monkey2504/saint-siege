@@ -68,7 +68,7 @@ const parseDate = (value) => {
  */
 export const nextEdition = (world, actions, { today = "" } = {}) => {
   const now = parseDate(today);
-  if (now == null) return { date: "", days: SPANS.idle, reason: "the world's own pace", from: "" };
+  if (now == null) return { date: "", days: SPANS.idle, reason: "le pas du monde lui-même", from: "" };
 
   const planned = (Array.isArray(actions) ? actions : [])
     .filter((a) => a && typeof a === "object" && a.kind !== "chat" && (a.status ?? "planned") === "planned");
@@ -80,7 +80,7 @@ export const nextEdition = (world, actions, { today = "" } = {}) => {
     if (lower(g?.status) !== "planned") continue;
     const at = parseDate(g?.date);
     if (at != null && at > now && (soonest == null || at < soonest.at)) {
-      soonest = { at, reason: `the ${str(g.name) || "gathering"}`, from: str(g.name) };
+      soonest = { at, reason: `le rassemblement ${str(g.name) || ""}`.trimEnd(), from: str(g.name) };
     }
   }
 
@@ -94,17 +94,17 @@ export const nextEdition = (world, actions, { today = "" } = {}) => {
     if (!paced || days > paced.days) {
       paced = {
         days,
-        reason: kind === "letter" ? "a letter to answer"
-          : kind === "assembly" ? "a body that must sit"
-          : kind === "campaign" ? "a campaign that needs its season"
-          : "a reform to take effect",
+        reason: kind === "letter" ? "une lettre à laquelle répondre"
+          : kind === "assembly" ? "un corps qui doit siéger"
+          : kind === "campaign" ? "une campagne qui attend sa saison"
+          : "une réforme qui doit prendre effet",
         from: str(order.title) || str(order.text).slice(0, 48),
       };
     }
   }
 
   // An empty desk carries the world at its own pace.
-  const base = paced ?? { days: SPANS.idle, reason: "nothing at the desk — the world's own pace", from: "" };
+  const base = paced ?? { days: SPANS.idle, reason: "rien sur le bureau — le pas du monde lui-même", from: "" };
   const target = now + base.days * DAY;
 
   // A dated event sooner than that pulls the edition forward: print when there

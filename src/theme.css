@@ -37,9 +37,12 @@
   --oh-font-body: "Archivo", "Segoe UI", system-ui, sans-serif;
   --oh-font-label: "Archivo", "Segoe UI", system-ui, sans-serif;
   --oh-font-data: "Archivo", "Segoe UI", system-ui, sans-serif;
-  /* The reading face. Not a room's face: a role's. Anything written to be read
-     as prose — a letter, a written analysis, the body of an article — is set in
-     it; everything that labels, counts or commands stays in Archivo. */
+  /* La face de lecture, et son emploi exact — le commentaire d'avant était plus
+     large que l'intention et m'avait fait passer le corps des articles au
+     serif, que le brief du 11 septembre a corrigé. Newsreader porte les TITRES,
+     les CHAPÔS, les LETTRES et les ÉTATS VIDES. Le texte de labeur — le corps
+     d'un article, une analyse, un tableau, tout ce qui étiquette, compte ou
+     commande — reste en Archivo. */
   --oh-font-serif: "Newsreader", Georgia, "Iowan Old Style", "Times New Roman", serif;
   --oh-label-case: uppercase;
   --oh-label-track: 0.02em;
@@ -55,6 +58,22 @@
   --oh-t-md: 1.18rem;
   --oh-t-lg: 1.42rem;
   --oh-t-xl: 2rem;
+  /* Les deux marches d'affichage. Elles ne sont pas inventées ici : la session
+     de design a posé 1 → 1.42 → 2, c'est-à-dire √2 deux fois ; on prolonge le
+     même pas, 2.83 puis 4. Le nom du journal fait alors quatre fois le corps du
+     texte, le rapport de la maquette. Proposées dans design/ECHELLE.md,
+     validées par le brief du 11 septembre et descendues depuis
+     design/tokens.json : `3xl` une fois par page, `2xl` une fois. */
+  --oh-t-2xl: clamp(1.9rem, 3.4vw, 2.83rem);
+  --oh-t-3xl: clamp(2.3rem, 5.4vw, 4rem);
+  /* ---- trois filets, et pas un de plus ---- */
+  /* Un journal se lit d'abord à ses filets. Trois graisses, chacune un sens :
+     séparer, fermer, ouvrir. Une quatrième épaisseur serait un filet qui ne
+     dit rien — le brief demandait 4 px pour le verdict « par habitude » et a
+     tranché pour les 3 px de `fort`. Validées, et descendues des tokens. */
+  --oh-filet: 1px;          /* sépare : colonnes, lignes, articles */
+  --oh-filet-fort: 3px;     /* ferme : tête et fin de section, marque active */
+  --oh-filet-manchette: 6px; /* ouvre la page : une seule fois par écran */
   /* ---- three radii, by role ---- */
   --oh-r-flat: 0;
   --oh-r-soft: 3px;
@@ -159,20 +178,24 @@ button, input, textarea, select {
   border: 1px solid rgba(0, 0, 0, 0.28);
 }
 
+/* Les titres sont en romain — c'est ce qui fait lire un article de journal
+   plutôt qu'une carte d'application. */
 .oh-entry-title {
   margin: 0 0 0.3rem;
-  font-family: var(--oh-font-display);
-  font-weight: 600;
-  font-size: var(--oh-t-lg);
-  line-height: 1.14;
+  font-family: var(--oh-font-serif);
+  font-weight: 700;
+  font-size: var(--oh-t-md);
+  line-height: 1.12;
   color: var(--oh-text-strong);
   text-wrap: balance;
 }
+/* Une colonne de journal est étroite et serrée : au-delà d'une cinquantaine de
+   signes l'œil perd sa ligne en revenant à la marge. */
 .oh-entry-body {
   font-family: var(--oh-font-body);
-  font-size: var(--oh-t-base);
-  line-height: 1.55;
-  max-width: 62ch;
+  font-size: var(--oh-t-sm);
+  line-height: 1.5;
+  max-width: 46ch;
   color: var(--oh-text);
 }
 .oh-entry-body p { margin: 0 0 0.6rem; }
@@ -309,8 +332,51 @@ button, input, textarea, select {
   gap: 2.2rem;
   align-items: start;
 }
+/* Un enfant de grille a `min-width: auto` : il ne descend pas sous la largeur
+   minimale de son contenu, et une colonne implicite ne l'y force pas. Mesuré à
+   390 px, la colonne de la une faisait 427 px et poussait la page hors de
+   l'écran — le chapô et la photographie s'y faisaient couper par la droite.
+   Onze captures d'affilée ne l'avaient pas dit ; le canal le mesure maintenant
+   (scripts/rendu.mjs). */
+.oh-bulletin-grid > * { min-width: 0; }
 @media (min-width: 62rem) {
+  /* Trois colonnes, comme la maquette journal : les nouvelles, les ordres, puis
+     la presse et le registre. Un filet vertical les sépare — c'est lui qui fait
+     lire la page comme une feuille imprimée plutôt que comme trois panneaux
+     posés côte à côte. */
+  .oh-bulletin-grid { grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) minmax(0, 1fr); gap: 0; }
+  .oh-bulletin-grid > * + * {
+    border-left: 1px solid var(--oh-line);
+    margin-left: 1.6rem;
+    padding-left: 1.6rem;
+  }
+}
+@media (min-width: 62rem) and (max-width: 86rem) {
+  /* À l'étroit pour trois colonnes, les ordres repassent sous les nouvelles
+     plutôt que d'être écrasés en gouttière. */
   .oh-bulletin-grid { grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr); }
+}
+
+/* Rien à imprimer en tête : la note est passée au-dessus, sur une colonne de
+   lecture, et il ne reste que deux colonnes de contenu réel. Une colonne vide
+   à côté de deux pleines n'est pas une mise en page, c'est un trou. */
+@media (min-width: 62rem) {
+  .oh-bulletin-grid-creuse { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); }
+}
+
+/* Le corps de l'article de tête, en deux colonnes comme la maquette. Une
+   colonne de journal tient trente à trente-cinq signes ; sous 34rem il n'y a
+   plus la place d'en mettre deux sans descendre à vingt, et la page repasse
+   alors sur une seule. */
+.oh-une-corps {
+  column-count: 2;
+  column-gap: 28px;
+  orphans: 2;
+  widows: 2;
+}
+.oh-une-corps > :first-child, .oh-une-corps p:first-child { margin-top: 0; }
+@media (max-width: 34rem) {
+  .oh-une-corps { column-count: 1; }
 }
 
 /* The lead story carries the page: the first headline is set larger than the
@@ -325,7 +391,7 @@ button, input, textarea, select {
 
 .oh-plate {
   border: 0;
-  border-top: 4px solid var(--oh-text-strong);
+  border-top: var(--oh-filet-fort) solid var(--oh-text-strong);
   border-radius: var(--oh-r-flat);
   box-shadow: none;
 }
@@ -384,7 +450,7 @@ button, input, textarea, select {
    the constraints as ruled rows. Ink on paper throughout — a solid coloured
    slab put white and pastel text on blue, and the rows could not be read. */
 .oh-tally {
-  border-top: 4px solid var(--oh-text-strong);
+  border-top: var(--oh-filet-fort) solid var(--oh-text-strong);
   background: transparent;
   color: var(--oh-text);
   margin-top: 0.7rem;
@@ -395,11 +461,18 @@ button, input, textarea, select {
 .oh-tally-feasible { border-top-color: var(--oh-accent); }
 .oh-tally-constrained { border-top-color: var(--oh-caution); }
 .oh-tally-blocked { border-top-color: var(--oh-alert); }
+/* Le verdict est un aplat, pas un mot coloré. Le brief de la session de design
+   le demande et la page en a besoin : sans lui, l'écran entier est beige, noir
+   et gris, et rien n'y a de relief. C'est une pastille et non la dalle qu'on
+   avait essayée — celle-là mettait du texte pâle sur du bleu et rendait les
+   lignes du dessous illisibles ; ici la couleur ne porte qu'un mot, en blanc,
+   et les réserves restent de l'encre sur papier. */
 .oh-result {
-  margin: 0 0 0.45rem;
-  padding: 0;
-  background: transparent;
-  color: var(--oh-text-strong);
+  margin: 0 0 0.55rem;
+  padding: 0.22rem 0.5rem 0.26rem;
+  align-self: flex-start;
+  background: var(--oh-text-strong);
+  color: var(--oh-on-accent);
   font-family: var(--oh-font-display);
   font-weight: 800;
   font-size: var(--oh-t-md);
@@ -407,7 +480,9 @@ button, input, textarea, select {
   letter-spacing: -0.02em;
   border-radius: var(--oh-r-flat);
 }
-.oh-tally-blocked .oh-result { color: var(--oh-alert); }
+.oh-tally-feasible .oh-result { background: var(--oh-accent); }
+.oh-tally-constrained .oh-result { background: var(--oh-caution); }
+.oh-tally-blocked .oh-result { background: var(--oh-alert); }
 .oh-vote {
   border-bottom: 0;
   border-top: 1px dotted var(--oh-line);
@@ -432,7 +507,7 @@ button, input, textarea, select {
 .oh-dispatch { border-radius: var(--oh-r-flat); }
 .startup-panel {
   border: 0;
-  border-top: 4px solid var(--oh-text-strong);
+  border-top: var(--oh-filet-fort) solid var(--oh-text-strong);
   border-radius: var(--oh-r-flat);
   box-shadow: none;
 }
@@ -505,4 +580,68 @@ button, input, textarea, select {
 /* A column of money reads as a column only if every digit is the same width. */
 [data-surface="ledger"] {
   font-variant-numeric: tabular-nums;
+}
+
+/* ─── La barre commune et le bandeau, à l'étroit ────────────────────────────
+   Six cahiers, le nom du journal, la date et le bouton du tour ne tiennent pas
+   dans 390 px. Sur un écran étroit le bandeau de barre s'efface — il répète ce
+   que le bandeau du journal dit juste dessous — et les cahiers gardent la place.
+   Le bouton reste, sans sa date : c'est le geste, pas la glose, qui doit tenir. */
+@media (max-width: 40rem) {
+  .oh-barre-titre { display: none; }
+  .oh-barre-arrivee { display: none; }
+
+  /* Le bandeau du journal passe sur une colonne, centré, plutôt que de sortir
+     de la feuille par la droite. */
+  .oh-masthead { grid-template-columns: minmax(0, 1fr) !important; }
+  .oh-masthead-flank { text-align: center !important; }
+
+  /* Centrer un rail qui déborde rend son DÉBUT inatteignable : le contenu
+     sort des deux côtés et le défilement ne peut pas remonter avant le bord
+     gauche. Les deux premiers cahiers étaient perdus pour un joueur sur
+     téléphone. À l'étroit, le rail commence au bord et défile normalement. */
+  .oh-barre-cahiers { justify-content: flex-start !important; }
+
+  /* « 0 événements · 0 ordres jugés · 12 lignes au registre » tient sur une
+     seule ligne par défaut, ce qui est juste sur un écran large et pousse la
+     page hors de l'écran sur un téléphone. À l'étroit, il se coupe. */
+  .oh-cahiers-apercu { white-space: normal !important; }
+
+  /* Le Courrier tient ses deux volets côte à côte. À 390 px, la grille écrasait
+     celui des lettres à soixante-dix pixels : le texte y tombait à un mot par
+     ligne, illisible. Un seul volet à la fois — la liste tant qu'aucune lettre
+     n'est ouverte, la lettre ensuite. Le retour existait déjà. */
+  /* Et une gouttière : les volets portent `padding-left: 0 !important` (plus
+     haut, pour que le fil colle au filet sur un écran large), si bien qu'à
+     l'étroit « Opinion 0, réservé » venait buter contre le bord de l'écran.
+     La marge se pose sur le conteneur, que cette règle-là ne touche pas. */
+  .oh-courrier-volets { grid-template-columns: minmax(0, 1fr) !important; padding: 0 1rem; }
+  /* Un filet de séparation n'a plus rien à séparer sur une seule colonne. */
+  .oh-courrier-volets > :nth-child(1) { border-right: 0 !important; }
+  /* `!important` parce que les deux volets portent leur `display` en style
+     EN LIGNE, qui l'emporte sur une feuille de style : sans lui, les deux
+     restaient là, simplement empilés. */
+  .oh-courrier-volets[data-lettre-ouverte="non"] > :nth-child(2) { display: none !important; }
+  .oh-courrier-volets[data-lettre-ouverte="oui"] > :nth-child(1) { display: none !important; }
+}
+
+/* ─── Le cahier des comptes ─────────────────────────────────────────────────
+   L'analyse à gauche, les tableaux à droite, séparés par un filet — la même
+   règle que la une : c'est le filet qui fait lire une feuille plutôt que deux
+   panneaux. Sous 62rem l'analyse passe au-dessus des tableaux. */
+.oh-comptes-grid {
+  display: grid;
+  gap: 1.6rem;
+  align-items: start;
+  margin-top: 1.4rem;
+}
+/* Même piège : la colonne d'analyse faisait 475 px dans un écran de 390. */
+.oh-comptes-grid > * { min-width: 0; }
+@media (min-width: 62rem) {
+  .oh-comptes-grid { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 0; }
+  .oh-comptes-grid > * + * {
+    border-left: 1px solid var(--oh-line);
+    margin-left: 1.6rem;
+    padding-left: 1.6rem;
+  }
 }

@@ -197,8 +197,8 @@ export const applyLiabilityMoves = (world, moves, { player = "" } = {}) => {
       if (i >= 0) purses[i] = { ...purses[i], capital: purses[i].capital - set };
       else endowment -= set;
       owed -= set;
-      rows.push({ date, polity: i >= 0 ? purses[i].body : player, kind: "patrimony", what: "capital set aside against an unfunded promise", amount: -set, unit: "SY", source: "liability:cover" });
-      rows.push({ date, polity: player, kind: "patrimony", what: "unfunded promises covered", amount: -set, unit: "SY", source: `liability:cover${i >= 0 ? `:${purses[i].body}` : ""}` });
+      rows.push({ date, polity: i >= 0 ? purses[i].body : player, kind: "patrimony", what: "capital mis de côté contre une promesse non financée", amount: -set, unit: "SY", source: "liability:cover" });
+      rows.push({ date, polity: player, kind: "patrimony", what: "promesses non financées couvertes", amount: -set, unit: "SY", source: `liability:cover${i >= 0 ? `:${purses[i].body}` : ""}` });
       continue;
     }
 
@@ -222,8 +222,8 @@ export const applyLiabilityMoves = (world, moves, { player = "" } = {}) => {
       const left = owed - moved;
       purses[i] = { ...carrier, assumedLiabilities: pos(carrier.assumedLiabilities) + moved };
       owed = left;
-      rows.push({ date, polity: carrier.body, kind: "patrimony", what: `assumed an unfunded promise from ${player}`, amount: moved, unit: "SY", source: "liability:assign" });
-      rows.push({ date, polity: player, kind: "patrimony", what: `unfunded promises carried by ${carrier.body}`, amount: -moved, unit: "SY", source: "liability:assign" });
+      rows.push({ date, polity: carrier.body, kind: "patrimony", what: `a repris une promesse non financée du ${player}`, amount: moved, unit: "SY", source: "liability:assign" });
+      rows.push({ date, polity: player, kind: "patrimony", what: `promesses non financées portées par ${carrier.body}`, amount: -moved, unit: "SY", source: "liability:assign" });
       // Say WHY the rest stayed: an order that asked for part of it got what it
       // asked for, which is not the same as being refused for want of capital.
       if (left > 1e-9 && moved + 1e-9 >= wanted) {
@@ -243,8 +243,8 @@ export const applyLiabilityMoves = (world, moves, { player = "" } = {}) => {
       // with somebody on the other side of it.
       const cost = REPRICE_LEGITIMACY_COST * (share / MAX_REPRICE_SHARE);
       legitimacy = clamp(legitimacy - cost, 0, 100);
-      rows.push({ date, polity: player, kind: "patrimony", what: `unfunded promises repriced by ${Math.round(share * 1000) / 10}%`, amount: -cut, unit: "SY", source: "liability:reprice" });
-      rows.push({ date, polity: player, kind: "standing", what: "terms rewritten on people already promised", amount: -cost, unit: "pt", source: "liability:reprice" });
+      rows.push({ date, polity: player, kind: "patrimony", what: `promesses non financées révisées de ${String(Math.round(share * 1000) / 10).replace(".", ",")}\u202f%`, amount: -cut, unit: "SY", source: "liability:reprice" });
+      rows.push({ date, polity: player, kind: "standing", what: "conditions réécrites sur des gens à qui l'on avait déjà promis", amount: -cost, unit: "pt", source: "liability:reprice" });
       continue;
     }
 

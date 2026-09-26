@@ -20,6 +20,21 @@ export const VERDICT_RESULT = {
 // player who has no key is exactly the player reading this sheet.
 const VOTE_WORDS = { grant: "accordé", caution: "réservé", alert: "refusé" };
 
+// Le nom de la réserve, tel que la maquette l'écrit : « Budget », « Collège »,
+// « Légitimité ». La clé reste celle du moteur (realityCheck.js l'écrit, et les
+// invites la relaient) ; seul l'affichage est traduit, comme partout ailleurs.
+// Une clé inconnue s'affiche telle quelle plutôt que de disparaître.
+const FACTEUR = {
+    budget: "Budget",
+    credibility: "Crédibilité",
+    reach: "Portée de l'appareil",
+    legitimacy: "Légitimité",
+    vote: "Collège",
+    opposition: "Opposition",
+    time: "Délai",
+    forces: "Forces",
+};
+
 // The same two thresholds the verdict itself uses (runtime/realityCheck.js):
 // under 0.4 a constraint is noted but does not bind, under 0.9 it binds, at or
 // above it stops the order outright. Deriving the row from severity rather than
@@ -51,7 +66,7 @@ export const RealityTally = ({ assessment }) => {
                 const tone = voteFor(constraint.severity);
                 return (
                     <div className="oh-vote" key={`${constraint.factor}-${constraint.severity}`}>
-                    <span className="oh-vote-name">{constraint.factor}</span>
+                    <span className="oh-vote-name">{FACTEUR[constraint.factor] || constraint.factor}</span>
                     <span>
                     <span className={`oh-key oh-key-${tone}`} />
                     <span className={`oh-vote-verdict oh-vote-${tone}`}> {VOTE_WORDS[tone]}</span>

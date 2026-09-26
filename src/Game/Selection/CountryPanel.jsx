@@ -244,7 +244,7 @@ const CountryInfoPanel = () => {
                 <span
                     key={tag}
                     style={{ ...pillStyle, background: "var(--oh-accent-soft)", borderColor: "var(--oh-accent-soft)" }}
-                    title="What this country is — the map-maker set this, and the AI reads it as context"
+                    title="Ce qu'est ce pays — posé par l'auteur de la carte, et lu par le modèle comme contexte"
                 >
                     {tag}
                 </span>

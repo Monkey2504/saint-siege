@@ -157,7 +157,7 @@ const ScenarioCard = ({
       ...surfaceStyle,
       borderColor: active ? `${scenario.accentColor}` : "var(--oh-line)",
           borderRadius: 0,
-          borderTop: `4px solid ${active ? scenario.accentColor : "var(--oh-text-strong)"}`,
+          borderTop: `var(--oh-filet-fort) solid ${active ? scenario.accentColor : "var(--oh-text-strong)"}`,
           display: "flex",
           flex: "0 0 21rem",
           flexDirection: "column",

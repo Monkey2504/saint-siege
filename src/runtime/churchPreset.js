@@ -25,10 +25,11 @@
 // not opponents to negotiate with every turn.
 
 import { normalizeEconomy } from "./economy.js";
+import { EUR_USD_2024 } from "./money.js";
 import { anchorUnitValue } from "./economyBridge.js";
 import { normalizeIntents } from "./intents.js";
 import { normalizeOrganizations } from "./organizations.js";
-import { FAITHFUL_2023, normalizeChurch } from "./churchFaithful.js";
+import { FAITHFUL_2023, normalizeChurch, totalFaithful } from "./churchFaithful.js";
 import { normalizeExtraRegions } from "./extraRegions.js";
 import { seatAssembly } from "./factions.js";
 import { normalizeChurchBody } from "./fronts.js";
@@ -175,6 +176,31 @@ export const churchBodies = (availableCountries = []) => {
       charter: "Créé par François en 2014 avec la Secrétairerie pour l'Économie (cardinal Pell) et le Réviseur général pour soumettre APSA, IOR et Secrétairerie d'État à un contrôle unique. Les comptes 2024 : revenus 1,23 milliard d'euros (43 % dons, 40 % immobilier et commerce), déficit structurel ramené de 83,5 à 44,5 millions, Denier de Saint-Pierre 57,6 millions de recettes contre 59,8 de dépenses (63 % apportés par les diocèses). Le déficit de pension reste hors bilan.",
       members: [HOLY_SEE, FINANCE, OLD_GUARD],
     },
+    // Trois fronts sur six n'avaient personne. François : « aucun chantier ne
+    // surveille les abus, les vocations ni la paix, alors que les six fronts
+    // les mesurent, je ne comprends pas. » Il n'y avait rien à comprendre :
+    // quatre contre-pouvoirs gardaient la doctrine, la Curie, l'argent et les
+    // prélatures, et un pape qui agissait sur les abus, les vocations ou la
+    // paix déplaçait les chiffres du moteur sans que personne dans l'Église ne
+    // réagisse. Voici les trois corps qui manquaient.
+    {
+      name: "Commission pour la protection des mineurs", kind: "political", founded: "2014-03-22", seat: "Vatican",
+      leader: HOLY_SEE, votingRule: "hegemon", universal: false,
+      charter: "Créée par François en 2014, rattachée au Dicastère pour la Doctrine de la Foi par Praedicate Evangelium (2022). Elle publie depuis 2024 un rapport annuel sur la façon dont les Églises locales traitent les signalements. La norme de procédure est Vos estis lux mundi (2019, révisé 2023) : tout clerc doit signaler, et l'évêque qui étouffe répond lui aussi. Ce que la Commission n'a pas : le pouvoir de sanctionner. Elle constate, elle publie, elle recommande — et ce qu'elle publie devient public.",
+      members: [HOLY_SEE],
+    },
+    {
+      name: "Dicastère pour le Clergé", kind: "political", founded: "1564-08-02", seat: "Vatican",
+      leader: HOLY_SEE, votingRule: "hegemon", universal: false,
+      charter: "Il tient les prêtres et les séminaires : 406 996 prêtres et 106 495 séminaristes (Annuario 2025), une courbe qui monte en Afrique et en Asie et descend partout ailleurs. La formation est réglée par la Ratio Fundamentalis (2016). Un séminaire se remplit en une génération et se vide en une génération : ce dicastère est le seul organe de la Curie dont les décisions ne se mesurent qu'à vingt ans.",
+      members: [HOLY_SEE],
+    },
+    {
+      name: "Section pour les relations avec les États", kind: "political", founded: "1988-06-28", seat: "Vatican",
+      leader: HOLY_SEE, votingRule: "hegemon", universal: false,
+      charter: "La diplomatie du Saint-Siège : relations avec quelque 180 États, observateur permanent à l'ONU, un réseau de nonciatures qui est le plus ancien corps diplomatique du monde. Elle n'a ni armée ni sanctions — son seul instrument est d'être reçue partout, y compris là où personne d'autre ne l'est. L'accord provisoire avec Pékin sur la nomination des évêques (2018, renouvelé depuis) est ce que cet instrument permet, et ce qu'il coûte.",
+      members: [HOLY_SEE],
+    },
     {
       name: "IOR — Institut pour les Œuvres de Religion", kind: "monetary", founded: "1942-06-27", seat: "Vatican",
       leader: FINANCE, votingRule: "weighted", universal: false,
@@ -192,7 +218,11 @@ export const seededIntents = (date = "") => [
   // read stance and scope; without them every faction would oppose every
   // order, which is neither the Church nor a game.
   { ownerType: "polity", owner: DUBIA, target: HOLY_SEE, kind: "political", secret: true, stage: 20, stance: "hostile",
-    scope: ["doctrin", "liturg", "synod", "dubia", "bénédiction", "blessing", "mariage", "marriage", "communion", "divorc", "femme", "women", "diacon", "célibat", "celibacy", "latin", "rite", "tradition"],
+    // La doctrine telle qu'un pape en parle, et non telle qu'un canoniste
+    // l'indexe : l'Évangile, la morale, les sacrements et la messe sont le
+    // terrain de ce chantier autant que le mot « doctrine » lui-même.
+    scope: ["doctrin", "liturg", "synod", "dubia", "bénédiction", "blessing", "mariage", "marriage", "communion", "divorc", "femme", "women", "diacon", "célibat", "celibacy", "latin", "rite", "tradition",
+      "évangile", "evangile", "gospel", "moral", "moraux", "sacrement", "sacrament", "messe", "eucharist", "dogme", "dogma", "avortement", "abortion", "homosex", "lgbt", "gender", "pénitence", "confession"],
     summary: "Préparer une déclaration publique de cardinaux contestant la légitimité doctrinale des réformes, et rallier assez d'électeurs pour bloquer toute décision doctrinale ou liturgique du Collège.",
     triggerHint: "une réforme doctrinale ou liturgique annoncée ; un consistoire qui ne les favorise pas" },
   { ownerType: "polity", owner: SYNODAL, target: HOLY_SEE, kind: "political", secret: false, stage: 30, stance: "neutral",
@@ -204,7 +234,13 @@ export const seededIntents = (date = "") => [
     summary: "Ralentir la réforme de la Curie par les nominations et les procédures, et faire fuiter à la presse italienne tout document qui affaiblit le pape.",
     triggerHint: "une restructuration de dicastère ; un audit ; une nomination de laïc à un poste clé" },
   { ownerType: "polity", owner: FINANCE, target: HOLY_SEE, kind: "economic", secret: true, stage: 25, stance: "hostile",
-    scope: ["audit", "apsa", "ior", "pension", "compte", "account", "financ", "budget", "patrimoine", "immobilier", "real estate", "réviseur", "auditor", "asif", "transparen", "déficit", "deficit", "investisse", "invest"],
+    // L'argent de l'Église, et pas seulement sa comptabilité. Un pape qui
+    // déclare que l'Église est « pour les riches », ou qu'il veut vendre le
+    // patrimoine pour les pauvres, vise exactement ce que ce chantier protège :
+    // sans ces mots-là, le gardien du coffre ne se sentait visé que par le
+    // vocabulaire d'un audit.
+    scope: ["audit", "apsa", "ior", "pension", "compte", "account", "financ", "budget", "patrimoine", "immobilier", "real estate", "réviseur", "auditor", "asif", "transparen", "déficit", "deficit", "investisse", "invest",
+      "rich", "pauvr", "poor", "argent", "money", "wealth", "fortune", "trésor", "treasur", "caisse", "bourse", "aumône", "obole", "donation", "salaire", "dépens", "vend", "vente", "sell"],
     summary: "Garder hors du périmètre de l'audit les comptes et participations les plus exposés, et présenter le déficit de pension comme soutenable.",
     triggerHint: "un audit externe ; la publication des comptes du fonds de pension ; une enquête de l'ASIF" },
   { ownerType: "polity", owner: OPUS, target: HOLY_SEE, kind: "diplomatic", secret: true, stage: 10, stance: "hostile",
@@ -226,6 +262,29 @@ export const seededIntents = (date = "") => [
   { ownerType: "organization", owner: "Curie romaine", target: HOLY_SEE, kind: "political", secret: false, stage: 40, stance: "supportive", scope: [],
     summary: "Exécuter les ordres du pape : les seize dicastères et leurs 4 000 employés instruisent, rédigent et promulguent ce que le pape décide, l'inertie ralentissant sans jamais annuler l'autorité.",
     triggerHint: "chaque ordre donné à la Curie ; chaque dicastère saisi d'un dossier" },
+
+  // Les trois fronts que le moteur mesurait sans que personne les poursuive.
+  // Aucun de ces trois n'est « pour » ou « contre » le pape : chacun poursuit
+  // une chose, et ce que le pape dit ou fait décide s'il l'y aide ou l'en
+  // empêche. C'est la règle que François a dû redire plusieurs fois.
+  { ownerType: "organization", owner: "Commission pour la protection des mineurs", target: HOLY_SEE, kind: "political", secret: false, stage: 20, stance: "neutral",
+    scope: ["abus", "abuse", "mineur", "minor", "pédocrim", "pedocrim", "safeguard", "protection", "victime", "victim", "signalement", "report", "vos estis", "sanction", "laïcis", "laicis", "défroqu", "prescription",
+      "enquête", "enquete", "investigation", "archive", "dossier", "transparen", "publier", "publish", "étouff", "etouff", "cover-up", "silence", "évêque", "eveque", "bishop", "canonique", "canon", "tribunal", "commission"],
+    summary: "Obtenir que chaque Église locale publie ce qu'elle fait de ses signalements, et que la sanction d'un évêque qui a couvert soit rendue publique comme celle du clerc qu'il a couvert.",
+    triggerHint: "un rapport annuel qui nomme une conférence épiscopale ; une plainte qu'un diocèse n'a pas transmise ; une nomination contestée" },
+
+  { ownerType: "organization", owner: "Dicastère pour le Clergé", target: HOLY_SEE, kind: "political", secret: false, stage: 25, stance: "neutral",
+    scope: ["vocation", "séminaire", "seminaire", "seminary", "séminariste", "seminarian", "formation", "ordination", "ordonner", "ordain", "prêtre", "pretre", "priest", "clergé", "clergy", "curé", "cure ", "paroisse", "parish",
+      "célibat", "celibacy", "diacre", "diacon", "deacon", "recrutement", "religieux", "religious", "consacré", "novice", "noviciat", "vieilliss", "relève", "releve"],
+    summary: "Remplir les séminaires là où ils se vident : obtenir du pape ce qu'il faut — formation, conditions, statut — avant qu'une génération de prêtres parte sans être remplacée.",
+    triggerHint: "une décision sur le célibat ou la formation ; une fermeture de séminaire ; un diocèse qui n'ordonne plus personne" },
+
+  { ownerType: "organization", owner: "Section pour les relations avec les États", target: HOLY_SEE, kind: "diplomatic", secret: false, stage: 30, stance: "supportive",
+    scope: ["paix", "peace", "guerre", "war", "conflit", "conflict", "médiation", "mediation", "négoci", "negoci", "diplomat", "nonciature", "nonce", "nuncio", "ambassad", "traité", "traite ", "treaty", "accord", "concordat",
+      "onu", "nations unies", "united nations", "réfugié", "refugie", "refugee", "migrant", "migration", "désarmement", "disarm", "arme", "weapon", "nucléaire", "nuclear", "cessez-le-feu", "ceasefire", "trêve", "treve", "otage", "hostage",
+      "ukraine", "russie", "russia", "gaza", "israël", "israel", "palestin", "chine", "china", "pékin", "pekin"],
+    summary: "Garder le Saint-Siège reçu partout, y compris là où personne d'autre ne l'est : préserver les canaux ouverts avec les capitales qui comptent, et les offrir au pape le jour où une médiation devient possible.",
+    triggerHint: "une prise de parole du pape sur un conflit en cours ; un renouvellement d'accord ; une nonciature rappelée" },
 ].map((it) => ({ ...it, createdAt: date, updatedAt: date }));
 
 // ---- the real money ------------------------------------------------------------------------
@@ -248,7 +307,11 @@ export const seededIntents = (date = "") => [
 //   ~€21 M. Expenses €527.8 M (personnel 33%, general 36%, grants €127.9 M).
 //   APSA net patrimony €2,597 M (4,234 properties in Italy, ~1,200 abroad).
 //   Pension: ~$664 M unfunded for the Holy See alone (Farrell, 2022 basis).
-export const EUR_USD_2024 = 1.0824;               // ECB annual average, 2024
+// Le taux vit dans runtime/money.js, avec le format de la monnaie du lecteur :
+// il servait ici à entrer dans l'unité du moteur et là-bas à en ressortir, et
+// deux copies d'un même taux finissent par diverger. Réexporté pour que rien
+// n'ait à changer d'import.
+export { EUR_USD_2024 } from "./money.js";
 export const ITALY_GDP_PER_HEAD_USD_2024 = 39_000; // the anchor: the Vatican's economy IS Rome's
 export const HOLY_SEE_ACCOUNTS_2024 = Object.freeze({
   donationsEur: 237e6, governorateEur: 21e6, commercialEur: 109e6,
@@ -258,6 +321,39 @@ export const HOLY_SEE_ACCOUNTS_2024 = Object.freeze({
 export const holySeeRecurringRevenueEur = () => {
   const A = HOLY_SEE_ACCOUNTS_2024;
   return A.donationsEur + A.governorateEur + A.commercialEur + A.realEstateEur + A.recurringFinancialEur;
+};
+
+/**
+ * Ce qu'un baptisé donne au Saint-Siège en une année.
+ *
+ * 237 millions d'euros de dons pour 1,406 milliard de fidèles : seize centimes
+ * par tête et par an. Le chiffre surprend, et c'est le vrai — le Denier de
+ * Saint-Pierre ne lève que 57,6 millions à lui seul, le reste vient des
+ * diocèses et des fondations, et tout cela repose sur le même corps de
+ * croyants.
+ */
+export const DONS_PAR_FIDELE_EUR = HOLY_SEE_ACCOUNTS_2024.donationsEur / totalFaithful(FAITHFUL_2023);
+
+/**
+ * Les transferts que perçoit le Saint-Siège, pour un état donné de l'Église.
+ *
+ * La faute que cela répare : `transfers` était posé une fois au préréglage et
+ * ne bougeait plus. Les fidèles, eux, bougent à chaque tour — la démographie
+ * réelle, et la légitimité du pontificat (churchFaithful.js). Une Église
+ * pouvait donc se vider de cent millions de baptisés sans qu'un euro manque
+ * aux comptes, ce qui est exactement l'inverse de ce que le jeu promet : « en
+ * fonction de ce que l'on dit ou fait, cela doit avoir une influence ».
+ *
+ * Les dons suivent les fidèles. Le Gouvernorat (musées, timbres, monnaie) et
+ * les revenus propres (immobilier de rapport, éditions, services) ne les
+ * suivent pas : ils viennent de visiteurs et de locataires, pas de baptisés.
+ * Un pape qui vide l'Église perd donc ses dons, et garde ses loyers — ce qui
+ * est plus juste, et plus dur, qu'une chute proportionnelle de tout.
+ */
+export const transfersForChurchEur = (church) => {
+  const A = HOLY_SEE_ACCOUNTS_2024;
+  const fideles = totalFaithful(normalizeChurch(church)?.faithful);
+  return DONS_PAR_FIDELE_EUR * fideles + A.governorateEur + A.commercialEur;
 };
 
 // No tax (the State taxes neither residents nor employees), ~500 residents
@@ -282,7 +378,7 @@ export const holySeeEconomy = () => {
     ...anchored,
     endowment: sy(A.patrimonyEur),
     endowmentYield: (A.realEstateEur + A.recurringFinancialEur) / A.patrimonyEur,
-    transfers: sy(A.donationsEur + A.governorateEur + A.commercialEur),
+    transfers: sy(transfersForChurchEur({ faithful: FAITHFUL_2023 })),
     // The engine charges its own administration at 10% of revenue at full reach.
     civilSpending: sy(A.expensesEur - 0.10 * revenueEur),
     unfundedLiabilities: (A.unfundedPensionUsd) / anchored.usdPerSY,

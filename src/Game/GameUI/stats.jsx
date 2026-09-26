@@ -331,7 +331,7 @@ const StatsPane = ({ active }) => {
             </span>
             {isPlayer && (
                 <span style={{ backgroundColor: "var(--oh-caution-soft)", border: "1px solid var(--oh-caution-soft)", borderRadius: "999px", color: "var(--oh-caution)", flexShrink: 0, fontSize: "var(--oh-t-2xs)", fontWeight: 700, padding: "0.14rem 0.5rem" }}>
-                Your country
+                Votre pays
                 </span>
             )}
             </div>
@@ -364,7 +364,7 @@ const StatsPane = ({ active }) => {
 
             {state.status === "loading" && (
                 <p style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)", marginTop: "1rem" }}>
-                Compiling the stat sheet…
+                Compilation de la feuille de comptes…
                 </p>
             )}
 
@@ -471,7 +471,7 @@ const StatsPane = ({ active }) => {
             )}
 
             <p style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)", marginTop: "1rem" }}>
-            Click any country on the map to inspect it.
+            Cliquez sur un pays de la carte pour l'examiner.
             </p>
             </>
         )}

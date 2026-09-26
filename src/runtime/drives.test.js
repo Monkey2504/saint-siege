@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { applyDriveOps, bookDriveGains, describeDrives, driveFromOrder, driveMovement, driveNeedsFigure, ensureDrivesFromOrders, parseAmountMillions, reconcileNarration, sourceShares, syFromMillions, describeConcentration, CONCENTRATION_CEILING, claimedReceipt, overduePledges, describeOutstanding, pruneDormantDrives } from "./drives.js";
+import { applyDriveOps, bookDriveGains, describeDrives, driveFromOrder, driveMovement, driveNeedsFigure, ensureDrivesFromOrders, parseAmountMillions, reconcileNarration, sourceShares, syFromMillions, usdFromMillions, describeConcentration, CONCENTRATION_CEILING, claimedReceipt, overduePledges, describeOutstanding, pruneDormantDrives } from "./drives.js";
 
 test("parseAmountMillions reads targets as people write them, in French and English", () => {
   assert.deepEqual(parseAmountMillions("lever 500 millions d'euros"), { millions: 500, currency: "EUR" });
@@ -297,4 +297,21 @@ test("a drive nobody ever feeds closes itself", () => {
   const young = [{ id: "d", name: "Neuve", owner: "X", currency: "EUR", target: 100, startedAt: "2028-03-01", log: [] }];
   assert.deepEqual(pruneDormantDrives(young, { asOf: "2028-04-06" }).closed, []);
   assert.deepEqual(pruneDormantDrives(young, {}).closed, []);
+});
+
+// « 96 millions d'euros promis » s'imprimait « 143 k€ » sur le cahier des
+// comptes. Deux unités portaient le même nom : les chiffres d'une campagne sont
+// des millions dans SA monnaie, jamais des années-subsistance, et le cahier les
+// passait par la conversion des AS.
+test("une somme de campagne se convertit par sa monnaie, pas par le taux des années-subsistance", () => {
+  assert.equal(usdFromMillions(96, "EUR"), 96e6 * 1.0824);
+  assert.equal(usdFromMillions(96, "USD"), 96e6);
+  assert.equal(usdFromMillions(0, "EUR"), 0);
+  // Monnaie inconnue : le dollar, comme partout ailleurs dans ce fichier.
+  assert.equal(usdFromMillions(5, "XXX"), 5e6);
+
+  // Et syFromMillions passe bien par la même conversion, pour que la caisse et
+  // l'affichage ne puissent plus diverger.
+  const eco = { usdPerSY: 1000 };
+  assert.equal(syFromMillions(96, "EUR", eco), usdFromMillions(96, "EUR") / 1000);
 });

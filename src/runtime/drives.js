@@ -17,7 +17,7 @@ const round1 = (v) => Math.round(v * 10) / 10;
 
 // USD per unit of the drive's currency, for the conversion into the economy's
 // subsistence-years through economy.usdPerSY. Unknown currencies count as USD.
-const USD_PER = { USD: 1, EUR: 1.0824, GBP: 1.278, CHF: 1.136, JPY: 0.0066, CAD: 0.73, AUD: 0.66 };
+const USD_PER = { USD: 1, EUR: EUR_USD_2024, GBP: 1.278, CHF: 1.136, JPY: 0.0066, CAD: 0.73, AUD: 0.66 };
 const CURRENCY_ALIASES = [
   [/€|\beuros?\b|\beur\b/i, "EUR"],
   [/\$|\bdollars?\b|\busd\b/i, "USD"],
@@ -186,12 +186,19 @@ const findDrive = (drives, ref, { strict = false } = {}) => {
   return drives.find((d) => d.name.toLowerCase().includes(key) || key.includes(d.name.toLowerCase())) || null;
 };
 
+// Ce qu'une somme de campagne vaut en dollars. Les chiffres d'une campagne sont
+// des MILLIONS dans sa propre monnaie, jamais des années-subsistance : le cahier
+// des comptes les passait par moneyOf, qui convertit des AS, et « 96 millions
+// d'euros promis » s'imprimait « 143 k€ ». La conversion existait déjà, enfermée
+// dans syFromMillions ; elle sort d'un cran pour que l'affichage s'en serve.
+export const usdFromMillions = (millions, currency) =>
+  num(millions) * 1e6 * (USD_PER[str(currency).toUpperCase()] ?? 1);
+
 // SY the economy books for an amount in the drive's currency.
 export const syFromMillions = (millions, currency, economy) => {
   const usdPerSY = num(economy?.usdPerSY);
   if (!(usdPerSY > 0)) return 0;
-  const usd = num(millions) * 1e6 * (USD_PER[str(currency).toUpperCase()] ?? 1);
-  return usd / usdPerSY;
+  return usdFromMillions(millions, currency) / usdPerSY;
 };
 
 // The only lever. Returns the drives after the ops, the SY each owner's
@@ -539,3 +546,5 @@ export const describeDrives = (drives, { player = "", sinceDate = "", asOf = "" 
   lines.push("", DRIVES_RULES);
   return lines.join("\n");
 };
+
+import { EUR_USD_2024 } from "./money.js";

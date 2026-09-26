@@ -33,6 +33,7 @@ import { normalizeGatherings } from "./gatherings.js";
 import { normalizeDrives, driveMovement, overduePledges } from "./drives.js";
 import { normalizeAssembly, standing } from "./factions.js";
 import { frontRows } from "./fronts.js";
+import { fmtSY } from "./money.js";
 
 const finite = (v, d = 0) => (Number.isFinite(Number(v)) ? Number(v) : d);
 const str = (v) => String(v ?? "").trim();
@@ -90,8 +91,8 @@ const emptyingPurse = ({ world, to }) => {
   const { p, owed, held } = short[0];
   return event({
     date: to,
-    title: `${p.body} cannot cover what it has taken on`,
-    description: `${p.body} holds ${Math.round(held)} SY against ${Math.round(owed)} SY of promises it has assumed. The shortfall is ${Math.round(owed - held)} SY. Nothing has defaulted yet; the next call on this purse is what decides that.`,
+    title: `${p.body} ne peut couvrir ce qu'il a pris sur lui`,
+    description: `${p.body} détient ${Math.round(held)} AS contre ${Math.round(owed)} AS de promesses qu'il a assumées. Il manque ${Math.round(owed - held)} AS. Rien n'a encore fait défaut ; c'est le prochain appel sur cette bourse qui en décidera.`,
     importance: "major",
     kind: "economy",
     playerRelated: true,
@@ -112,8 +113,8 @@ const gatheringsHeld = ({ world, from, to }) => {
   const rest = due.length - 1;
   return event({
     date: first.date,
-    title: `${first.name} is held`,
-    description: `${first.name} takes place as convoked${first.host ? `, hosted by ${first.host}` : ""}. The engine settles its attendance, its cost and what it returns to the purse that paid for it${rest > 0 ? `, along with ${rest} other gathering${rest === 1 ? "" : "s"} falling in the same period` : ""}. The figures stand in the register, not in this account of them.`,
+    title: `${first.name} a lieu`,
+    description: `${first.name} se tient comme convoqué${first.host ? `, accueilli par ${first.host}` : ""}. Le moteur en règle l'affluence, le coût et ce qu'il rend à la bourse qui l'a payé${rest > 0 ? `, avec ${rest} autre${rest === 1 ? "" : "s"} rassemblement${rest === 1 ? "" : "s"} tombant dans la même période` : ""}. Les chiffres sont au registre, pas dans ce récit.`,
     importance: "major",
     kind: "church",
     playerRelated: true,
@@ -129,8 +130,8 @@ const pledgesUnpaid = ({ world, to }) => {
   const worst = late[0];
   return event({
     date: to,
-    title: `${late.length} pledge${late.length === 1 ? "" : "s"} past due`,
-    description: `Money promised and not paid${names.length ? `: ${names.join(", ")}${late.length > names.length ? ", among others" : ""}` : ""}. ${Math.round(total)} in all, the oldest untouched for ${worst.days} days. A pledge is not a receipt, and the register has never counted it as one.`,
+    title: `${late.length} promesse${late.length === 1 ? "" : "s"} échue${late.length === 1 ? "" : "s"}`,
+    description: `De l'argent promis et non versé${names.length ? `: ${names.join(", ")}${late.length > names.length ? ", entre autres" : ""}` : ""}. ${Math.round(total)} en tout, la plus ancienne intouchée depuis ${worst.days} jours. Une promesse n'est pas une recette, et le registre ne l'a jamais comptée comme telle.`,
     importance: "minor",
     kind: "economy",
     playerRelated: true,
@@ -147,8 +148,8 @@ const stalledDrive = ({ world, from, to }) => {
   const { d } = stalled[0];
   return event({
     date: to,
-    title: `${d.name} has taken nothing since the last edition`,
-    description: `${d.name} stands at ${Math.round(d.collected)} collected against a target of ${Math.round(d.target)}, with ${Math.round(d.pledged - d.collected)} pledged and unpaid. It moved by nothing this period. Whatever the stories say about it, the register is where money either arrives or does not.`,
+    title: `${d.name} n'a rien encaissé depuis la dernière édition`,
+    description: `${d.name} en est à ${Math.round(d.collected)} encaissés pour un objectif de ${Math.round(d.target)}, avec ${Math.round(d.pledged - d.collected)} promis et impayés. Rien n'a bougé cette période. Quoi que les récits en disent, c'est au registre que l'argent arrive ou n'arrive pas.`,
     importance: "minor",
     kind: "economy",
     playerRelated: true,
@@ -167,14 +168,23 @@ const collegeFracture = ({ world, to }) => {
   return event({
     date: to,
     title: gone >= SCHISM_REPORT_AT
-      ? `${gone} elector${gone === 1 ? "" : "s"} out of communion`
-      : `${hard} elector${hard === 1 ? "" : "s"} have hardened against the pontificate`,
-    description: `Of ${where.seats} who vote, ${where.with} stand with the pontificate, ${where.undecided} are undecided and ${where.against} against. ${hard} have radicalised${gone > 0 ? ` and ${gone} have gone into schism` : ""}. A majority needs ${where.majority}.`,
+      ? `${gone} électeur${gone === 1 ? "" : "s"} hors de la communion`
+      : `${hard} électeur${hard === 1 ? "" : "s"} se ${hard === 1 ? "durcit" : "durcissent"} contre le pontificat`,
+    description: `Sur ${where.seats} votants, ${where.with} sont avec le pontificat, ${where.undecided} indécis et ${where.against} contre. ${hard} se sont radicalisés${gone > 0 ? ` et ${gone} sont passés au schisme` : ""}. Il en faut ${where.majority} pour la majorité.`,
     importance: gone >= SCHISM_REPORT_AT ? "major" : "minor",
     kind: "church",
     playerRelated: true,
   });
 };
+
+// « Finances : en hausse de 1135 depuis le début du pontificat », en manchette
+// de la une. 1135 quoi ? Des euros, des fidèles, des points ? Les six fronts ne
+// se mesurent pas dans la même unité — une part en pourcentage, un effectif en
+// personnes, l'argent en années-subsistance — et la manchette les chiffrait
+// tous les trois de la même façon : nus. L'unité est déjà dans la définition du
+// front (fronts.js), il suffisait de l'écrire.
+const UNITE = Object.freeze({ count: "", money: " AS", share: " %" });
+export const chiffreDeFront = (unit, value) => `${unit === "money" ? fmtSY(value) : Math.round(value)}${UNITE[unit] ?? ""}`;
 
 /** A front that has moved measurably since the pontificate began. */
 const frontMoved = ({ world, player, to }) => {
@@ -183,11 +193,11 @@ const frontMoved = ({ world, player, to }) => {
     .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta));
   if (!moved.length) return null;
   const row = moved[0];
-  const way = row.good ? "the right way" : "the wrong way";
+  const way = row.good ? "dans le bon sens" : "dans le mauvais sens";
   return event({
     date: to,
-    title: `${row.label}: ${row.direction === "up" ? "up" : "down"} ${Math.abs(Math.round(row.delta))} since the start of the pontificate`,
-    description: `${row.label} stands at ${Math.round(row.value)}${row.unit === "share" ? "%" : ""}, against ${Math.round(row.from)}${row.unit === "share" ? "%" : ""} when this pontificate began. That is ${way}. This is the engine's own count, not an account of it.`,
+    title: `${row.label} : ${row.direction === "up" ? "en hausse de" : "en baisse de"} ${chiffreDeFront(row.unit, Math.abs(row.delta))} depuis le début du pontificat`,
+    description: `${row.label} est à ${chiffreDeFront(row.unit, row.value)}, contre ${chiffreDeFront(row.unit, row.from)} au début de ce pontificat. C'est ${way}. Ce compte est celui du moteur, non un récit à son sujet.`,
     importance: row.good === false ? "major" : "minor",
     kind: "church",
     playerRelated: true,
@@ -261,8 +271,8 @@ export const bequestEvent = ({ amount, player, date, economy }) => {
   const trust = finite(economy?.legitimacy, LEGITIMACY_BASELINE);
   return event({
     date,
-    title: "Legacies and unsolicited gifts",
-    description: `${Math.round(sy)} SY reaches ${player} from legacies and gifts nobody solicited — wills settled, parishes remitting more than they owed, donors who gave without being asked. The flow follows the standing of the pontificate, which is ${Math.round(trust)}/100: it swells when the Church is trusted and dries when it is not.`,
+    title: "Legs et dons spontanés",
+    description: `${Math.round(sy)} AS parviennent au ${player} par des legs et des dons que personne n'a sollicités — successions réglées, paroisses versant plus qu'elles ne devaient, donateurs qui ont donné sans qu'on le leur demande. Le flux suit le crédit du pontificat, qui est de ${Math.round(trust)}/100 : il enfle quand l'Église inspire confiance, et se tarit quand elle n'en inspire plus.`,
     importance: "minor",
     kind: "economy",
     playerRelated: true,

@@ -41,7 +41,7 @@ test("an order that sets the tax rate moves the rate, and the revenue with it", 
   const after = franceIn(out.world);
   assert.ok(Math.abs(after.taxRate - 0.48) < 1e-9, `tax rate stood at ${after.taxRate}`);
   assert.equal(out.rows.length, 1);
-  assert.match(out.rows[0].what, /tax rate moved from 42.0% to 48.0%/);
+  assert.match(out.rows[0].what, /taux d'imposition porté de 42.0% à 48.0%/);
   assert.equal(out.rows[0].source, "order:taxRate");
   assert.ok(out.rows[0].amount > 0, "a higher rate collects more, and the row says how much");
   assert.ok(Math.abs(out.rows[0].amount - (economyIndicators(after).revenue - before)) < 1, "the row carries the revenue the change is actually worth");
@@ -109,7 +109,7 @@ test("the route an order rejects is not the route it takes", () => {
 
   const out = applyEconomyMoves(w, economyMovesFromOrder({ id: "f", text: both[0] }, { player: "France", economies: w.economies, date: "2027-03-04" }), { player: "France" });
   assert.equal(franceIn(out.world).financing, "borrow");
-  assert.match(out.rows[0].what, /deficits are now covered by borrowing/);
+  assert.match(out.rows[0].what, /les déficits sont désormais couverts par l'emprunt/);
   assert.equal(out.rows[0].amount, 0, "the switch governs the next period's gap; nothing has moved yet");
 });
 
@@ -160,7 +160,7 @@ test("a lever already where the order wants it moves nothing and says why", () =
   assert.deepEqual(out.rows, []);
   assert.equal(out.world, w, "nothing moved, so the caller keeps the world it had");
   assert.ok(out.refusals.some((r) => /already taxes at 42.0%/.test(r)));
-  assert.ok(out.refusals.some((r) => /already covers deficits by borrowing/.test(r)));
+  assert.ok(out.refusals.some((r) => /couvre déjà ses déficits par l'emprunt/.test(r)));
 });
 
 // The whole point of a parser that reads orders is that it stays silent about

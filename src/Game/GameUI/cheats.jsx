@@ -24,19 +24,19 @@ const PANEL_TOP = "4.75rem";
 const EMPTY_FEATURES = { type: "FeatureCollection", features: [] };
 
 const TOOLS = [
-    { id: "master-ai", title: "Master AI", subtitle: "Full control over the game with AI assistance" },
-    { id: "roll-back-turn", title: "Roll Back Turn", subtitle: "Restore the game to the start of an earlier turn" },
-    { id: "your-country", title: "Your Country", subtitle: "Change which country you're playing as" },
-    { id: "difficulty", title: "Difficulty", subtitle: "Adjust the game difficulty level" },
-    { id: "annex-country", title: "Annex Country", subtitle: "Click a country to annex it into another" },
-    { id: "annex-regions", title: "Annex Regions", subtitle: "Click individual regions to transfer them to a country" },
-    { id: "edit-country", title: "Edit Country", subtitle: "Modify existing country properties" },
-    { id: "add-country", title: "Add Country", subtitle: "Create a new country on the map" },
-    { id: "regions", title: "Regions", subtitle: "Edit region names, tags, and properties" },
-    { id: "edit-feature", title: "Edit Map Feature", subtitle: "Edit existing map features like cities and landmarks" },
-    { id: "add-feature", title: "Add Map Feature", subtitle: "Create new map features with custom properties" },
-    { id: "clear-features", title: "Clear Map Features", subtitle: "Clean up old and irrelevant features" },
-    { id: "events", title: "Events", subtitle: "Edit historical events and their descriptions" },
+    { id: "master-ai", title: "Maître du jeu", subtitle: "La main sur toute la partie, avec le modèle pour l'exécuter" },
+    { id: "roll-back-turn", title: "Revenir en arrière", subtitle: "Rendre la partie à l'état du début d'un tour passé" },
+    { id: "your-country", title: "Votre puissance", subtitle: "Changer celle que vous jouez" },
+    { id: "difficulty", title: "Difficulté", subtitle: "Régler le tempérament de la partie" },
+    { id: "annex-country", title: "Annexer un pays", subtitle: "Cliquez un pays pour l'annexer à un autre" },
+    { id: "annex-regions", title: "Annexer des régions", subtitle: "Cliquez des régions une à une pour les transférer" },
+    { id: "edit-country", title: "Modifier un pays", subtitle: "Changer les propriétés d'un pays existant" },
+    { id: "add-country", title: "Ajouter un pays", subtitle: "Créer un pays sur la carte" },
+    { id: "regions", title: "Régions", subtitle: "Modifier les noms, les étiquettes et les propriétés" },
+    { id: "edit-feature", title: "Modifier un repère", subtitle: "Changer un repère de la carte — une ville, un monument" },
+    { id: "add-feature", title: "Ajouter un repère", subtitle: "Poser un repère sur la carte, avec ses propriétés" },
+    { id: "clear-features", title: "Effacer les repères", subtitle: "Faire le ménage dans les repères devenus inutiles" },
+    { id: "events", title: "Événements", subtitle: "Modifier des événements et leurs descriptions" },
 ];
 
 const inputStyle = {
@@ -181,7 +181,7 @@ const CheatsPanel = ({ open, onClose, onOpenForces }) => {
             setPolities(nextPolities);
             setGame(nextGame);
         } catch (error) {
-            setStatus(`Failed to load game data: ${error.message}`);
+            setStatus(`Lecture de la partie impossible : ${error.message}`);
         }
     };
 
@@ -225,7 +225,7 @@ const CheatsPanel = ({ open, onClose, onOpenForces }) => {
             const message = await work();
             setStatus(message || doneMessage || "Done.");
         } catch (error) {
-            setStatus(`Failed: ${error.message}`);
+            setStatus(`Échec : ${error.message}`);
         } finally {
             setBusy(false);
         }
@@ -255,7 +255,7 @@ const CheatsPanel = ({ open, onClose, onOpenForces }) => {
         {clickMode && (
             <div style={{ alignItems: "center", display: "flex", gap: "0.6rem", background: "var(--oh-plate)", border: "1px solid var(--oh-accent-soft)", borderRadius: 12, boxShadow: "0 6px 24px rgba(0,0,0,0.5)", color: "var(--oh-text-strong)", fontFamily: "inherit", fontSize: "var(--oh-t-xs)", left: "50%", padding: "0.6rem 0.9rem", position: "fixed", top: PANEL_TOP, transform: "translateX(-50%)", zIndex: 10070 }}>
             <span>{clickMode.label}</span>
-            <button type="button" onClick={endClickMode} style={{ ...primaryButtonStyle, padding: "0.3rem 0.6rem" }}>Done</button>
+            <button type="button" onClick={endClickMode} style={{ ...primaryButtonStyle, padding: "0.3rem 0.6rem" }}>Terminé</button>
             </div>
         )}
 
@@ -379,7 +379,7 @@ const ToolView = ({ tool, header, busy, status, game, polities, refresh, runBusy
             <>
             {header(meta.title, meta.subtitle)}
             <div style={{ overflowY: "auto" }}>
-            <label style={labelStyle}>Command</label>
+            <label style={labelStyle}>Ordre</label>
             <textarea
             value={text}
             onChange={(event) => setText(event.target.value)}
@@ -401,7 +401,7 @@ const ToolView = ({ tool, header, busy, status, game, polities, refresh, runBusy
             {busy ? "Rewriting the world…" : "Execute"}
             </button>
             <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)", marginTop: "0.5rem" }}>
-            The AI interprets the command, applies its impacts to the map and countries, and records it as a game-master event.
+            Le modèle interprète l'ordre, en applique les effets à la carte et aux pays, et l'inscrit comme un événement du maître du jeu.
             </div>
             {statusLine}
             </div>
@@ -416,14 +416,14 @@ const ToolView = ({ tool, header, busy, status, game, polities, refresh, runBusy
             {header(meta.title, meta.subtitle)}
             <div style={{ display: "flex", flexDirection: "column", minHeight: 0 }}>
             <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)", marginBottom: "0.5rem" }}>
-            Restore the game to how it was at the start of an earlier turn. This permanently discards every turn played after the one you pick.
+            Rend la partie à l'état du début d'un tour passé. Tous les tours joués après celui que vous choisissez sont définitivement perdus.
             </div>
             {items === null && (
-                <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)" }}>Loading restore points…</div>
+                <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)" }}>Lecture des points de reprise…</div>
             )}
             {items !== null && snapshots.length === 0 && (
                 <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)" }}>
-                No restore points yet — one is captured automatically at the start of each turn. Play a turn, then come back.
+                Aucun point de reprise — il s'en prend un tout seul au début de chaque tour. Jouez un tour, puis revenez.
                 </div>
             )}
             <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem", overflowY: "auto" }}>
@@ -469,7 +469,7 @@ const ToolView = ({ tool, header, busy, status, game, polities, refresh, runBusy
                         <button type="button" style={{ ...buttonStyle, padding: "0.25rem 0.55rem" }} onClick={() => setEditingId(null)}>Annuler</button>
                         </div>
                     ) : (
-                        <button type="button" disabled={busy} style={{ ...buttonStyle, flexShrink: 0, padding: "0.25rem 0.55rem" }} onClick={() => setEditingId(snap.id)}>Roll back</button>
+                        <button type="button" disabled={busy} style={{ ...buttonStyle, flexShrink: 0, padding: "0.25rem 0.55rem" }} onClick={() => setEditingId(snap.id)}>Revenir ici</button>
                     )}
                     </div>
                     </div>
@@ -488,9 +488,9 @@ const ToolView = ({ tool, header, busy, status, game, polities, refresh, runBusy
             {header(meta.title, meta.subtitle)}
             <div>
             <div style={{ color: "var(--oh-text)", fontSize: "var(--oh-t-xs)" }}>
-            Currently playing: <strong>{nameOf(game?.country)}</strong>
+            Vous jouez actuellement : <strong>{nameOf(game?.country)}</strong>
             </div>
-            <label style={labelStyle}>New country</label>
+            <label style={labelStyle}>Nouvelle puissance</label>
             <PolitySelect polities={polities} value={target} onChange={setTarget} />
             <button
             type="button"
@@ -503,7 +503,7 @@ const ToolView = ({ tool, header, busy, status, game, polities, refresh, runBusy
             })}
             style={{ ...primaryButtonStyle, marginTop: "0.6rem", width: "100%" }}
             >
-            Switch country
+            Changer de puissance
             </button>
             {statusLine}
             </div>
@@ -553,8 +553,8 @@ const ToolView = ({ tool, header, busy, status, game, polities, refresh, runBusy
             <>
             {header(meta.title, meta.subtitle)}
             <div>
-            <label style={labelStyle}>Annex into</label>
-            <PolitySelect polities={polities} value={target} onChange={setTarget} placeholder="Pick the new owner…" />
+            <label style={labelStyle}>Annexer à</label>
+            <PolitySelect polities={polities} value={target} onChange={setTarget} placeholder="Choisissez le nouveau propriétaire…" />
             <button
             type="button"
             disabled={!target}
@@ -606,25 +606,25 @@ const ToolView = ({ tool, header, busy, status, game, polities, refresh, runBusy
                                     if (code === source) overrides[regionId] = owner;
                                 }
                                 await writeWorldState({ ...world, regionOwnershipOverrides: overrides });
-                                setStatus(`${nameOf(source)} annexed into ${nameOf(owner)} (${count} regions). The map updates within a few seconds.`);
+                                setStatus(`${nameOf(source)} annexé à ${nameOf(owner)} (${count} régions). La carte suit dans quelques secondes.`);
                             } else {
                                 if (!props.GID_1) return;
                                 overrides[String(props.GID_1)] = owner;
                                 await writeWorldState({ ...world, regionOwnershipOverrides: overrides });
-                                setStatus(`${props.NAME_1 || props.GID_1} → ${nameOf(owner)}. Keep clicking, or press Done.`);
+                                setStatus(`${props.NAME_1 || props.GID_1} → ${nameOf(owner)}. Continuez à cliquer, ou appuyez sur Terminé.`);
                             }
                         } catch (error) {
-                            setStatus(`Failed: ${error.message}`);
+                            setStatus(`Échec : ${error.message}`);
                         }
                     },
                 );
             }}
             style={{ ...primaryButtonStyle, marginTop: "0.6rem", width: "100%" }}
             >
-            Start clicking the map
+            Cliquer sur la carte
             </button>
             <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)", marginTop: "0.5rem" }}>
-            The map repaints ownership within ~5 seconds of each change.
+            La carte repeint les appartenances dans les cinq secondes qui suivent chaque changement.
             </div>
             {statusLine}
             </div>
@@ -669,11 +669,11 @@ const ToolView = ({ tool, header, busy, status, game, polities, refresh, runBusy
             <div style={{ overflowY: "auto" }}>
             {!adding && (
                 <>
-                <label style={labelStyle}>Country</label>
+                <label style={labelStyle}>Pays</label>
                 <PolitySelect polities={polities} value={target} onChange={(code) => { setTarget(code); setFields({}); }} />
                 </>
             )}
-            <label style={labelStyle}>Name</label>
+            <label style={labelStyle}>Nom</label>
             <input style={inputStyle} value={fields.name ?? ""} onChange={(event) => setFields({ ...fields, name: event.target.value })} placeholder={adding ? "Atlantis" : nameOf(target)} />
             <label style={labelStyle}>Color (hex)</label>
             <div style={{ alignItems: "center", display: "flex", gap: "0.45rem" }}>
@@ -713,17 +713,17 @@ const ToolView = ({ tool, header, busy, status, game, polities, refresh, runBusy
             })}
             style={{ ...primaryButtonStyle, width: "100%" }}
             >
-            Pick a region on the map
+            Choisissez une région sur la carte
             </button>
             {fields.id && (
                 <>
                 <div style={{ color: "var(--oh-text)", fontSize: "var(--oh-t-xs)", marginTop: "0.6rem" }}>
                 Region <code>{fields.id}</code> — owned by <strong>{nameOf(fields.owner)}</strong>
                 </div>
-                <label style={labelStyle}>Name</label>
+                <label style={labelStyle}>Nom</label>
                 <input style={inputStyle} value={fields.name ?? ""} onChange={(event) => setFields({ ...fields, name: event.target.value })} />
-                <label style={labelStyle}>Owner</label>
-                <PolitySelect polities={polities} value={fields.owner ?? ""} onChange={(code) => setFields({ ...fields, owner: code })} placeholder="Unclaimed" />
+                <label style={labelStyle}>Propriétaire</label>
+                <PolitySelect polities={polities} value={fields.owner ?? ""} onChange={(code) => setFields({ ...fields, owner: code })} placeholder="Sans propriétaire" />
                 <button
                 type="button"
                 disabled={busy}
@@ -747,13 +747,13 @@ const ToolView = ({ tool, header, busy, status, game, polities, refresh, runBusy
                         await writeJson(JSON_URLS.regionsGeojson, geojson, { pretty: true });
                         notes.push(`name → ${fields.name}`);
                     } else if (!feature && fields.name && fields.name !== "") {
-                        notes.push("name unchanged — stock-map region names come from the map tiles and can't be renamed");
+                        notes.push("nom inchangé — les noms de régions d'une carte standard viennent des tuiles et ne se renomment pas");
                     }
                     return notes.length ? `Saved: ${notes.join("; ")}.` : "Nothing to change.";
                 })}
                 style={{ ...primaryButtonStyle, marginTop: "0.7rem", width: "100%" }}
                 >
-                Save region
+                Enregistrer la région
                 </button>
                 </>
             )}
@@ -780,10 +780,10 @@ const ToolView = ({ tool, header, busy, status, game, polities, refresh, runBusy
             <>
             {header(meta.title, meta.subtitle)}
             <div style={{ display: "flex", flexDirection: "column", minHeight: 0 }}>
-            <input style={inputStyle} value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search features…" />
+            <input style={inputStyle} value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Chercher un repère…" />
             {features.length === 0 && (
                 <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)", marginTop: "0.6rem" }}>
-                This map has no custom features yet — use Add Map Feature.
+                Cette carte n'a encore aucun repère propre — passez par « Ajouter un repère ».
                 </div>
             )}
             <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem", marginTop: "0.5rem", overflowY: "auto" }}>
@@ -810,7 +810,7 @@ const ToolView = ({ tool, header, busy, status, game, polities, refresh, runBusy
                     </div>
                     {isEditing && (
                         <div style={{ marginTop: "0.4rem" }}>
-                        <label style={labelStyle}>Name</label>
+                        <label style={labelStyle}>Nom</label>
                         <input style={inputStyle} value={fields.name ?? ""} onChange={(event) => setFields({ ...fields, name: event.target.value })} />
                         <label style={labelStyle}>Tier (1 town … 4 capital)</label>
                         <input style={inputStyle} type="number" min={1} max={4} value={fields.tier ?? "2"} onChange={(event) => setFields({ ...fields, tier: event.target.value })} />
@@ -840,7 +840,7 @@ const ToolView = ({ tool, header, busy, status, game, polities, refresh, runBusy
                             return saveFeatures(nextFeatures, `${fields.name || "Feature"} saved.`);
                         })}
                         >
-                        Save feature
+                        Enregistrer le repère
                         </button>
                         </div>
                     )}
@@ -859,7 +859,7 @@ const ToolView = ({ tool, header, busy, status, game, polities, refresh, runBusy
             <>
             {header(meta.title, meta.subtitle)}
             <div style={{ overflowY: "auto" }}>
-            <label style={labelStyle}>Name</label>
+            <label style={labelStyle}>Nom</label>
             <input style={inputStyle} value={fields.name ?? ""} onChange={(event) => setFields({ ...fields, name: event.target.value })} placeholder="Alexandria" />
             <label style={labelStyle}>Tier (1 town … 4 capital)</label>
             <input style={inputStyle} type="number" min={1} max={4} value={fields.tier ?? "2"} onChange={(event) => setFields({ ...fields, tier: event.target.value })} />
@@ -894,18 +894,18 @@ const ToolView = ({ tool, header, busy, status, game, polities, refresh, runBusy
                             // otherwise the new feature would never render.
                             await writeWorldState({ ...world, customCities: true });
                         }
-                        setStatus(`${name} placed. The map picks it up within a few seconds.`);
+                        setStatus(`${name} posé. La carte le reprend dans quelques secondes.`);
                     } catch (error) {
-                        setStatus(`Failed: ${error.message}`);
+                        setStatus(`Échec : ${error.message}`);
                     }
                 });
             }}
             style={{ ...primaryButtonStyle, marginTop: "0.7rem", width: "100%" }}
             >
-            Place on map
+            Poser sur la carte
             </button>
             <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)", marginTop: "0.5rem" }}>
-            On maps that still use the standard world cities, adding the first custom feature switches the map to custom features only.
+            Sur une carte qui se sert encore des villes du monde par défaut, le premier repère ajouté fait basculer la carte sur ses seuls repères propres.
             </div>
             {statusLine}
             </div>
@@ -920,7 +920,7 @@ const ToolView = ({ tool, header, busy, status, game, polities, refresh, runBusy
             {header(meta.title, meta.subtitle)}
             <div>
             <div style={{ color: "var(--oh-text)", fontSize: "var(--oh-t-xs)" }}>
-            This map currently has <strong>{count}</strong> custom feature{count === 1 ? "" : "s"}.
+            Cette carte porte <strong>{count}</strong> repère{count === 1 ? "" : "s"} qui lui {count === 1 ? "est propre" : "sont propres"}.
             </div>
             <button
             type="button"
@@ -932,7 +932,7 @@ const ToolView = ({ tool, header, busy, status, game, polities, refresh, runBusy
             })}
             style={{ ...primaryButtonStyle, marginTop: "0.7rem", width: "100%" }}
             >
-            Delete all custom features
+            Effacer tous les repères propres
             </button>
             <button
             type="button"
@@ -944,7 +944,7 @@ const ToolView = ({ tool, header, busy, status, game, polities, refresh, runBusy
             })}
             style={{ ...buttonStyle, marginTop: "0.5rem", width: "100%" }}
             >
-            Use the standard world cities instead
+            Revenir aux villes du monde par défaut
             </button>
             {statusLine}
             </div>
@@ -960,7 +960,7 @@ const ToolView = ({ tool, header, busy, status, game, polities, refresh, runBusy
             <>
             {header(meta.title, meta.subtitle)}
             <div style={{ display: "flex", flexDirection: "column", minHeight: 0 }}>
-            <input style={inputStyle} value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search events…" />
+            <input style={inputStyle} value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Chercher un événement…" />
             {events.length === 0 && (
                 <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)", marginTop: "0.6rem" }}>No events yet.</div>
             )}
@@ -995,7 +995,7 @@ const ToolView = ({ tool, header, busy, status, game, polities, refresh, runBusy
                     </div>
                     {isEditing && (
                         <div style={{ marginTop: "0.4rem" }}>
-                        <label style={labelStyle}>Title</label>
+                        <label style={labelStyle}>Titre</label>
                         <input style={inputStyle} value={fields.title ?? ""} onChange={(e) => setFields({ ...fields, title: e.target.value })} />
                         <label style={labelStyle}>Date</label>
                         <input style={inputStyle} value={fields.date ?? ""} onChange={(e) => setFields({ ...fields, date: e.target.value })} />
@@ -1015,7 +1015,7 @@ const ToolView = ({ tool, header, busy, status, game, polities, refresh, runBusy
                             return "Event saved.";
                         })}
                         >
-                        Save event
+                        Enregistrer l'événement
                         </button>
                         </div>
                     )}

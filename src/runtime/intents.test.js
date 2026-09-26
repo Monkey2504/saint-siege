@@ -208,3 +208,18 @@ test("a resolved hostile intent inflicts the SPECIFIC damage it names — infras
   assert.deepEqual(promiseOnly.effects, []);
   assert.deepEqual(applyIntentEffects(economies, [{ type: "sabotage", target: "Ruritania", kind: "poison", intensity: 1 }], { normalizeEconomy }), economies);
 });
+
+// La borne de portée coupait les lexiques du préréglage. Le chantier financier
+// en déclare une quarantaine ; à 16, « invest » et « deficit » disparaissaient,
+// et un pape qui déclarait vouloir combler le déficit n'accrochait personne.
+test("un lexique écrit à la main n'est pas tronqué par la borne de portée", async () => {
+  const { seededIntents } = await import("./churchPreset.js");
+  const ecrits = seededIntents("2026-09-01");
+  const normalises = normalizeIntents(ecrits);
+  for (const source of ecrits) {
+    const vu = normalises.find((it) => it.owner === source.owner && it.kind === source.kind);
+    assert.ok(vu, `${source.owner} a disparu à la normalisation`);
+    assert.equal(vu.scope.length, (source.scope || []).length,
+      `${source.owner} : ${(source.scope || []).length} mots de portée écrits, ${vu.scope.length} gardés`);
+  }
+});

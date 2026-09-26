@@ -276,11 +276,11 @@ export const stepTreasuries = (treasuries, { organizations = [], economies = {},
     const earned = free * rate * span;
     if (earned > 0) {
       t.treasury += earned;
-      rows.push({ date, polity: t.body, kind: "money", what: "return on its placed capital", amount: earned, unit: "SY", source: `placement:${Math.round(rate * 1000) / 10}% on capital${t.margin > 0 ? "" : `, the rate of ${t.parent}`}` });
+      rows.push({ date, polity: t.body, kind: "money", what: "rendement de son capital placé", amount: earned, unit: "SY", source: `placement:${Math.round(rate * 1000) / 10}% on capital${t.margin > 0 ? "" : `, the rate of ${t.parent}`}` });
     }
     const serviced = pos(t.assumedLiabilities) * rate * span;
     if (serviced > 0) {
-      rows.push({ date, polity: t.body, kind: "standing", what: "its assumed promise consumed what that capital earned", amount: -serviced, unit: "SY", source: "liability:serviced" });
+      rows.push({ date, polity: t.body, kind: "standing", what: "la promesse qu'elle a reprise a mangé ce que ce capital rapportait", amount: -serviced, unit: "SY", source: "liability:serviced" });
     }
 
     // Running costs first. Each member that has a standing budget is kept open
@@ -299,10 +299,10 @@ export const stepTreasuries = (treasuries, { organizations = [], economies = {},
       // Rome convoking them (runtime/gatherings.js runNationalProgramme).
       purse.treasury += paid;
       purse.fundedUntil = paid + 1e-9 >= owed ? date : purse.fundedUntil;
-      rows.push({ date, polity: child, kind: "money", what: "running costs met", amount: paid, unit: "SY", source: `budget:${t.body}` });
-      rows.push({ date, polity: t.body, kind: "money", what: `kept ${child} open`, amount: -paid, unit: "SY", source: "budget" });
+      rows.push({ date, polity: child, kind: "money", what: "frais de fonctionnement couverts", amount: paid, unit: "SY", source: `budget:${t.body}` });
+      rows.push({ date, polity: t.body, kind: "money", what: `a maintenu ${child} ouverte`, amount: -paid, unit: "SY", source: "budget" });
       if (paid + 1e-9 < owed) {
-        rows.push({ date, polity: child, kind: "standing", what: "short of its running costs", amount: -(owed - paid), unit: "SY", source: "budget:shortfall" });
+        rows.push({ date, polity: child, kind: "standing", what: "à court pour ses frais de fonctionnement", amount: -(owed - paid), unit: "SY", source: "budget:shortfall" });
       }
     }
 
@@ -350,7 +350,7 @@ export const stepTreasuries = (treasuries, { organizations = [], economies = {},
       if (childPurse && childPurse.status === "active") {
         childPurse.treasury += amount;
         handed += amount;
-        rows.push({ date, polity: member, kind: "money", what: `received from ${t.body}`, amount, unit: "SY", source: `federation:${t.key}` });
+        rows.push({ date, polity: member, kind: "money", what: `reçu de ${t.body}`, amount, unit: "SY", source: `federation:${t.key}` });
       } else if (nextEconomies[member]) {
         nextEconomies[member] = { ...nextEconomies[member], treasury: finite(nextEconomies[member].treasury, 0) + amount };
         // Also counted as income, not only as cash. Landing it in the treasury
@@ -358,7 +358,7 @@ export const stepTreasuries = (treasuries, { organizations = [], economies = {},
         // campaign was invisible on the page that reports the year.
         paidToPolities[member] = (paidToPolities[member] ?? 0) + amount;
         handed += amount;
-        rows.push({ date, polity: member, kind: "money", what: `received from ${t.body}`, amount, unit: "SY", source: `federation:${t.key}` });
+        rows.push({ date, polity: member, kind: "money", what: `reçu de ${t.body}`, amount, unit: "SY", source: `federation:${t.key}` });
       }
       // A member the world holds nothing for receives nothing: the money stays
       // in the purse rather than vanishing into a name.
@@ -371,7 +371,7 @@ export const stepTreasuries = (treasuries, { organizations = [], economies = {},
     }
     if (handed > 0) {
       t.treasury -= handed;
-      rows.push({ date, polity: t.body, kind: "money", what: `distributed to ${Object.keys(shares).length} members`, amount: -handed, unit: "SY", source: `federation:${t.key}` });
+      rows.push({ date, polity: t.body, kind: "money", what: `reversé à ${Object.keys(shares).length} membres`, amount: -handed, unit: "SY", source: `federation:${t.key}` });
     }
   }
 
@@ -462,7 +462,7 @@ export const applyTreasuryMoves = (world, moves, { player = "" } = {}) => {
       const sum = Math.min(purses[i].treasury, move.amount);
       if (!(sum > 0)) continue;
       purses[i] = { ...purses[i], treasury: purses[i].treasury - sum, capital: purses[i].capital + sum };
-      rows.push({ date: move.date, polity: move.body, kind: "patrimony", what: "cash placed as capital", amount: sum, unit: "SY", source: "order:placement" });
+      rows.push({ date: move.date, polity: move.body, kind: "patrimony", what: "liquidités placées en capital", amount: sum, unit: "SY", source: "order:placement" });
       continue;
     }
     // Endowment: it has to come from somewhere that actually holds it.
@@ -489,8 +489,8 @@ export const applyTreasuryMoves = (world, moves, { player = "" } = {}) => {
     if (j >= 0) purses[j] = { ...purses[j], capital: purses[j].capital - sum };
     else if (economies[move.from]) economies[move.from] = { ...economies[move.from], endowment: pos(economies[move.from].endowment) - sum };
     purses[i] = { ...purses[i], capital: purses[i].capital + sum, contributions: { ...purses[i].contributions, [move.from]: (purses[i].contributions[move.from] ?? 0) + sum } };
-    rows.push({ date: move.date, polity: move.from, kind: "patrimony", what: `endowed ${move.body}`, amount: -sum, unit: "SY", source: "order:endowment" });
-    rows.push({ date: move.date, polity: move.body, kind: "patrimony", what: `endowed by ${move.from}`, amount: sum, unit: "SY", source: "order:endowment" });
+    rows.push({ date: move.date, polity: move.from, kind: "patrimony", what: `a doté ${move.body}`, amount: -sum, unit: "SY", source: "order:endowment" });
+    rows.push({ date: move.date, polity: move.body, kind: "patrimony", what: `dotée par ${move.from}`, amount: sum, unit: "SY", source: "order:endowment" });
   }
 
   return rows.length ? { world: { ...w, treasuries: purses, economies }, rows, refusals } : { world, rows: [], refusals };

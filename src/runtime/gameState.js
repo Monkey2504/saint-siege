@@ -1586,8 +1586,8 @@ export const applyEventImpactsToWorld = ({ colors = {}, events = [], world }) =>
         const rows = [];
         for (const eff of applied.effects) {
           if (eff?.type !== "loan" || !(eff.amount > 0)) continue;
-          rows.push({ date: event.date, polity: eff.borrower, kind: "money", what: "loan received", amount: eff.amount, unit: "SY", source: `loan:${eff.lender}` });
-          rows.push({ date: event.date, polity: eff.lender, kind: "money", what: "loan paid out", amount: -eff.amount, unit: "SY", source: `loan:${eff.borrower}` });
+          rows.push({ date: event.date, polity: eff.borrower, kind: "money", what: "prêt reçu", amount: eff.amount, unit: "SY", source: `loan:${eff.lender}` });
+          rows.push({ date: event.date, polity: eff.lender, kind: "money", what: "prêt versé", amount: -eff.amount, unit: "SY", source: `loan:${eff.borrower}` });
         }
         nextWorld.record = appendRecord(nextWorld.record, rows);
       }
@@ -1623,7 +1623,7 @@ export const applyEventImpactsToWorld = ({ colors = {}, events = [], world }) =>
           if (!economy) continue;
           for (const g of gains) {
             const sy = syFromMillions(g.millions, g.currency, economy);
-            if (sy > 0) rows.push({ date: event.date, polity: owner, kind: "patrimony", what: "collected on a drive", amount: sy, unit: "SY", source: `drive:${g.millions} ${g.currency}` });
+            if (sy > 0) rows.push({ date: event.date, polity: owner, kind: "patrimony", what: "collecté par une campagne", amount: sy, unit: "SY", source: `drive:${g.millions} ${g.currency}` });
           }
         }
         nextWorld.economies = bookDriveGains(nextWorld.economies, applied.gains, { normalizeEconomy });

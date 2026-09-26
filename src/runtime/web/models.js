@@ -53,23 +53,23 @@ export const SUPPORTED_IMAGE_CONTENT_TYPES = new Set([
 
 export const DEFAULT_SCENARIO_META = {
   accentColor: "#7c3aed",
-  description: "Server-backed base scenario",
-  eyebrow: "Scenario",
-  heroSubtitle: "Editable server-backed scenario template.",
+  description: "Scénario de base, servi par le serveur",
+  eyebrow: "Scénario",
+  heroSubtitle: "Modèle de scénario modifiable, servi par le serveur.",
   heroTitle: "Modern Day",
   name: "Modern Day",
-  subtitle: "Base template",
+  subtitle: "Modèle de base",
 };
 
 export const DEFAULT_GAME_META = {
   accentColor: "#7c3aed",
-  description: "Active playable game",
-  eyebrow: "Game",
-  heroSubtitle: "Playable campaign session",
+  description: "Partie active, jouable",
+  eyebrow: "Partie",
+  heroSubtitle: "Session de campagne jouable",
   heroTitle: "Modern Day",
   name: "Modern Day Session",
   scenarioId: DEFAULT_SCENARIO_ID,
-  subtitle: "Current campaign",
+  subtitle: "Campagne en cours",
 };
 
 // --- Country reference resolution (mirrors server/libraryStore.js) ---

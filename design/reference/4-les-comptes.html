@@ -1,0 +1,95 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Les Comptes — cahier financier</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Archivo:wght@400;500;600;700;800&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400;1,6..72,500&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#e9e4d6;font-family:Archivo,system-ui,sans-serif;color:#2a2d33;padding:28px}
+.brief{max-width:1180px;margin:0 auto 22px;border-top:4px solid #14161a;padding-top:10px}
+.brief h1{font:800 26px/1.05 'Bricolage Grotesque',sans-serif;letter-spacing:-.03em;color:#14161a;margin:0 0 10px}
+.brief .row{display:grid;grid-template-columns:150px minmax(0,1fr);gap:6px 18px;font-size:13px;line-height:1.5;border-top:1px solid #14161a;padding:8px 0}
+.brief .k{font-weight:700;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:#4f535b;padding-top:2px}
+.brief code{font-family:'IBM Plex Mono',monospace;font-size:12.5px;background:#e0dac9;padding:1px 5px}
+.brief ul{margin:0;padding-left:18px}
+.brief li{margin-bottom:3px}
+.dv-olabel{display:none}
+.dv-card{border:1px solid #14161a;margin:0 auto;box-sizing:border-box}
+.dv-opt{max-width:1180px;margin:0 auto}
+</style>
+<div class="brief">
+  <h1>Les Comptes — cahier financier</h1>
+  <div class="row"><span class="k">Écran</span><span><code>2a</code> de la propal — maquette de référence, à reproduire en React</span></div>
+  <div class="row"><span class="k">Composant</span><span><code>src/Game/GameUI/economyPanel.jsx (à refaire de zéro)</code></span></div>
+  <div class="row"><span class="k">Données à brancher</span><ul><li>cotes en direct : valeur + variation par caisse</li><li>caisses : capital, rendement, en main, reversé, 12 tours</li><li>campagnes : promis / total, donateur majoritaire</li><li>rassemblements : recettes, coût, reste au diocèse</li><li>analyse rédigée à partir du registre</li></ul></div>
+  <div class="row"><span class="k">Règle</span><span>Les valeurs de cette maquette sont écrites en dur : elles montrent le <b>format</b>, pas le contenu. Reprendre exactement les tailles, graisses, filets et couleurs ; brancher les données du moteur à la place des chiffres.</span></div>
+</div>
+<div class="dv-opt" id="2a">
+<div class="dv-olabel"><a class="dv-oid" href="#2a">2a</a>Les Comptes — le cahier financier, cotes en direct, tableaux tabulaires</div>
+<div class="dv-card" style="width:1180px;background:#f1ebdd;color:#2a2d33;font-family:Archivo,sans-serif">
+  <!-- bandeau de cotes -->
+  <div style="display:flex;align-items:center;gap:0;border-bottom:1px solid #14161a;background:#14161a;color:#e9e4d6;font-variant-numeric:tabular-nums;font-size:12px">
+    <div style="display:flex;align-items:center;gap:8px;padding:9px 16px;border-right:1px solid #3a3d44;flex-shrink:0"><span style="width:7px;height:7px;border-radius:50%;background:#e0483b;display:inline-block"></span><span style="font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-size:10.5px">En direct</span><span style="color:#9a9da4">14:32 · actualisé pendant l'édition</span></div>
+    <div style="display:flex;gap:28px;padding:9px 18px;overflow:hidden;white-space:nowrap"><span>IOR capital <b>2,84 Md$</b> <span style="color:#7fb590">▲ 0,6 %</span></span><span>Denier de Saint-Pierre <b>47,1 M$</b> <span style="color:#e0483b">▼ 3,2 %</span></span><span>Fonds Sahel <b>210 M$</b> <span style="color:#9a9da4">— 5,1 %</span></span><span>Caisse curiale <b>1,4 M$</b> <span style="color:#e0483b">▼ 41 %</span></span><span>1 AS = <b>1 118 $</b></span><span>Fidèles <b>1,421 Md</b> <span style="color:#7fb590">▲ 224 k</span></span><span>Diocèses en déficit <b>312</b> <span style="color:#e0483b">▲ 9</span></span></div>
+  </div>
+  <div style="padding:18px 36px 36px">
+    <div style="display:flex;justify-content:space-between;align-items:end;border-bottom:4px solid #14161a;padding-bottom:8px">
+      <div><div style="font:700 11px/1 Archivo,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#4f535b">Saint-Siège · cahier</div><div style="font:800 40px/.95 'Bricolage Grotesque',sans-serif;letter-spacing:-.04em;color:#14161a;margin-top:6px">Les Comptes</div></div>
+      <div style="display:flex;gap:22px;font:700 11px/1 Archivo,sans-serif;letter-spacing:.04em;text-transform:uppercase;color:#4f535b;padding-bottom:6px"><span style="color:#14161a;border-bottom:2px solid #1f3f86;padding-bottom:4px">Caisses</span><span>Registre</span><span>Campagnes</span><span>Rassemblements</span><span>Prévisions</span></div>
+      <div style="text-align:right;font-size:11.5px;color:#4f535b;line-height:1.5">Tour 14 · 14 mars 2027<br>Unité : dollars ; années de subsistance (AS) entre parenthèses</div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1.6fr);gap:0 32px;margin-top:20px">
+      <!-- analyse -->
+      <div style="border-right:1px solid #14161a;padding-right:32px">
+        <div style="font:700 10.5px/1 Archivo,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#1f3f86">Analyse</div>
+        <h2 style="font:700 30px/1.05 Newsreader,serif;letter-spacing:-.015em;color:#14161a;margin:8px 0 8px">La générosité du Saint-Siège est financée à 41 % par une seule caisse, et cette caisse ne lui appartient pas</h2>
+        <p style="font:italic 400 15.5px/1.4 Newsreader,serif;color:#4f535b;margin:0 0 14px">Le Fonds Sahel a reversé 41 M$ ce mois-ci. Le Denier, lui, recule pour le troisième tour consécutif.</p>
+        <div style="border-top:1px solid #14161a;border-bottom:1px solid #14161a;padding:12px 0;margin-bottom:14px">
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:#4f535b;margin-bottom:6px"><span><b style="color:#14161a">Denier de Saint-Pierre</b> · encaissé par tour, M$</span><span>12 derniers tours</span></div>
+          <svg viewBox="0 0 400 110" style="display:block;width:100%"><line x1="0" y1="100" x2="400" y2="100" stroke="#14161a" stroke-width="1"></line><line x1="0" y1="55" x2="400" y2="55" stroke="#14161a" stroke-width=".5" stroke-dasharray="2 3"></line><line x1="0" y1="10" x2="400" y2="10" stroke="#14161a" stroke-width=".5" stroke-dasharray="2 3"></line><polyline fill="none" stroke="#1f3f86" stroke-width="2.2" points="0,62 36,58 72,66 109,49 145,44 181,52 218,38 254,30 290,42 327,51 363,60 400,71"></polyline><circle cx="400" cy="71" r="3.5" fill="#b8291d"></circle><text x="0" y="8" font-family="Archivo" font-size="9" fill="#4f535b">60</text><text x="0" y="52" font-family="Archivo" font-size="9" fill="#4f535b">45</text><text x="0" y="97" font-family="Archivo" font-size="9" fill="#4f535b">30</text><text x="364" y="88" font-family="Archivo" font-size="10" font-weight="700" fill="#b8291d">47,1</text></svg>
+        </div>
+        <p style="font-size:14px;line-height:1.55;margin:0 0 10px">Les récits de l'édition parlent d'un « élan de générosité ». Le registre dit autre chose : le Denier encaisse 47,1 M$, contre 48,7 au tour précédent et 52,3 il y a un an. La hausse des fidèles aux Philippines (+223 803) n'a produit aucune ligne de recette hors du diocèse hôte.</p>
+        <p style="font-size:14px;line-height:1.55;margin:0 0 10px">Le Fonds Sahel, fédéré et réparti selon la clé « besoin », est la seule caisse dont le capital travaille (5,1 %, soit 10,7 M$ par an). Le Saint-Siège n'en décide pas l'emploi — l'ordre 14-01 vient de l'apprendre.</p>
+        <p style="font-size:14px;line-height:1.55;margin:0;color:#14161a"><b>À surveiller.</b> La caisse curiale, à 1,4 M$, ne couvre pas le consistoire (2,1 M$). Sans virement du Denier avant le 14 avril, l'ordre 14-03 restera « en partie ».</p>
+        <div style="margin-top:16px;padding-top:10px;border-top:1px solid #14161a;display:flex;justify-content:space-between;font-size:11.5px;color:#4f535b"><span>Rédigé par le moteur à partir du registre. Aucun chiffre n'est narratif.</span><span>▲▼ depuis le tour 13</span></div>
+      </div>
+
+      <!-- tableaux -->
+      <div style="display:flex;flex-direction:column;gap:20px">
+        <section>
+          <div style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:2px solid #14161a;padding-bottom:5px"><span style="font:700 11px/1 Archivo,sans-serif;letter-spacing:.06em;text-transform:uppercase">Caisses · 5 organismes</span><span style="font-size:11px;color:#4f535b">capital · rendement · en main · reversé au tour</span></div>
+          <table style="width:100%;border-collapse:collapse;font-size:12.5px;font-variant-numeric:tabular-nums">
+            <thead><tr style="font-size:10.5px;color:#4f535b;text-align:right"><th style="text-align:left;padding:6px 0 4px;font-weight:600">Organisme</th><th style="padding:6px 0 4px;font-weight:600">Capital</th><th style="padding:6px 0 4px;font-weight:600">Rend.</th><th style="padding:6px 0 4px;font-weight:600">En main</th><th style="padding:6px 0 4px;font-weight:600">Reversé</th><th style="padding:6px 0 4px;font-weight:600;width:70px">12 tours</th></tr></thead>
+            <tbody>
+              <tr><td style="padding:7px 0;border-top:1px solid #14161a"><b style="color:#14161a">IOR</b> <span style="color:#4f535b;font-size:11px">· Saint-Siège</span></td><td style="padding:7px 0;border-top:1px solid #14161a;text-align:right">2 840 M$</td><td style="padding:7px 0;border-top:1px solid #14161a;text-align:right">3,4 %</td><td style="padding:7px 0;border-top:1px solid #14161a;text-align:right">96 M$</td><td style="padding:7px 0;border-top:1px solid #14161a;text-align:right;color:#b8291d">−41 M$</td><td style="padding:7px 0 7px 10px;border-top:1px solid #14161a"><svg viewBox="0 0 60 16" style="display:block;width:60px;height:16px"><polyline fill="none" stroke="#1f3f86" stroke-width="1.4" points="0,10 10,9 20,11 30,8 40,7 50,6 60,5"></polyline></svg></td></tr>
+              <tr><td style="padding:7px 0;border-top:1px solid #14161a"><b style="color:#14161a">Denier de Saint-Pierre</b></td><td style="padding:7px 0;border-top:1px solid #14161a;text-align:right;color:#4f535b">—</td><td style="padding:7px 0;border-top:1px solid #14161a;text-align:right;color:#4f535b">—</td><td style="padding:7px 0;border-top:1px solid #14161a;text-align:right">47,1 M$ <span style="color:#b8291d;font-size:10.5px;font-weight:700">▼ 3,2 %</span></td><td style="padding:7px 0;border-top:1px solid #14161a;text-align:right;color:#4f535b">0</td><td style="padding:7px 0 7px 10px;border-top:1px solid #14161a"><svg viewBox="0 0 60 16" style="display:block;width:60px;height:16px"><polyline fill="none" stroke="#b8291d" stroke-width="1.4" points="0,6 10,7 20,4 30,5 40,7 50,9 60,11"></polyline></svg></td></tr>
+              <tr><td style="padding:7px 0;border-top:1px solid #14161a"><b style="color:#14161a">Fonds Sahel</b> <span style="color:#4f535b;font-size:11px">· fédéré, clé « besoin » 80 %</span></td><td style="padding:7px 0;border-top:1px solid #14161a;text-align:right">210 M$</td><td style="padding:7px 0;border-top:1px solid #14161a;text-align:right">5,1 %</td><td style="padding:7px 0;border-top:1px solid #14161a;text-align:right">8,2 M$</td><td style="padding:7px 0;border-top:1px solid #14161a;text-align:right;color:#17643f">+41 M$</td><td style="padding:7px 0 7px 10px;border-top:1px solid #14161a"><svg viewBox="0 0 60 16" style="display:block;width:60px;height:16px"><polyline fill="none" stroke="#17643f" stroke-width="1.4" points="0,12 10,11 20,10 30,9 40,7 50,5 60,3"></polyline></svg></td></tr>
+              <tr><td style="padding:7px 0 7px 16px;border-top:1px dotted #14161a;color:#4f535b">└ Diocèse de Manille</td><td style="padding:7px 0;border-top:1px dotted #14161a;text-align:right;color:#4f535b">0</td><td style="padding:7px 0;border-top:1px dotted #14161a;text-align:right;color:#4f535b">—</td><td style="padding:7px 0;border-top:1px dotted #14161a;text-align:right">1,7 M$</td><td style="padding:7px 0;border-top:1px dotted #14161a;text-align:right;color:#17643f">+1,7 M$</td><td style="padding:7px 0 7px 10px;border-top:1px dotted #14161a;font-size:10.5px;color:#7f4705">liquide, ne rapporte rien</td></tr>
+              <tr><td style="padding:7px 0;border-top:1px solid #14161a"><b style="color:#14161a">Caisse curiale</b></td><td style="padding:7px 0;border-top:1px solid #14161a;text-align:right;color:#4f535b">0</td><td style="padding:7px 0;border-top:1px solid #14161a;text-align:right;color:#4f535b">—</td><td style="padding:7px 0;border-top:1px solid #14161a;text-align:right;color:#b8291d;font-weight:700">1,4 M$</td><td style="padding:7px 0;border-top:1px solid #14161a;text-align:right;color:#b8291d">−1,0 M$</td><td style="padding:7px 0 7px 10px;border-top:1px solid #14161a;font-size:10.5px;color:#b8291d">sous le consistoire</td></tr>
+              <tr><td style="padding:9px 0 0;border-top:2px solid #14161a;font:800 14px/1 'Bricolage Grotesque',sans-serif;color:#14161a">Total en main</td><td colspan="2" style="border-top:2px solid #14161a"></td><td style="padding:9px 0 0;border-top:2px solid #14161a;text-align:right;font:800 14px/1 'Bricolage Grotesque',sans-serif;color:#14161a">154,4 M$</td><td style="padding:9px 0 0;border-top:2px solid #14161a;text-align:right;font:800 14px/1 'Bricolage Grotesque',sans-serif;color:#b8291d">−39,3 M$</td><td style="border-top:2px solid #14161a"></td></tr>
+            </tbody>
+          </table>
+        </section>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:28px">
+          <section>
+            <div style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:2px solid #14161a;padding-bottom:5px"><span style="font:700 11px/1 Archivo,sans-serif;letter-spacing:.06em;text-transform:uppercase">Campagnes</span><span style="font-size:11px;color:#4f535b">2 ouvertes</span></div>
+            <div style="padding:9px 0;border-bottom:1px dotted #14161a"><div style="display:flex;justify-content:space-between;font-size:12.5px"><b style="color:#14161a">Écoles du Sahel</b><span style="font-variant-numeric:tabular-nums">38 / 120 M$</span></div><div style="background:#e0dac9;height:6px;margin:6px 0 4px;position:relative"><div style="position:absolute;inset:0 auto 0 0;width:52%;background:rgba(31,63,134,.25)"></div><div style="position:absolute;inset:0 auto 0 0;width:32%;background:#17643f"></div></div><div style="font-size:11px;color:#4f535b">62 M$ promis · 38 encaissés · <span style="color:#7f4705">un donateur porte 58 %</span></div></div>
+            <div style="padding:9px 0"><div style="display:flex;justify-content:space-between;font-size:12.5px"><b style="color:#14161a">Toit de la basilique</b><span style="font-variant-numeric:tabular-nums">4,1 / 9 M$</span></div><div style="background:#e0dac9;height:6px;margin:6px 0 4px;position:relative"><div style="position:absolute;inset:0 auto 0 0;width:61%;background:rgba(31,63,134,.25)"></div><div style="position:absolute;inset:0 auto 0 0;width:46%;background:#17643f"></div></div><div style="font-size:11px;color:#b8291d">Rien n'a bougé depuis la dernière édition, quoi qu'en disent les récits.</div></div>
+          </section>
+          <section>
+            <div style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:2px solid #14161a;padding-bottom:5px"><span style="font:700 11px/1 Archivo,sans-serif;letter-spacing:.06em;text-transform:uppercase">Rassemblements</span><span style="font-size:11px;color:#4f535b">compte d'exploitation</span></div>
+            <table style="width:100%;border-collapse:collapse;font-size:12.5px;font-variant-numeric:tabular-nums">
+              <tr><td style="padding:8px 0 4px"><b style="color:#14161a">Manille</b> <span style="color:#4f535b;font-size:11px">· tenu 8 mars</span></td><td style="text-align:right;color:#4f535b;font-size:11px">120 000 pers.</td></tr>
+              <tr><td style="padding:2px 0;color:#4f535b">recettes</td><td style="text-align:right;color:#17643f">+7,9 M$</td></tr>
+              <tr><td style="padding:2px 0;color:#4f535b;border-bottom:1px solid #14161a">coût (51,7 $/tête)</td><td style="text-align:right;color:#b8291d;border-bottom:1px solid #14161a">−6,2 M$</td></tr>
+              <tr><td style="padding:4px 0 9px;font-weight:700;color:#14161a;border-bottom:1px dotted #14161a">reste au diocèse</td><td style="text-align:right;font-weight:700;color:#17643f;border-bottom:1px dotted #14161a">+1,7 M$</td></tr>
+              <tr><td style="padding:8px 0 2px"><b style="color:#14161a">Kinshasa</b> <span style="color:#4f535b;font-size:11px">· prévu 2 mai</span></td><td style="text-align:right;color:#4f535b;font-size:11px">espéré 300 000</td></tr>
+              <tr><td style="padding:2px 0;color:#4f535b">budgété</td><td style="text-align:right;color:#4f535b">9,4 M$ · ne rapporte rien avant le jour</td></tr>
+            </table>
+          </section>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>

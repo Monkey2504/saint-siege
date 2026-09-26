@@ -68,7 +68,7 @@ const Welcome = ({ onBegin, hasSave = false }) => {
         <h1
         style={{
             color: "var(--oh-text-strong)", fontFamily: "var(--oh-font-display)",
-            fontSize: "clamp(2.2rem, 6vw, 4.4rem)", fontWeight: 800, letterSpacing: "-0.035em",
+            fontSize: "var(--oh-t-3xl)", fontWeight: 800, letterSpacing: "-0.035em",
             lineHeight: 0.98, margin: "0 0 0.8rem", textWrap: "balance",
         }}
         >

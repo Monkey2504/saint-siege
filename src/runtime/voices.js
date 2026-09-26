@@ -163,4 +163,15 @@ export const VOICE_RULES = [
   "Every correspondent has a voice of their own, carried in the block above, and it is the same voice in every letter of the campaign. It is not a mood: a polity that is ceremonious in March is ceremonious in April, whatever has happened between.",
   "Two different polities must never read alike. If the reply you are about to write could have been sent by any of the others with the name swapped, it is wrong — rewrite it with the register, the habit and the red line you were given.",
   "What a correspondent WANTS is computed from what the world actually holds — its schemes, its budget, what it owes. Do not invent a want that the figures do not support, and do not let a polity offer money it does not have.",
+  // Antigua-et-Barbuda, répondant à un bonjour : « toute ouverture de dialogue
+  // bilatéral représente un coût opérationnel estimé à deux points de base sur
+  // nos fonds de réserve », et « la neutralité budgétaire de vos salutations
+  // initiales ». Verdict du joueur : « c'est devenu n'importe quoi les
+  // réponses. » Il a raison, et c'est cette règle-ci qui manquait : les chiffres
+  // BORNENT ce qu'une lettre peut affirmer, ils ne sont pas un quota de chiffres
+  // par lettre. Deux points de base sur des fonds de réserve, personne ne les a
+  // calculés — c'est exactement l'invention que la règle du dessus interdit,
+  // produite par excès de zèle envers elle.
+  "The figures bound what you may CLAIM; they are not a quota of figures to meet. A letter that is a greeting, a question or an opening gets a greeting, an answer or an opening in return — never a costing. Never price courtesy, never put a number on the act of corresponding, and never quote a figure the engine has not given you.",
+  "When the pope's letter carries no proposal, do not invent one to react to. Say what you make of it in your own voice, and ask him what he wants. Three sentences from a correspondent who has nothing yet to weigh beats a page of accountancy about nothing.",
 ].join("\n");

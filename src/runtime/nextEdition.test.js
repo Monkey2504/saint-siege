@@ -10,20 +10,20 @@ test("an empty desk carries the world at its own pace", () => {
   const out = nextEdition({}, [], { today: TODAY });
   assert.equal(out.days, SPANS.idle);
   assert.equal(out.date, "2029-03-31");
-  assert.match(out.reason, /nothing at the desk/);
+  assert.match(out.reason, /rien sur le bureau/);
 });
 
 test("a letter is answered within the week", () => {
   const out = nextEdition({}, [order("Write to the President of France about the pension reform.")], { today: TODAY });
   assert.equal(out.days, 7);
   assert.equal(out.date, "2029-03-08");
-  assert.equal(out.reason, "a letter to answer");
+  assert.equal(out.reason, "une lettre à laquelle répondre");
 });
 
 test("a body that must sit needs a month, even when it is convoked by letter", () => {
   const out = nextEdition({}, [order("Write to the cardinals to convoke a consistory on the pension question.")], { today: TODAY });
   assert.equal(out.days, 30);
-  assert.equal(out.reason, "a body that must sit");
+  assert.equal(out.reason, "un corps qui doit siéger");
 });
 
 test("a campaign runs to its season", () => {
@@ -37,7 +37,7 @@ test("the slowest order sets the pace, so nothing prints before it can report", 
     order("Open a collecte across Africa."),
   ], { today: TODAY });
   assert.equal(out.days, 90);
-  assert.match(out.reason, /campaign/);
+  assert.match(out.reason, /campagne/);
 });
 
 test("a dated gathering pulls the edition forward — print when there is news", () => {
@@ -45,7 +45,7 @@ test("a dated gathering pulls the edition forward — print when there is news",
   const out = nextEdition(world, [order("Open a fundraising drive across Asia.")], { today: TODAY });
   assert.equal(out.date, "2029-03-20");
   assert.equal(out.days, 19);
-  assert.equal(out.reason, "the Pax Europa 2029");
+  assert.equal(out.reason, "le rassemblement Pax Europa 2029");
 });
 
 test("a gathering later than the desk's own pace does not delay the edition", () => {
@@ -65,7 +65,7 @@ test("chats and settled orders do not set the pace", () => {
     order("Talk to Germany", { kind: "chat" }),
     order("Write to Berlin.", { status: "resolved" }),
   ], { today: TODAY });
-  assert.match(out.reason, /nothing at the desk/);
+  assert.match(out.reason, /rien sur le bureau/);
 });
 
 test("the order that set the pace is named, so the date can be explained", () => {

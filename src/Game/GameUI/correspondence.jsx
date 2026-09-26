@@ -3,6 +3,8 @@ import React, { useEffect, useMemo, useState } from "react";
 import { readGameData, readWorldState } from "../../runtime/gameState.js";
 import { groupsOn, normalizeAssembly, temperWord } from "../../runtime/factions.js";
 import { useSurface } from "../../runtime/useSurface.js";
+import { CahierVide, EnTeteDeCahier, fmtDate } from "./journal.jsx";
+import { CONTENU_TOP } from "./chrome.js";
 import { ensureOrganizations } from "./organizationsView.jsx";
 import {
     ConversationView,
@@ -35,11 +37,10 @@ import {
 // says what a letter is worth, because a player who thinks writing is free
 // writes differently from one who knows it costs standing.
 
-const fmtDate = (value) => {
-    if (!value) return "";
-    const d = new Date(value);
-    return Number.isNaN(d.getTime()) ? String(value) : d.toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" });
-};
+// fmtDate vient de journal.jsx. Celui d'ici passait par toLocaleDateString avec
+// une locale `undefined` : la date du Courrier suivait donc celle du NAVIGATEUR
+// — « June 11, 2027 » sur une machine en anglais — pendant que le reste du
+// journal écrivait « 11 juin 2027 ». Une seule écriture pour tout le journal.
 
 const fmtShort = (value) => {
     if (!value) return "";
@@ -98,7 +99,7 @@ const CorrespondentRow = ({ chat, active, unread, standing: where, onOpen, onDel
         style={{
             background: active ? "var(--oh-plate-2)" : "transparent",
             borderBottom: "1px solid var(--oh-line)",
-            borderLeft: `4px solid ${edge}`,
+            borderLeft: `var(--oh-filet-fort) solid ${edge}`,
             display: "flex",
             gap: "0.5rem",
             padding: "0.85rem 0.9rem 0.9rem 1rem",
@@ -140,7 +141,7 @@ const CorrespondentRow = ({ chat, active, unread, standing: where, onOpen, onDel
     );
 };
 
-const Correspondence = () => {
+const Correspondence = ({ nav = null }) => {
     useSurface("desk");
     const [game, setGame] = useState(null);
     const [world, setWorld] = useState(null);
@@ -280,18 +281,51 @@ const Correspondence = () => {
     const activeNames = (activeChat?.countries ?? []).map((c) => c.name).join(", ");
 
     return (
-        <div data-surface="desk" style={{ background: "var(--oh-plate)", bottom: "2.6rem", color: "var(--oh-text)", display: "grid", gridTemplateColumns: "minmax(17rem, 20rem) minmax(0, 1fr)", left: 0, overflow: "hidden", position: "fixed", right: 0, top: 0, zIndex: 10002 }}>
+        // « Les distances ne sont toujours pas bonnes. » Ce cahier partait du
+        // bord de l'écran quand les cinq autres tiennent dans 74 rem centrées :
+        // sur un écran large, son bandeau faisait mille neuf cents pixels de
+        // long là où « Les Ordres » en fait mille cent quatre-vingts. Deux
+        // pages du même journal, deux formats de papier.
+        // Le papier couvre l'écran ; la COLONNE tient dans 74 rem, comme les
+        // cinq autres cahiers (voir Feuille dans cahiers.jsx). Poser la mesure
+        // sur le conteneur fixe lui-même laissait le noir de la carte tout
+        // autour : ce journal n'est pas une feuille posée sur un bureau, c'est
+        // la page entière.
+        <div data-surface="desk" style={{ background: "var(--oh-plate)", bottom: 0, color: "var(--oh-text)", left: 0, overflow: "hidden", position: "fixed", right: 0, top: CONTENU_TOP, zIndex: 10002 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gridTemplateRows: "auto minmax(0, 1fr)", height: "100%", margin: "0 auto", maxWidth: "74rem", position: "relative" }}>
+        {/* Ce cahier n'avait pas de bandeau. Son titre vivait DANS la colonne
+            des correspondants, en Bricolage et deux crans plus petit que « Les
+            Ordres » ou « Le Registre » : la même page du même journal, dans une
+            autre police et une autre taille. Le bandeau passe en tête de la
+            feuille, comme les cinq autres, et les deux volets s'ouvrent
+            dessous. */}
+        <div style={{ padding: "1.35rem 1.5rem 0" }}>
+        <EnTeteDeCahier
+        titre="Le Courrier"
+        mention={game?.gameDate ? `Rome, ${fmtDate(game.gameDate)}` : null}
+        sousMention="Les réponses partent avec la prochaine édition"
+        />
+        {nav && <div style={{ paddingTop: "0.8rem" }}>{nav()}</div>}
+        </div>
+        {/* Deux volets sur un écran de bureau, UN SEUL sur un téléphone : à
+            390 px, la grille écrasait le volet des lettres à soixante-dix
+            pixels et le texte tombait à un mot par ligne. Le volet montré est
+            celui qu'on regarde — la liste tant qu'aucune lettre n'est ouverte,
+            la lettre ensuite — et ConversationView portait déjà le retour qu'il
+            faut pour revenir (theme.css, @media max-width 40rem). */}
+        <div className="oh-courrier-volets" data-lettre-ouverte={activeChat ? "oui" : "non"} style={{ display: "grid", gridTemplateColumns: "minmax(17rem, 20rem) minmax(0, 1fr)", minHeight: 0, overflow: "hidden" }}>
 
         {/* ── The column of correspondents ─────────────────────────────────── */}
         <div style={{ borderRight: "1px solid var(--oh-line)", display: "flex", flexDirection: "column", minHeight: 0 }}>
 
-        <div style={{ borderBottom: "1px solid var(--oh-line)", flexShrink: 0, padding: "1.35rem 1.2rem 0.9rem" }}>
-        <span className="oh-label" style={{ color: "var(--oh-text-dim)" }}>{playerCountry ? `${playerCountry} · cahier` : "cahier"}</span>
-        <h1 style={{ color: "var(--oh-text-strong)", fontFamily: "var(--oh-font-display)", fontSize: "var(--oh-t-xl)", fontWeight: 800, letterSpacing: "-0.04em", lineHeight: 0.95, margin: "0.4rem 0 0" }}>
-        Le Courrier
-        </h1>
-        <p style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)", lineHeight: 1.45, margin: "0.55rem 0 0" }}>
-        {unread > 0 ? `${unread} non lues · ` : ""}les réponses partent avec la prochaine édition
+        {/* La colonne garde ce qui lui appartient — le compte des non lues —
+            et rend le titre au bandeau, qui le porte pour toute la feuille. */}
+        <div style={{ borderBottom: "1px solid var(--oh-line)", flexShrink: 0, padding: "1.1rem 1.2rem 0.8rem" }}>
+        <span className="oh-label" style={{ color: "var(--oh-text-dim)" }}>Correspondants</span>
+        <p style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)", lineHeight: 1.45, margin: "0.35rem 0 0" }}>
+        {unread > 0
+            ? `${unread} ${unread === 1 ? "lettre non lue" : "lettres non lues"}`
+            : "Rien de non lu."}
         </p>
         </div>
 
@@ -346,7 +380,10 @@ const Correspondence = () => {
         <button
         type="button"
         onClick={() => setComposing(true)}
-        style={{ background: "var(--oh-accent)", border: 0, color: "var(--oh-on-accent)", cursor: "pointer", fontFamily: "var(--oh-font-label)", fontSize: "var(--oh-t-xs)", fontWeight: 700, letterSpacing: "var(--oh-label-track)", padding: "0.7rem 1rem", textTransform: "var(--oh-label-case)" }}
+        // Le seul aplat bleu de la page, au milieu d'un journal qui n'imprime
+        // qu'en noir. La maquette veut un bouton plat, à l'encre : c'est ce qui
+        // le distingue des autres, pas sa couleur.
+        style={{ background: "var(--oh-text-strong)", border: 0, borderRadius: "var(--oh-r-flat)", color: "var(--oh-on-accent)", cursor: "pointer", fontFamily: "var(--oh-font-label)", fontSize: "var(--oh-t-xs)", fontWeight: 700, letterSpacing: "var(--oh-label-track)", padding: "0.7rem 1rem", textTransform: "var(--oh-label-case)" }}
         >
         Nouvelle lettre
         </button>
@@ -374,19 +411,34 @@ const Correspondence = () => {
         <div className="oh-letters" style={{ display: "flex", flexDirection: "column", minHeight: 0, position: "relative" }}>
         {activeChat ? (
             <>
-            <div style={{ alignItems: "baseline", borderBottom: "1px solid var(--oh-line)", display: "flex", flexShrink: 0, gap: "1.5rem", justifyContent: "space-between", padding: "1.35rem 1.8rem 0.8rem" }}>
+            {/* Et cet en-tête courait sur toute la largeur du volet pendant que
+                les lettres dessous tiennent dans 62 signes : « Opinion +66, vous
+                suivrait partout » finissait huit cents pixels à droite de la
+                colonne qu'il coiffe, et débordait de l'écran. Il prend la mesure
+                des lettres, puisque c'est d'elles qu'il parle. */}
+            <div style={{ alignItems: "baseline", borderBottom: "1px solid var(--oh-line)", display: "flex", flexShrink: 0, gap: "1.5rem", justifyContent: "space-between", margin: "0 auto", maxWidth: "62ch", padding: "1.35rem 0 0.8rem", width: "100%" }}>
             <div style={{ minWidth: 0 }}>
             <div style={{ color: "var(--oh-text-strong)", fontFamily: "var(--oh-font-display)", fontSize: "var(--oh-t-lg)", fontWeight: 800, letterSpacing: "-0.03em", lineHeight: 1 }}>{activeNames}</div>
             <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)", marginTop: "0.4rem" }}>
-            {(activeChat.countries ?? []).length > 1 ? `${(activeChat.countries ?? []).length} à la table` : kindOf(activeChat) === "current" ? "un courant du collège" : kindOf(activeChat) === "body" ? "un organisme de l'époque" : "un État"}
+            {(activeChat.countries ?? []).length > 1
+                ? `${(activeChat.countries ?? []).length} à la table`
+                // Un correspondant que l'assemblée connaît EST un courant du
+                // collège : il y tient des sièges. Le brief l'a relevé — « le
+                // Chemin synodal n'est pas un État » — et c'était le défaut par
+                // défaut : faute de savoir, on écrivait « un État ». Le monde
+                // sait, et c'est lui qu'on lit.
+                : activeStanding ? "un courant du collège"
+                : kindOf(activeChat) === "current" ? "un courant du collège"
+                : kindOf(activeChat) === "body" ? "un organisme de l'époque"
+                : "un État"}
             {activeStanding ? ` · ${activeStanding.seats} ${activeStanding.seats === 1 ? "électeur" : "électeurs"}` : ""}
             </div>
             </div>
-            <div style={{ color: "var(--oh-text-dim)", flexShrink: 0, fontSize: "var(--oh-t-xs)", lineHeight: 1.5, textAlign: "right" }}>
+            <div style={{ color: "var(--oh-text-dim)", flexShrink: 1, fontSize: "var(--oh-t-xs)", lineHeight: 1.5, minWidth: 0, textAlign: "right" }}>
             {activeStanding && (
                 <div>Opinion <b style={{ color: toneVar(activeStanding.tone) }}>{activeStanding.approval > 0 ? "+" : ""}{activeStanding.approval}, {activeStanding.mood}</b></div>
             )}
-            <div>{chatMessageCount(activeChat)} exchanged · {fmtDate(gameDate)}</div>
+            <div>{chatMessageCount(activeChat)} {chatMessageCount(activeChat) === 1 ? "lettre échangée" : "lettres échangées"} · {fmtDate(gameDate)}</div>
             </div>
             </div>
             <ConversationView
@@ -401,11 +453,13 @@ const Correspondence = () => {
             />
             </>
         ) : (
-            <div style={{ margin: "auto", maxWidth: "46ch", padding: "2rem" }}>
+            // Ancré en haut, jamais centré dans le vide : une page de journal
+            // commence sous son en-tête, où qu'elle s'arrête.
+            <div style={{ margin: "0 auto", maxWidth: "62ch", padding: "2rem 2rem 0", width: "100%" }}>
             <span className="oh-label" style={{ color: "var(--oh-text-dim)" }}>Lettres</span>
-            <p style={{ color: "var(--oh-text)", fontFamily: "var(--oh-font-serif)", fontSize: "var(--oh-t-md)", lineHeight: 1.55, margin: "0.8rem 0 0" }}>
-            Choisissez un correspondant à gauche, ou écrivez une nouvelle lettre. Ce que vous écrivez est lu dans son propre caractère par la puissance à qui vous l'adressez, et ce qu'elle répond est jugé sur ce qu'elle veut vraiment.
-            </p>
+            <CahierVide quoiFaire="Choisissez un correspondant à gauche, ou écrivez une nouvelle lettre.">
+            Ce que vous écrivez est lu dans son propre caractère par la puissance à qui vous l&apos;adressez, et ce qu&apos;elle répond est jugé sur ce qu&apos;elle veut vraiment.
+            </CahierVide>
             </div>
         )}
         </div>
@@ -429,6 +483,8 @@ const Correspondence = () => {
             </div>
             </div>
         )}
+        </div>
+        </div>
         </div>
     );
 };

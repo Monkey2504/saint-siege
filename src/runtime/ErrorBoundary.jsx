@@ -33,14 +33,14 @@ class ErrorBoundary extends React.Component {
     return (
       <div style={styles.shell} role="alert">
         <div style={styles.card}>
-          <div style={styles.title}>Something went wrong</div>
+          <div style={styles.title}>Quelque chose s'est mal passé</div>
           <div style={styles.body}>
-            The world view hit an unexpected error and had to stop. Your saved games
-            are safe — reloading usually recovers.
+            L'affichage du monde a rencontré une erreur imprévue et a dû s'arrêter. Vos
+            parties sont saines et sauves — recharger suffit presque toujours.
           </div>
           {error?.message ? <pre style={styles.detail}>{String(error.message)}</pre> : null}
           <button type="button" style={styles.button} onClick={this.handleReload}>
-            Reload
+            Recharger
           </button>
         </div>
       </div>
@@ -73,7 +73,7 @@ const styles = {
     gap: "1rem",
   },
   title: {
-    fontSize: "clamp(1.3rem, 3vw, 1.8rem)",
+    fontSize: "var(--oh-t-xl)",
     fontWeight: 700,
     letterSpacing: "0.04em",
     color: "var(--oh-alert)",

@@ -163,7 +163,7 @@ test("a scheme that runs a year and produces nothing warms the room to whoever d
     { owner: "abouti", status: "active", stage: 100, createdAt: "2029-01-01" },
   ], { asOf: "2030-08-01", date: "2030-08-01" });
   assert.ok(out.assembly.electors.every((e) => e.approval === 2), "two stale schemes, two points");
-  assert.match(out.rows[0].reason, /2 schemes against you ran a year/);
+  assert.match(out.rows[0].reason, /2 chantiers contre vous ont tourné un an sans rien produire/);
   assert.deepEqual(driftFromBlunders(a, [], { asOf: "2030-08-01" }).rows, []);
 });
 

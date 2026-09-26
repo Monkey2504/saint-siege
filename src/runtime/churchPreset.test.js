@@ -52,25 +52,51 @@ test("applyChurchPreset: the Holy See, six real factions, six real bodies, seede
   assert.ok(once.economies[HOLY_SEE], "the Holy See has an engine economy");
   assert.equal(Object.keys(once.economies).length, 1, "factions have no economy of their own");
 
+  // Neuf depuis que les trois fronts orphelins ont leur corps : la Commission
+  // pour la protection des mineurs, le Dicastère pour le Clergé, la Section
+  // pour les relations avec les États. Le moteur mesurait les abus, les
+  // vocations et la paix sans que personne dans l'Église ne les poursuive.
   const bodies = churchBodies().map((b) => b.name);
-  assert.equal(bodies.length, 6);
+  assert.equal(bodies.length, 9);
+  for (const attendu of [
+    "Commission pour la protection des mineurs",
+    "Dicastère pour le Clergé",
+    "Section pour les relations avec les États",
+  ]) assert.ok(bodies.includes(attendu), `${attendu} est un corps de l'Église`);
   const church = once.organizations.find((o) => o.name === "Catholic Church");
   assert.equal(church.leader, HOLY_SEE);
   assert.deepEqual([...church.members.filter((m) => m !== HOLY_SEE)].sort(), ["Brazil", "Italy", "Poland"], "membership only names countries the map has");
   assert.ok(once.organizations.some((o) => o.name === "United Nations"), "existing bodies are kept");
   assert.equal(once.organizations.filter((o) => o.name === "Catholic Church").length, 1, "the catalogue's Catholic Church is replaced, not duplicated");
 
-  // Six factions plus the two bodies that carry a pontificate out: a world
-  // modelled only as counter-powers could narrate nothing but obstruction.
-  assert.equal(once.intents.length, 8);
+  // Six factions, les deux corps qui portent un pontificat, et les trois qui
+  // poursuivent les fronts orphelins. Un monde modélisé en contre-pouvoirs
+  // seuls ne savait raconter que l'obstruction ; un monde qui ne poursuit ni
+  // les abus, ni les vocations, ni la paix laissait un pape déplacer trois
+  // chiffres sur six sans que rien ne lui réponde.
+  assert.equal(once.intents.length, 11);
   assert.equal(intentsNeedOtherPowers(once.intents, HOLY_SEE), false, "the schemes belong to the counter-powers, not the pope");
   assert.ok(once.intents.every((it) => it.target === HOLY_SEE));
-  assert.equal(once.intents.filter((it) => it.stance === "supportive").length, 3, "the Jesuits, the universal Church and the Curia carry it out");
+  assert.equal(once.intents.filter((it) => it.stance === "supportive").length, 4, "les Jésuites, l'Église universelle, la Curie et la diplomatie l'exécutent");
   assert.equal(once.intents.filter((it) => it.stance === "hostile").length, 4);
+  // Ni pour ni contre : ces deux-là poursuivent une chose, et ce que le pape
+  // dit ou fait décide s'il les y aide ou les en empêche.
+  assert.equal(once.intents.filter((it) => it.stance === "neutral").length, 3);
+
+  // Les trois fronts que le moteur mesure ont chacun un chantier qui les vise.
+  const porteesParFront = {
+    abus: ["abus", "safeguard", "victime"],
+    vocations: ["vocation", "séminaire", "prêtre"],
+    paix: ["paix", "guerre", "médiation"],
+  };
+  for (const [front, mots] of Object.entries(porteesParFront)) {
+    const couvert = once.intents.some((it) => mots.every((m) => (it.scope || []).some((s) => s.startsWith(m.slice(0, 5)))));
+    assert.ok(couvert, `un chantier poursuit le front « ${front} »`);
+  }
 
   assert.equal(once.simulationRules.split("[Mode de jeu — Pape réformateur]").length - 1, 1);
   assert.equal(twice.simulationRules.split("[Mode de jeu — Pape réformateur]").length - 1, 1, "rules appended once");
-  assert.equal(twice.intents.length, 8, "intents not re-seeded");
+  assert.equal(twice.intents.length, 11, "intents not re-seeded");
   assert.equal(twice.organizations.length, once.organizations.length);
   assert.ok(Math.abs(totalFaithful(once.church.faithful) - 1.406e9) < 5e6, "the faithful ledger is seeded with the real figure");
   assert.deepEqual(twice.church, once.church, "the ledger is not reset on re-apply");

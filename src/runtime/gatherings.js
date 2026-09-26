@@ -299,8 +299,8 @@ export const applyGatheringOps = (gatherings, ops, { date = "", church = null, e
       refusals.push(`gatheringOps hold on "${g.name}": ${g.host} has no purse, so its ${out.surplus > 0 ? "surplus" : "loss"} went nowhere — open one with treasuryOps first.`);
     }
 if (out.renewed > 0 && g.continent) {
-      faithfulOps.push({ op: "shift", continent: g.continent, delta: out.renewed, note: `Faith renewed by ${g.name}` });
-      rows.push({ date: date || g.date, polity: g.host, kind: "people", what: `faith renewed by ${g.name}`, amount: out.renewed, unit: "people", source: `gathering:${out.attendance.toLocaleString("en-US")} attending` });
+      faithfulOps.push({ op: "shift", continent: g.continent, delta: out.renewed, note: `Foi ravivée par ${g.name}` });
+      rows.push({ date: date || g.date, polity: g.host, kind: "people", what: `foi ravivée par ${g.name}`, amount: out.renewed, unit: "people", source: `gathering:${out.attendance.toLocaleString("en-US")} attending` });
     }
     rows.push({
       date: date || g.date, polity: g.host, kind: "money",
@@ -524,7 +524,7 @@ export const runNationalProgramme = (world, { asOf = "", years = 0, organization
     held.push(t.body);
     if (out.renewed > 0) {
       faithfulOps.push({ op: "shift", continent: key, delta: out.renewed, note: `Faith renewed by the national gatherings of ${t.body}` });
-      rows.push({ date: asOf, polity: t.body, kind: "people", what: "faith renewed by its national gatherings", amount: out.renewed, unit: "people", source: `national:${out.attendance.toLocaleString("en-US")} attending` });
+      rows.push({ date: asOf, polity: t.body, kind: "people", what: "foi ravivée par ses rassemblements nationaux", amount: out.renewed, unit: "people", source: `national:${out.attendance.toLocaleString("en-US")} attending` });
     }
     rows.push({
       date: asOf, polity: t.body, kind: "money",
@@ -607,9 +607,9 @@ export const runWorldProgramme = (world, { asOf = "", years = 0, organizations =
   if (out.renewed > 0) {
     for (const [continent, count] of Object.entries(faithful)) {
       const delta = out.renewed * (pos(count) / everyone);
-      if (delta >= 1) faithfulOps.push({ op: "shift", continent, delta, note: `Faith renewed by ${g.name}` });
+      if (delta >= 1) faithfulOps.push({ op: "shift", continent, delta, note: `Foi ravivée par ${g.name}` });
     }
-    rows.push({ date: asOf, polity: federation.body, kind: "people", what: `faith renewed by its world gathering`, amount: out.renewed, unit: "people", source: `world:${out.attendance.toLocaleString("en-US")} attending` });
+    rows.push({ date: asOf, polity: federation.body, kind: "people", what: `foi ravivée par son rassemblement mondial`, amount: out.renewed, unit: "people", source: `world:${out.attendance.toLocaleString("en-US")} attending` });
   }
   rows.push({
     date: asOf, polity: federation.body, kind: "money",
