@@ -15,13 +15,37 @@
 import { normalizeEconomy, annualRevenue, fiscalBalance, debtCeiling, interestRate } from "./economy.js";
 import { normalizeIntents } from "./intents.js";
 import { normalizeOrganizations, isMember } from "./organizations.js";
+import { fmtMoneyFromUsd, fmtSY, pourcent } from "./money.js";
 
 const str = (v) => String(v ?? "").trim();
 const lower = (v) => str(v).toLowerCase();
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 const finite = (v, d = 0) => { const n = Number(v); return Number.isFinite(n) ? n : d; };
-const fmt = (n) => Math.round(finite(n)).toLocaleString("en-US");
-const pct = (n) => `${(finite(n) * 100).toFixed(1)}%`;
+// Une somme du moteur, écrite dans la monnaie du lecteur. Le moteur compte en
+// années-subsistance (AS) ; le joueur lisait « le budget manque déjà de 18,641
+// AS/an » dans le verdict, à côté d'un cahier des comptes tenu en euros — et le
+// modèle, qui lit ce même détail, recopiait « 18 641 SY » dans l'édition.
+// Quand l'économie porte son ancre en dollars, on écrit des euros ; sinon, des
+// AS, mais à la française.
+const argent = (e, sy) => {
+  const usdPerSY = finite(e?.usdPerSY);
+  if (usdPerSY > 0) return fmtMoneyFromUsd(finite(sy) * usdPerSY) ?? "0 €";
+  return `${fmtSY(sy)} AS`;
+};
+const pct = (n) => pourcent(finite(n));
+// « ce saut en couvre 0.08 » : 0.08 quoi ? Un mois, en jours.
+const duree = (annees) => {
+  const jours = Math.round(finite(annees) * 365.25);
+  if (jours < 365) return `${jours} jour${jours > 1 ? "s" : ""}`;
+  const a = Math.round(finite(annees) * 10) / 10;
+  return `${String(a).replace(".", ",")} an${a >= 2 ? "s" : ""}`;
+};
+
+// Ce qu'aucun budget n'achète : le patrimoine que le Saint-Siège garde et
+// montre, et ne vend pas. « Vendre la chapelle Sixtine » passait « accordé en
+// partie », au seul motif du déficit — comme si l'obstacle était le prix.
+const ALIENER = /\b(vend|céd|aliéner|brad|hypothéqu|mettre en vente|mise en vente|privatis|sell|auction|enchères)/i;
+const INALIENABLE = /(chapelle sixtine|sixtine|sistine|basilique saint-pierre|saint-pierre de rome|st\.? peter'?s basilica|place saint-pierre|musées du vatican|musees du vatican|vatican museums|bibliothèque (apostolique )?vaticane|archives (apostoliques )?vaticanes|archives apostoliques|pietà|pieta|saint-jean-de-latran|latran)/i;
 
 // ---- what kind of order this is -----------------------------------------------------------
 // Keyword classes, multilingual where the game is played in more than one
@@ -153,12 +177,12 @@ export const assessAction = (action, ctx = {}) => {
         : e.financing === "austerity" ? Math.max(0, e.treasury)
         : Math.max(0, e.treasury) + Math.max(0, debtCeiling(e) - e.debt);
       if (balance < 0) {
-        const how = e.financing === "drawdown" ? `payée en entamant le patrimoine (${fmt(e.endowment)} AS restants)`
-          : e.financing === "borrow" ? `empruntée à ${pct(interestRate(e))}, avec ${fmt(Math.max(0, debtCeiling(e) - e.debt))} AS de marge`
+        const how = e.financing === "drawdown" ? `payée en entamant le patrimoine (${argent(e, e.endowment)} restants)`
+          : e.financing === "borrow" ? `empruntée à ${pct(interestRate(e))}, avec ${argent(e, Math.max(0, debtCeiling(e) - e.debt))} de marge`
           : e.financing === "print" ? "imprimée, avec l'inflation qui suit"
-          : `impayée — austérité, ${fmt(Math.max(0, e.treasury))} AS en main`;
+          : `impayée — austérité, ${argent(e, Math.max(0, e.treasury))} en main`;
         push("budget", 0.35 + 0.45 * clamp(deficitShare * 4, 0, 1),
-          `le budget manque déjà de ${fmt(-balance)} AS/an (${pct(deficitShare)} des recettes) ; toute dépense nouvelle est ${how}`,
+          `le budget manque déjà de ${argent(e, -balance)} par an (${pct(deficitShare)} des recettes) ; toute dépense nouvelle est ${how}`,
           "couper une ligne de dépense, lever des recettes, ou dire ce qu'on abandonne pour la payer");
       }
       if (room !== Infinity && room <= 0) {
@@ -244,11 +268,18 @@ export const assessAction = (action, ctx = {}) => {
       `${relevant.length} puissance${relevant.length > 1 ? "s ont" : " a"} un chantier sur ce terrain : ${relevant.map((it) => `${it.owner} (${it.secret ? "en secret, " : ""}${it.stance === "hostile" ? "contre vous" : "sur sa propre ligne"}, ${it.stage}% du chemin)`).join("; ")}${supportive.length ? ` ; travaillent pour vous : ${supportive.map((it) => it.owner).join(", ")}` : ""}`,
       "agir sur elles avant qu'elles n'agissent sur vous — les exposer, les acheter, les diviser ; s'appuyer sur celles qui vous suivent");
   }
+  // --- l'inaliénable ---
+  const bien = text.match(INALIENABLE);
+  if (bien && ALIENER.test(text)) {
+    push("patrimoine", 0.95,
+      `« ${bien[0]} » n'est pas un bien à vendre : la Cité du Vatican est inscrite en entier au patrimoine mondial (UNESCO, 1984), et le traité du Latran (1929, art. 18) engage le Saint-Siège à garder ses trésors d'art et de science ouverts aux visiteurs et aux savants. Aucun acheteur sérieux ne se présente, et la Curie, le collège et l'Italie s'y opposeraient ensemble`,
+      "prêter, restaurer, ouvrir davantage, faire payer la visite — pas vendre");
+  }
   // --- time ---
   const lag = Math.max(...domains.map((d) => IMPLEMENTATION_LAG_YEARS[d] ?? 0.5));
   if (years > 0 && years < lag) {
     push("time", clamp(0.35 * (1 - years / lag) + 0.15, 0, 0.5),
-      `ce genre d'ordre met environ ${lag} an${lag === 1 ? "" : "s"} à porter ; ce saut en couvre ${years.toFixed(2)}`,
+      `ce genre d'ordre met environ ${String(lag).replace(".", ",")} an${lag >= 2 ? "s" : ""} à porter ; ce saut en couvre ${duree(years)}`,
       "il est commencé ce tour-ci, jugé à un tour ultérieur");
   }
   // --- forces ---

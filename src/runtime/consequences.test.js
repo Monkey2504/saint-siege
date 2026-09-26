@@ -22,8 +22,14 @@ test("a purse that cannot cover its promises is reported, with the shortfall", (
   const world = { treasuries: [{ body: "Curial purse", treasury: 1_000, assumedLiabilities: 3_000 }] };
   const [entry] = consequencesOf(world, { country: "Saint-Siège" }, TURN);
   assert.match(entry.title, /Curial purse ne peut couvrir/);
-  assert.match(entry.description, /2000 AS/);
+  // Sans taux, l'unité du moteur, écrite comme partout ailleurs (fmtSY).
+  assert.match(entry.description, /Il manque 2 k AS/);
   assert.equal(entry.importance, "major");
+  // Avec le taux du Saint-Siège, des euros : 1 AS = 1082,4 $ = 1 000 €.
+  const enEuros = { ...world, economies: { "Saint-Siège": { usdPerSY: 1082.4 } } };
+  const [euros] = consequencesOf(enEuros, { country: "Saint-Siège" }, TURN);
+  assert.match(euros.description, /détient 1 M€ contre 3 M€/);
+  assert.doesNotMatch(euros.description, /\bAS\b/);
 });
 
 test("a purse that covers what it owes is not news", () => {
@@ -192,4 +198,10 @@ test("une manchette de front porte son unité, et l'argent passe par l'écriture
   assert.equal(chiffreDeFront("money", 1135), "1 k AS", "l'argent passe par fmtSY, pas par un arrondi nu");
   assert.equal(chiffreDeFront("money", -2_400_000), "−2,4 M AS");
   assert.ok(monde);
+});
+
+test("chiffreDeFront écrit l'argent en euros quand il a un taux", () => {
+  // 1 AS = 1082,4 $ = 1 000 € au taux de money.js.
+  assert.equal(chiffreDeFront("money", -28_000, 1082.4), "−28 M€");
+  assert.equal(chiffreDeFront("money", 1135), "1 k AS", "sans taux, on garde les AS");
 });

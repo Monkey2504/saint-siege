@@ -401,3 +401,20 @@ test("un chantier se déclenche sur sa portée, quel que soit son genre", () => 
   // Et une portée qui ne correspond pas ne réveille toujours personne.
   assert.equal(opposition("Demain au menu ce sera tartiflette.", chantier("political", "hostile", ["célibat"])), null);
 });
+
+test("la chapelle Sixtine ne se vend pas, et le budget se lit en euros", () => {
+  const world = normalizeWorldState(applyChurchPreset({}, { date: "2026-09-01" }));
+  const ctx = { playerPolity: HOLY_SEE, economy: world.economies[HOLY_SEE], world, jumpDays: 30 };
+  const vente = assessAction(order("Vendre la chapelle Sixtine au plus offrant et acheter le PSG avec l'argent."), ctx);
+  assert.equal(vente.verdict, "blocked");
+  assert.equal(vente.constraints[0].factor, "patrimoine");
+  // La nommer n'est pas la vendre.
+  const visite = assessAction(order("Restaurer la chapelle Sixtine et ouvrir ses archives aux chercheurs"), ctx);
+  assert.ok(!visite.constraints.some((c) => c.factor === "patrimoine"));
+  const budget = vente.constraints.find((c) => c.factor === "budget");
+  if (budget) {
+    assert.doesNotMatch(budget.detail, /\bAS\b|\bSY\b/);
+    assert.match(budget.detail, /€/);
+    assert.doesNotMatch(budget.detail, /\d\.\d%/);
+  }
+});
