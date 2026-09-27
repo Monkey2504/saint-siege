@@ -18,7 +18,7 @@ import { ensureDrivesFromOrders, pruneDormantDrives, reconcileNarration } from "
 import { appendRecord } from "../../runtime/record.js";
 import { ensureTreasuryMovesFromOrders, stepTreasuries } from "../../runtime/treasuries.js";
 import { ensureLiabilityMovesFromOrders } from "../../runtime/liabilities.js";
-import { applySpeech, coalition, courantsSollicites, driftFromBlunders, electeursDuGroupe, judgeGovernance, nomDeGroupe, persuadeNeighbours, reactionsAuxOrdres, speechFromOrder, standing } from "../../runtime/factions.js";
+import { applySpeech, avecArticle, coalition, courantsSollicites, driftFromBlunders, electeursDuGroupe, judgeGovernance, nomDeGroupe, persuadeNeighbours, reactionsAuxOrdres, speechFromOrder, standing } from "../../runtime/factions.js";
 import { checkLedgerClaims } from "../../runtime/claimCheck.js";
 import { naturalizeContacts } from "../../runtime/naturalize.js";
 import { economyIndicators } from "../../runtime/economy.js";
@@ -1697,9 +1697,19 @@ const normalizeGeneratedEvent = (entry, index = 0) => {
 
   return {
     ...normalized,
+    // Un reste de la charge JSON du modèle collé au titre : relevé en jouant,
+    // « Point d'étape sur la soumission de la réforme du fonds de pension}],stopDate: »
+    // s'imprimait en manchette.
+    title: nettoyerTitre(normalized.title),
     id: normalized.id || `generated-event-${index}`,
   };
 };
+
+// Coupé seulement à une accolade ou un crochet FERMANT suivi d'une virgule, de
+// deux-points ou de la fin : « [Urgent] Crise » et « la crise d'Europe » restent.
+export const nettoyerTitre = (titre) => String(titre ?? "")
+  .replace(/\s*"?\s*[\]}]+\s*(,[^,]*)?$/u, (m) => (/^\s*"?\s*[\]}]+\s*$/u.test(m) || /^\s*"?\s*[\]}]+\s*,\s*"?[A-Za-z_]*"?\s*:?\s*$/u.test(m) ? "" : m))
+  .trim();
 
 const MAX_ROLLBACK_SNAPSHOTS = 12;
 
@@ -2197,7 +2207,7 @@ const applySimulationResult = async ({
           worldWithImpacts.pactes = [...(Array.isArray(worldWithImpacts.pactes) ? worldWithImpacts.pactes : []), ...nouveaux.map((p) => ({ courant: p.name, depuis: nextGame.gameDate }))];
           worldWithImpacts.record = appendRecord(worldWithImpacts.record, nouveaux.map((p) => ({
             date: nextGame.gameDate, polity: normalizeString(nextGame.country), kind: "standing",
-            what: `pacte conclu avec ${p.name} : ses ${p.seats} électeurs votent désormais avec vous`, amount: p.seats, unit: "voix", source: "assembly:pacte",
+            what: `pacte conclu avec ${avecArticle(p.name)} : ses ${p.seats} électeurs votent désormais avec vous`, amount: p.seats, unit: "voix", source: "assembly:pacte",
           })));
         }
         for (const r of table?.refused ?? []) console.warn(`[assembly] ${r.name} refuse de s'asseoir : ${r.why}`);

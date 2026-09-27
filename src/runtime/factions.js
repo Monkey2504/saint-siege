@@ -821,3 +821,11 @@ export const courantsSollicites = (ordres, assembly, player = "") => {
   }
   return [...out];
 };
+
+// « pacte conclu avec Vieille garde… » : un courant se nomme avec son article.
+const ARTICLE_DU_COURANT = [[/^(compagnie|vieille|commission|curie|section)\b/i, "la "], [/^(bloc|chemin|dicastère|collège)\b/i, "le "], [/^[aeiouéèêh]/i, "l'"]];
+export const avecArticle = (nom) => {
+  const n = str(nom);
+  const art = ARTICLE_DU_COURANT.find(([re]) => re.test(n))?.[1] ?? "";
+  return `${art}${n}`;
+};
