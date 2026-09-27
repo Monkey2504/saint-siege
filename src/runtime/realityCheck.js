@@ -65,6 +65,7 @@ const AU_VOTE = /(fai(re|s|t) voter|mettre au vote|mis au vote|soumettre au vote
 // était compté comme un vote du collège (le mot « consistoire ») et comme un
 // chantier de six mois, donc « accordé en partie » — pour une lettre.
 const CONTACT = /\b(écrire (à|aux|au)|écris (à|aux|au)|envoyer une lettre|une lettre (à|aux|au)|proposer une rencontre|rencontrer|recevoir en audience|audience privée|inviter)\b/i;
+const DECIDE = /\b(réform\w*|supprim\w*|abol\w*|cré(er|ez|ons)|fond(er|ez)|nomm(er|ez)|destitu\w*|impos(er|ez)|interdi\w*|ouvr(ir|ez)|ferm(er|ez)|vend(re|ez)|céd(er|ez)|achet\w*|financ(er|ez)|soumett\w*|mettre au vote|fai(re|tes) voter|publi(er|ez)|décrét\w*|promulgu\w*|rédui(re|sez)|augment\w*|lanc(er|ez)|convoqu\w*|sanctionn\w*|limog\w*)\b/i;
 /** Le texte ordonne-t-il de vendre un bien inaliénable (chapelle Sixtine…) ? */
 export const atteinteAuPatrimoine = (texte) => {
   const t = str(texte);
@@ -192,7 +193,13 @@ export const assessAction = (action, ctx = {}) => {
   const bruts = classifyAction(text);
   // « pour le fonds de pension de la Curie » la classait aussi en réforme (la
   // Curie), avec deux ans de délai : une collecte est un acte simple.
-  const geste = CONTACT.test(text) && bruts.every((d) => ["general", "diplomatic", "personnel"].includes(d));
+  // Une audience reste une audience quel que soit son sujet. Relevé en jouant :
+  // « recevoir en audience les cardinaux des dubia pour entendre leurs
+  // objections au synode » était classé en réforme (le mot « synode ») et
+  // recevait « deux ans à porter, accordé en partie » — pour une audience.
+  // Seul un verbe qui décide quelque chose en fait un chantier.
+  const geste = CONTACT.test(text)
+    && (bruts.every((d) => ["general", "diplomatic", "personnel"].includes(d)) || !DECIDE.test(text));
   const domains = estCollecte ? ["fundraising"] : geste ? ["outreach"] : bruts;
   const has = (d) => domains.includes(d);
   const player = str(ctx.playerPolity);

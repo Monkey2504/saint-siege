@@ -480,3 +480,11 @@ test("vendre un immeuble fait rentrer de l'argent : le déficit ne lui est pas o
   const depense = assessAction(order("Build a national rail network"), ctx);
   assert.ok(depense.constraints.some((c) => c.factor === "budget"));
 });
+
+test("une audience reste un geste, même quand son sujet est une réforme", () => {
+  const ctx = { playerPolity: "Ruritania", economy: solid(), world: {}, jumpDays: 30 };
+  const audience = assessAction(order("Recevoir en audience les cardinaux du bloc des dubia pour entendre leurs objections au synode."), ctx);
+  assert.ok(!audience.constraints.some((c) => c.factor === "time" && /2 ans/.test(c.detail)), JSON.stringify(audience.constraints));
+  const decide = assessAction(order("Recevoir en audience les cardinaux puis supprimer la commission synodale."), ctx);
+  assert.notEqual(decide, null);
+});
