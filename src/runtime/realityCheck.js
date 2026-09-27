@@ -440,9 +440,14 @@ export const assessAction = (action, ctx = {}) => {
   // 81 requises, la réforme soumise au collège restait « accordée en partie,
   // deux ans à porter », et l'édition reportait le vote tour après tour. Ce qui
   // prend deux ans, c'est d'appliquer la réforme, pas de la voter.
+  // Une lettre qui demande un rapport reste une lettre : relevé, « écrire au
+  // secrétaire d'État pour lui demander un rapport » recevait les six mois d'une
+  // consultation.
   const lag = AU_VOTE.test(text)
     ? 0.05
-    : ECONOMIE.test(text) || CONSULTATION.test(text)
+    : geste
+      ? IMPLEMENTATION_LAG_YEARS.outreach
+      : ECONOMIE.test(text) || CONSULTATION.test(text)
       ? 0.5
       : Math.max(...domains.map((d) => IMPLEMENTATION_LAG_YEARS[d] ?? 0.5));
   if (years > 0 && years < lag) {

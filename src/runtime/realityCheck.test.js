@@ -607,3 +607,9 @@ test("une visite pastorale est un geste ; payé par la Caritas, ce n'est pas le 
   const caritas = assessAction(order("Ouvrir des centres d'accueil pour migrants dans les diocèses d'Italie du Sud, financés par la Caritas."), ctx);
   assert.ok(!caritas.constraints.some((c) => c.factor === "budget"), JSON.stringify(caritas.constraints));
 });
+
+test("une lettre qui demande un rapport reste une lettre", () => {
+  const ctx = { playerPolity: "Ruritania", economy: solid(), world: {}, jumpDays: 30 };
+  const a = assessAction(order("Écrire au secrétaire d'État pour lui demander un rapport sur les nonciatures."), ctx);
+  assert.ok(!a.constraints.some((c) => c.factor === "time"), JSON.stringify(a.constraints));
+});
