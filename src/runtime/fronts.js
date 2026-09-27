@@ -235,12 +235,13 @@ export const bodyMovesFromOrders = (orders) => {
       const targets = named.length ? named : CONTINENTS;
       const share = named.length ? bend : bend / 2;
       for (const c of targets) moves.formation[c] = finite(moves.formation[c]) + share;
-      moves.notes.push(`${OPENS.test(text) ? "Formation opened" : "Formation cut"}: ${targets.join(", ")}`);
+      const CONTINENTS_FR = { africa: "Afrique", americas: "Amériques", asia: "Asie", europe: "Europe", oceania: "Océanie" };
+      moves.notes.push(`${OPENS.test(text) ? "formation des prêtres élargie" : "formation des prêtres réduite"} : ${targets.map((c) => CONTINENTS_FR[c] ?? c).join(", ")}`);
     }
 
     if (FILES.test(text) && PUSH.test(text)) {
       moves.pace += MAX_PACE_STEP;
-      moves.notes.push("The files are pushed: the curia judges faster.");
+      moves.notes.push("les dossiers d'abus sont pressés : la Curie juge plus vite");
     }
   }
   return moves;
