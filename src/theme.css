@@ -33,7 +33,10 @@
   --oh-sea-deep: #c7c2b3;
   --oh-border-land: #14161a;
 
-  --oh-font-display: "Bricolage Grotesque", "Archivo", "Segoe UI", system-ui, sans-serif;
+  /* Les titres parlent la langue du journal : le même romain que la manchette
+     et les articles. Le grotesque gras de l'accueil et de « au plus tard le… »
+     donnait l'impression de deux produits collés. */
+  --oh-font-display: "Newsreader", Georgia, "Iowan Old Style", "Times New Roman", serif;
   --oh-font-body: "Archivo", "Segoe UI", system-ui, sans-serif;
   --oh-font-label: "Archivo", "Segoe UI", system-ui, sans-serif;
   --oh-font-data: "Archivo", "Segoe UI", system-ui, sans-serif;
@@ -355,6 +358,17 @@ button, input, textarea, select {
   /* À l'étroit pour trois colonnes, les ordres repassent sous les nouvelles
      plutôt que d'être écrasés en gouttière. */
   .oh-bulletin-grid { grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr); }
+  /* La colonne des ordres court sur deux rangées : la troisième colonne (les
+     fronts, le registre, le collège) remonte alors juste sous les nouvelles,
+     au lieu d'attendre la fin de la colonne des ordres et de laisser un trou
+     sous la une. Elle y prend la largeur des nouvelles, sans filet à gauche. */
+  .oh-bulletin-grid:not(.oh-bulletin-grid-creuse):not(.oh-bulletin-grid-election) > .oh-colonne-ordres { grid-row: span 2; }
+  .oh-bulletin-grid:not(.oh-bulletin-grid-creuse):not(.oh-bulletin-grid-election) > .oh-colonne-ordres + * {
+    border-left: none;
+    margin-left: 0;
+    padding-left: 0;
+    margin-top: 2rem;
+  }
 }
 
 /* Rien à imprimer en tête : la note est passée au-dessus, sur une colonne de
@@ -649,4 +663,54 @@ button, input, textarea, select {
 /* L'élection : une seule colonne de lecture, le formulaire et rien d'autre. */
 @media (min-width: 62rem) {
   .oh-bulletin-grid-election { grid-template-columns: minmax(0, 46rem); justify-content: center; }
+}
+
+/* Les brèves du mois, en grille : deux par rangée quand la colonne le permet. */
+.oh-breves {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+  column-gap: 1.6rem;
+}
+
+/* Les archives repliées : le titre de section sert de poignée. */
+.oh-archives > summary { cursor: pointer; list-style: none; }
+.oh-archives > summary::-webkit-details-marker { display: none; }
+.oh-archives:not([open]) > summary { opacity: 0.75; }
+.oh-archives h3, .oh-archives .oh-breves { opacity: 0.9; }
+
+/* La barre du bas, quand les presses sont hors de vue. */
+.oh-barre-presses {
+  position: fixed;
+  left: 50%;
+  bottom: 1rem;
+  transform: translateX(-50%);
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  max-width: calc(100vw - 2rem);
+  padding: 0.5rem 0.5rem 0.5rem 1rem;
+  background: var(--oh-text-strong);
+  color: var(--oh-plate);
+  font-family: var(--oh-font-label);
+  font-size: var(--oh-t-xs);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+}
+.oh-barre-presses > span { white-space: nowrap; }
+@media (max-width: 40rem) {
+  /* Sur téléphone, la barre prend la largeur de l'écran, gouttières gardées. */
+  .oh-barre-presses { left: 1rem; right: 1rem; transform: none; justify-content: space-between; }
+}
+.oh-barre-presses button {
+  background: var(--oh-plate);
+  color: var(--oh-text-strong);
+  border: none;
+  cursor: pointer;
+  font-family: var(--oh-font-label);
+  font-size: var(--oh-t-2xs);
+  font-weight: 700;
+  letter-spacing: var(--oh-label-track);
+  text-transform: uppercase;
+  padding: 0.5rem 0.8rem;
+  white-space: nowrap;
 }
