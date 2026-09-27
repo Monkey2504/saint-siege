@@ -120,13 +120,18 @@ export const ApercuDuCollege = ({ assembly: brut, player = "" }) => {
             onSelect={() => {}}
             byMood
         />
+        {/* Le vote d'abord, l'opinion ensuite, chacun avec son mot. Rapport de
+            terrain : « 0 favorables · 160 indécis » imprimé au-dessus de « Votre
+            courant : 42 électeurs » se lisait comme une contradiction. Les 42
+            votent avec vous ; l'opinion dit ce que la salle pense de votre
+            gouvernement ce mois-ci, et elle part de zéro pour tout le monde. */}
         <p style={{ fontSize: "var(--oh-t-xs)", lineHeight: 1.5, margin: "0.4rem 0 0" }}>
-        Opinion : <b style={{ color: "var(--oh-grant)" }}>{room.with}</b> favorables ·{" "}
-        <b style={{ color: "var(--oh-text-dim)" }}>{room.undecided}</b> indécis ·{" "}
-        <b style={{ color: "var(--oh-caution)" }}>{room.against}</b> hostiles
+        {player && <>Votre courant vote avec vous : <b>{ownBloc(assembly, player).seats}</b> voix. </>}Un vote se gagne à {room.majority} voix sur {room.seats}.
         </p>
         <p style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)", lineHeight: 1.5, margin: "0.2rem 0 0" }}>
-        {player && `Votre courant : ${ownBloc(assembly, player).seats} électeurs. `}Un vote se gagne à {room.majority} voix sur {room.seats}.
+        Ce que la salle pense de votre gouvernement : <b style={{ color: "var(--oh-grant)" }}>{room.with}</b> favorables ·{" "}
+        <b>{room.undecided}</b> sans avis arrêté ·{" "}
+        <b style={{ color: "var(--oh-caution)" }}>{room.against}</b> hostiles
         </p>
         </section>
     );
