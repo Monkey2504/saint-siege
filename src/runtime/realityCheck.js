@@ -78,6 +78,9 @@ const GROUPE_DU_COURANT = [
   [/vieille garde|secrétairerie/i, "curia"],
   [/appareil financier|temporel/i, "temporal"],
 ];
+const VOTE_ACQUIS = "le vote est acquis : il se tient ce mois-ci et passe";
+/** L'ordre se décide-t-il au vote du collège ? */
+export const seDecideAuVote = (texte) => AU_VOTE.test(str(texte));
 /** Le texte ordonne-t-il de vendre un bien inaliénable (chapelle Sixtine…) ? */
 export const atteinteAuPatrimoine = (texte) => {
   const t = str(texte);
@@ -251,7 +254,10 @@ export const assessAction = (action, ctx = {}) => {
     // Consulter ne coûte rien : « consulter les conférences épiscopales sur la
     // réforme des finances » recevait le même avertissement qu'une dépense.
     const consultation = CONSULTATION.test(text);
-    if ((has("spending") || has("military") || has("social") || has("monetary")) && revenue > 0 && !collecte && !cession && !economie && !consultation) {
+    // Voter une réforme en décide le principe ; ce qu'elle coûtera se juge quand
+    // on l'applique.
+    const auVote = AU_VOTE.test(text);
+    if ((has("spending") || has("military") || has("social") || has("monetary")) && revenue > 0 && !collecte && !cession && !economie && !consultation && !auVote) {
       const deficitShare = balance < 0 ? -balance / revenue : 0;
       const room = e.financing === "drawdown" ? e.endowment + Math.max(0, e.treasury)
         : e.financing === "print" ? Infinity
@@ -339,6 +345,13 @@ export const assessAction = (action, ctx = {}) => {
       ...courantsSollicites(ctx.orders, assembly, player),
     ];
     const pacte = coalition(assembly, { player, need: salle.majority, sitWith: assis });
+    // La majorité acquise est dite aussi, sans peser sur le verdict : le vote se
+    // tient ce mois-ci et passe. Sans cette ligne, le modèle reportait le vote.
+    if (pacte && pacte.carries) {
+      push("vote", 0.05,
+        `le collège vote : ${pacte.held} voix avec vous (votre courant ${pacte.alone}${pacte.partners.length ? `, ${pacte.partners.map((p) => `${p.name} ${p.seats}`).join(", ")}` : ""}), il en faut ${salle.majority} — ${VOTE_ACQUIS}`,
+        "");
+    }
     if (pacte && !pacte.carries) {
       const courants = groupsOn(assembly, "follows").filter((g) => g.name && lower(g.name) !== lower(player))
         .map((g) => `${g.name} ${g.seats}`).join(", ");
@@ -382,9 +395,18 @@ export const assessAction = (action, ctx = {}) => {
       if (groupe && (pas.get(groupe) ?? 0) > 0.5) servis.add(it.owner);
     }
   }
+  // Un courant avec qui le pape a conclu un pacte (ou qu'il y invite ce tour-ci)
+  // ne manœuvre pas contre lui sur ce terrain : relevé en jouant, la Vieille
+  // garde, alliée pour le vote sur le fonds de pension, restait listée « contre
+  // vous » sur ce même vote.
+  const allies = new Set([
+    ...(Array.isArray(ctx.world?.pactes) ? ctx.world.pactes.map((p) => p?.courant).filter(Boolean) : []),
+    ...courantsSollicites(ctx.orders, ctx.world?.assembly, player),
+  ]);
   const relevant = concernes
     .filter((it) => it.scope.length || (INTENT_KIND_DOMAINS[it.kind] ?? []).some((d) => has(d)))
-    .filter((it) => !servis.has(it.owner));
+    .filter((it) => !servis.has(it.owner))
+    .filter((it) => !allies.has(it.owner));
   if (relevant.length) {
     const strongest = relevant.reduce((m, it) => Math.max(m, it.stage), 0);
     // One early scheme is a warning, not a wall; several far along are a wall.
@@ -403,9 +425,15 @@ export const assessAction = (action, ctx = {}) => {
   // Une économie ou une consultation se décide et s'engage en quelques mois :
   // « geler les embauches à la Curie » recevait les deux ans d'une réforme de
   // la Curie, parce que le mot « Curie » en faisait une réforme.
-  const lag = ECONOMIE.test(text) || CONSULTATION.test(text)
-    ? 0.5
-    : Math.max(...domains.map((d) => IMPLEMENTATION_LAG_YEARS[d] ?? 0.5));
+  // Un vote se tient dans le mois : relevé en jouant, avec 85 voix acquises pour
+  // 81 requises, la réforme soumise au collège restait « accordée en partie,
+  // deux ans à porter », et l'édition reportait le vote tour après tour. Ce qui
+  // prend deux ans, c'est d'appliquer la réforme, pas de la voter.
+  const lag = AU_VOTE.test(text)
+    ? 0.05
+    : ECONOMIE.test(text) || CONSULTATION.test(text)
+      ? 0.5
+      : Math.max(...domains.map((d) => IMPLEMENTATION_LAG_YEARS[d] ?? 0.5));
   if (years > 0 && years < lag) {
     push("time", clamp(0.35 * (1 - years / lag) + 0.15, 0, 0.5),
       `ce genre d'ordre met environ ${delai(lag)} à porter ; ce saut en couvre ${duree(years)}`,
@@ -551,13 +579,20 @@ export const applyActionOutcomes = (actions, outcomes, assessments, { defaultSta
     // et « Le sort de vos ordres » affichait « Accordé en partie » sur la même
     // page. Limité aux ordres qui passent par un vote, où « suspendu » ou
     // « rejeté » ne peut vouloir dire qu'une chose.
-    const passeParUnVote = Boolean(a?.constraints?.some((c) => c.factor === "vote"));
+    // Majorité acquise au décompte du moteur : le vote passe, quoi qu'en dise le
+    // récit — c'est le moteur qui compte les voix.
+    const voteAcquis = Boolean(a?.constraints?.some((c) => c.factor === "vote" && String(c.detail).includes(VOTE_ACQUIS)));
+    const force = voteAcquis && OUTCOME_RANK[capped] < OUTCOME_RANK.success && OUTCOME_RANK.success <= OUTCOME_RANK[cap];
+    if (force) capped = "success";
+    const passeParUnVote = !voteAcquis && Boolean(a?.constraints?.some((c) => c.factor === "vote"));
     const recitDuVote = passeParUnVote && capped !== "failure"
       ? recitsDeLOrdre(action, events).find((e) => ECHEC.test(`${e.title} ${e.description}`)) ?? null
       : null;
     const votePerdu = Boolean(recitDuVote);
     if (votePerdu) capped = "failure";
-    const reason = votePerdu
+    const reason = force
+      ? a.constraints.find((c) => c.factor === "vote").detail
+      : votePerdu
       ? `${str(recitDuVote.title)}${a.constraints.find((c) => c.factor === "vote")?.detail ? ` — ${a.constraints.find((c) => c.factor === "vote").detail}` : ""}`
       : capped !== o.outcome && a?.constraints[0]
         ? `${a.constraints[0].detail}${o.reason ? ` (le récit : ${o.reason})` : ""}`

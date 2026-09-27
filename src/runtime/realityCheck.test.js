@@ -566,8 +566,35 @@ test("s'asseoir avec un courant compte dans le vote : un pacte proposé le même
   assert.match(detail, /il en manque 13/);
   // Un pacte accordé tient pour les votes suivants.
   const plusTard = assessAction(vote, { playerPolity: HOLY_SEE, economy: world.economies[HOLY_SEE], world: { ...world, pactes: [{ courant: "Compagnie de Jésus" }, { courant: "Vieille garde de la Secrétairerie d'État" }] }, jumpDays: 30 });
-  assert.ok(!plusTard.constraints.some((c) => c.factor === "vote"), "42 + 26 + 17 = 85 : le vote passe");
+  assert.ok(!plusTard.constraints.some((c) => c.factor === "vote" && c.severity >= 0.4), "42 + 26 + 17 = 85 : le vote passe");
+  assert.match(plusTard.constraints.find((c) => c.factor === "vote").detail, /le vote est acquis/);
   // Proposer un pacte est un geste, pas un chantier de deux ans.
   const [geste] = assessPlannedActions([pacte], { playerPolity: HOLY_SEE, economy: world.economies[HOLY_SEE], world, jumpDays: 30 });
   assert.ok(!geste.constraints.some((c) => c.factor === "time" && /2 ans/.test(c.detail)), JSON.stringify(geste.constraints));
+});
+
+test("un courant allié par un pacte ne figure plus dans l'opposition", () => {
+  const world = normalizeWorldState(applyChurchPreset({}, { date: "2026-09-01" }));
+  const ctx = { playerPolity: HOLY_SEE, economy: world.economies[HOLY_SEE], world: { ...world, pactes: [{ courant: "Vieille garde de la Secrétairerie d'État" }] }, jumpDays: 30 };
+  const a = assessAction(order("Soumettre au vote du collège la réforme du fonds de pension de la Curie."), ctx);
+  const opposition = a.constraints.find((c) => c.factor === "opposition");
+  assert.ok(!opposition || !/Vieille garde/.test(opposition.detail), opposition?.detail);
+});
+
+test("avec la majorité acquise, un vote au collège se tient dans le mois et passe", () => {
+  const world = normalizeWorldState(applyChurchPreset({}, { date: "2026-09-01" }));
+  const ctx = { playerPolity: HOLY_SEE, economy: world.economies[HOLY_SEE], world: { ...world, pactes: [{ courant: "Compagnie de Jésus" }, { courant: "Vieille garde de la Secrétairerie d'État" }] }, jumpDays: 30 };
+  const a = assessAction(order("Soumettre au vote du collège la réforme du fonds de pension de la Curie."), ctx);
+  assert.ok(!a.constraints.some((c) => (c.factor === "vote" && c.severity >= 0.4) || c.factor === "time" || c.factor === "budget"), JSON.stringify(a.constraints));
+});
+
+test("un vote dont la majorité est acquise passe, même si le modèle dit « en partie »", () => {
+  const world = normalizeWorldState(applyChurchPreset({}, { date: "2026-09-01" }));
+  const ctx = { playerPolity: HOLY_SEE, economy: world.economies[HOLY_SEE], world: { ...world, pactes: [{ courant: "Compagnie de Jésus" }, { courant: "Vieille garde de la Secrétairerie d'État" }] }, jumpDays: 30 };
+  const action = order("Soumettre au vote du collège la réforme du fonds de pension de la Curie.");
+  const assessment = assessAction(action, ctx);
+  assert.equal(assessment.verdict, "feasible");
+  const [judged] = applyActionOutcomes([action], [{ actionId: "a1", outcome: "partial", reason: "délai de procédure" }], [assessment], { date: "2027-01-15", events: [] });
+  assert.equal(judged.outcome, "success");
+  assert.match(judged.outcomeNote, /85 voix avec vous/);
 });
