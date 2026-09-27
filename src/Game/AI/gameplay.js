@@ -10,7 +10,7 @@ import { bequestFor, consequencesOf } from "../../runtime/consequences.js";
 import { filterUnitOpsByWars, resolveAiClashes, warEconomyFlags } from "../../runtime/wars.js";
 import { seedLeaderFromStats, stepLeaders } from "../../runtime/succession.js";
 import { stepMigration } from "../../runtime/migration.js";
-import { applyActionOutcomes, assessRegionTransfer, bindImpactsToVerdicts } from "../../runtime/realityCheck.js";
+import { applyActionOutcomes, assessRegionTransfer, bindImpactsToVerdicts, seDecideAuVote } from "../../runtime/realityCheck.js";
 import { buildRejectionEvent, collectImpactRejections } from "../../runtime/rejections.js";
 import { bindWorldImpacts } from "../../runtime/worldReach.js";
 import { describeLetter, readLetter } from "../../runtime/letterReading.js";
@@ -2211,6 +2211,23 @@ const applySimulationResult = async ({
           })));
         }
         for (const r of table?.refused ?? []) console.warn(`[assembly] ${r.name} refuse de s'asseoir : ${r.why}`);
+      }
+      // Le décompte de chaque vote tenu ce tour, au registre : la page dit
+      // combien de voix, et pas seulement « adopté ».
+      const salle = standing(worldWithImpacts.assembly);
+      for (const o of jugesCeTour.filter((x) => seDecideAuVote(`${x.title ?? ""} ${x.text ?? ""}`))) {
+        const assis = [
+          ...(Array.isArray(worldWithImpacts.pactes) ? worldWithImpacts.pactes.map((p) => p?.courant).filter(Boolean) : []),
+          ...courantsSollicites(jugesCeTour, worldWithImpacts.assembly, nextGame.country),
+        ];
+        const compte = salle ? coalition(worldWithImpacts.assembly, { player: nextGame.country, need: salle.majority, sitWith: assis }) : null;
+        if (!compte) continue;
+        const adopte = o.outcome === "success" && compte.carries;
+        worldWithImpacts.record = appendRecord(worldWithImpacts.record, [{
+          date: nextGame.gameDate, polity: normalizeString(nextGame.country), kind: "standing",
+          what: `${adopte ? "vote adopté" : o.outcome === "failure" ? "vote perdu" : "vote pas encore acquis"} au collège : « ${normalizeString(o.title).slice(0, 70)} » — ${compte.held} voix avec vous, ${compte.need} requises`,
+          amount: compte.held, unit: "voix", source: `assembly:vote:${o.id}`,
+        }]);
       }
     }
     // Une économie ordonnée se lit au registre même quand le récit oublie de la
