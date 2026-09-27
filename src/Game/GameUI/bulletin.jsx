@@ -947,7 +947,7 @@ export const lignesDuRegistre = (record, treasuries, player) => {
     const bodies = new Map(normalizeTreasuries(treasuries).map((t) => [t.body.toLowerCase(), t.body]));
     return normalizeRecord(record)
         .filter((r) => !player || !r.polity || r.polity === player || bodies.has(r.polity.toLowerCase()))
-        .slice(-12).reverse();
+        .slice(-24).reverse();
 };
 
 const Record = ({ record, treasuries, player, usdPerSY }) => {

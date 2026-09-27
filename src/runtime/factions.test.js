@@ -187,7 +187,7 @@ test("an opinion can go all the way in either direction, and the engine names wh
 
 test("the block states the roll, the count for and against, and each axis", () => {
   const text = describeAssembly(college());
-  assert.match(text, /160 electors\. With you 0, undecided 160, against you 0/);
+  assert.match(text, /160 electors\. Opinion of your government: favourable 0, undecided 160, hostile 0/);
   assert.match(text, /A majority is 81; you are 81 short/);
   assert.match(text, /By doctrine: /);
   assert.match(text, /By region: /);
@@ -345,4 +345,14 @@ test("un synode sur la place des laïcs ne réjouit pas le bloc des dubia", asyn
   assert.ok(doctrine.reforming > 0);
   const dubia = Object.keys(courants).find((n) => /dubia/i.test(n));
   assert.ok(dubia && courants[dubia] <= 0, `le bloc des dubia n'approuve pas (${courants[dubia]})`);
+});
+
+test("demander de suspendre les conseils synodaux ne réjouit pas les réformateurs", async () => {
+  const { applyChurchPreset, HOLY_SEE } = await import("./churchPreset.js");
+  const { reactionsAuxOrdres, groupsOn } = await import("./factions.js");
+  const w = applyChurchPreset({}, { date: "2026-09-01" });
+  const r = reactionsAuxOrdres(w.assembly, [{ title: "Écrire aux évêques allemands pour leur demander de suspendre les conseils synodaux contraignants", outcome: "success" }], { player: HOLY_SEE });
+  const doctrine = Object.fromEntries(groupsOn(r.assembly, "doctrine").map((g) => [g.name, g.approval]));
+  assert.ok(doctrine.reforming < 0);
+  assert.ok(doctrine.traditional > 0);
 });

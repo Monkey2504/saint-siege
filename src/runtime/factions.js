@@ -613,8 +613,13 @@ export const describeAssembly = (assembly) => {
   const s = standing(a);
   const lines = [
     `[${a.name} — engine state]`,
-    `${a.seats} electors. With you ${s.with}, undecided ${s.undecided}, against you ${s.against}. ${s.carries ? "You carry this body." : `A majority is ${s.majority}; you are ${Math.max(0, s.majority - s.with)} short.`}`,
+    `${a.seats} electors. Opinion of your government: favourable ${s.with}, undecided ${s.undecided}, hostile ${s.against}. ${s.carries ? "You carry this body." : `A majority is ${s.majority}; you are ${Math.max(0, s.majority - s.with)} short.`}`,
   ];
+  // Voter avec le pape n'est pas l'approuver. Relevé en jouant : l'édition
+  // écrivait « les 42 électeurs favorables au pontificat » quand la salle en
+  // comptait 0 de favorables — elle confondait le courant et l'opinion.
+  const bloc = a.electors.filter((e) => e.follows && groupsOn(a, "follows").some((g) => g.name === e.follows)).length;
+  if (bloc) lines.push("The \"follows\" axis below is who VOTES with whom; it is not opinion. Electors of the player's own current vote with the player, yet may still be undecided about the player's government: never call them « favorables » unless the favourable count above says so.");
   for (const axis of AXES) {
     const groups = groupsOn(a, axis).filter((g) => g.name);
     if (!groups.length) continue;
@@ -669,7 +674,12 @@ const SUJETS = [
   // jouant, un synode sur la place des laïcs faisait « approuver » le bloc des
   // dubia (ses évêques y gagnaient) le mois même où l'édition racontait ce bloc
   // publiant un mémorandum contre le synode.
-  [/(synode|synodalit\w*|conférences? épiscopales?|décentralis\w*|collégialit\w*)/i, ["reforming", "bishops"], ["curia", "traditional"]],
+  // Freiner le synode est l'inverse de le promouvoir. Relevé en jouant : une
+  // lettre demandant aux évêques allemands de suspendre leurs conseils
+  // synodaux faisait « approuver » le Chemin synodal allemand lui-même.
+  [/(suspend\w*|gel(er|ez)|interdi\w*|limit(er|ez)|restrei\w*|frein\w*|arrêt(er|ez)|annul\w*|dissoudre|désavou\w*|recadr\w*).{0,80}(synod\w*|conférences? épiscopales?|chemin synodal)/i, ["traditional", "curia"], ["reforming"]],
+  [/(synode|synodalit\w*|conférences? épiscopales?|décentralis\w*|collégialit\w*)/i, ["reforming", "bishops"], ["curia", "traditional"],
+    /(suspend\w*|gel(er|ez)|interdi\w*|limit(er|ez)|restrei\w*|frein\w*|arrêt(er|ez)|annul\w*|dissoudre|désavou\w*|recadr\w*).{0,80}(synod\w*|conférences? épiscopales?|chemin synodal)/i],
   [/(audit|comptes consolidés|transparence financière|publier les comptes|laïc à la tête|réviseur)/i, ["reforming", "europe"], ["curia", "temporal"]],
   [/(abus|victimes|tribunal pontifical|protection des mineurs)/i, ["reforming", "bishops"], ["curia"]],
   [/(gel des embauches|réduire.{0,20}(dépenses|effectifs|salaires)|coupe budgétaire|licencier)/i, ["temporal"], ["curia"]],
@@ -702,8 +712,9 @@ export const reactionsAuxOrdres = (assembly, ordres, { player = "", date = "", i
     const texte = `${str(o.title)} ${str(o.text)}`;
     const poids = POIDS_ISSUE[o.outcome] ?? 0.7;
     const offense = POIDS_OFFENSE[o.outcome] ?? 1;
-    for (const [motif, pour, contre] of SUJETS) {
+    for (const [motif, pour, contre, sauf] of SUJETS) {
       if (!motif.test(texte)) continue;
+      if (sauf && sauf.test(texte)) continue;
       ajoute((e) => pour.some((g) => g === e.doctrine || g === e.region || g === e.role), 7 * poids);
       ajoute((e) => contre.some((g) => g === e.doctrine || g === e.region || g === e.role), -7 * offense);
     }

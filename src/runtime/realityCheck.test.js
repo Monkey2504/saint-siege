@@ -488,3 +488,9 @@ test("une audience reste un geste, même quand son sujet est une réforme", () =
   const decide = assessAction(order("Recevoir en audience les cardinaux puis supprimer la commission synodale."), ctx);
   assert.notEqual(decide, null);
 });
+
+test("« écrire aux évêques » est reconnu comme un geste, accent initial compris", () => {
+  const ctx = { playerPolity: "Ruritania", economy: solid(), world: {}, jumpDays: 30 };
+  const lettre = assessAction(order("Écrire aux évêques allemands pour leur demander de suspendre les conseils synodaux jusqu'à la fin du synode."), ctx);
+  assert.ok(!lettre.constraints.some((c) => c.factor === "time" && /2 ans/.test(c.detail)), JSON.stringify(lettre.constraints));
+});

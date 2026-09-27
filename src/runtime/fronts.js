@@ -209,7 +209,7 @@ const PUSH = /\b(juge|judge|instrui|try|sanction|d[ée]mets|remove|acc[ée]l[ée
 
 const CONTINENT_WORDS = Object.freeze({
   africa: /\bafric/i,
-  americas: /\bam[ée]ric|\blatin america|\bunited states|\b[ée]tats-unis/i,
+  americas: /\bam[ée]ric|\blatin america|\bunited states|(?<!\p{L})[ée]tats-unis/iu,
   asia: /\basia|\basie/i,
   europe: /\beurop/i,
   oceania: /\bocean/i,
@@ -266,7 +266,9 @@ export const bodyMovesFromOrders = (orders) => {
 // compte comme un décret. Une lettre, une audience, une visite ne décident
 // rien et ne comptent pas.
 const PAR_UN_CORPS = /(fai(re|s|t) voter|mettre au vote|mis au vote|soumettre au vote|soumettre au (collège|consistoire|synode)|soumet(s|tre)? .{0,60}(collège|consistoire|cardinaux|synode).{0,40}vot|(vote|voter) (du|au|par le|en) (collège|consistoire|synode)|convoquer (un|le) synode|assembl[ée]e synodale|consult(er|ation) (les|des|du|de la) (fid[èe]les|conf[ée]rences|[ée]v[êe]ques|dioc[èe]ses|la[ïi]cs|synode)|put (it )?to (a|the) vote|convene a synod|synodal assembly)/i;
-const GESTE = /\b(écrire (à|aux|au)|écris (à|aux|au)|envoyer une lettre|une lettre (à|aux|au)|proposer une rencontre|rencontrer|recevoir en audience|audience privée|inviter|visiter|se rendre|prier|write to|meet with|visit)\b/i;
+// \b ne connaît que l'ASCII : devant « écrire » il ne trouve jamais de
+// frontière, et « écrire aux évêques… » n'était jamais reconnu comme un geste.
+const GESTE = /(?<![\p{L}\p{N}])(écrire (à|aux|au)|écris (à|aux|au)|envoyer une lettre|une lettre (à|aux|au)|proposer une rencontre|rencontrer|recevoir en audience|audience privée|inviter|visiter|se rendre|prier|write to|meet with|visit)(?![\p{L}\p{N}])/iu;
 
 /** Combien des ordres prévus passent par un corps, combien sont des décrets. */
 export const governanceMovesFromOrders = (orders) => {
