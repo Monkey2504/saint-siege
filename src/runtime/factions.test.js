@@ -356,3 +356,12 @@ test("demander de suspendre les conseils synodaux ne réjouit pas les réformate
   assert.ok(doctrine.reforming < 0);
   assert.ok(doctrine.traditional > 0);
 });
+
+test("les courants se reconnaissent par leur nom usuel", async () => {
+  const { applyChurchPreset, HOLY_SEE } = await import("./churchPreset.js");
+  const { courantsNommes, courantsSollicites } = await import("./factions.js");
+  const w = applyChurchPreset({}, { date: "2026-09-01" });
+  assert.deepEqual(courantsNommes("proposer aux jésuites et aux cardinaux des dubia", w.assembly).sort(), ["Bloc des cardinaux des dubia", "Compagnie de Jésus"]);
+  assert.deepEqual(courantsSollicites([{ title: "Écrire aux jésuites", text: "" }], w.assembly, HOLY_SEE), [], "une lettre n'est pas un pacte");
+  assert.deepEqual(courantsSollicites([{ title: "Proposer à l'Opus Dei de voter avec nous", text: "" }], w.assembly, HOLY_SEE), ["Opus Dei"]);
+});

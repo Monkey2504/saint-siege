@@ -772,3 +772,52 @@ export const electeursDuGroupe = (v, seats) => {
   const k = String(v || "").toLowerCase();
   return ELECTEURS_DU_GROUPE[k] ? `${seats} électeurs ${ELECTEURS_DU_GROUPE[k]}` : "";
 };
+
+// ---- les pactes : s'asseoir avec un courant ---------------------------------------------
+//
+// Relevé en jouant : le verdict d'un vote conseillait « gagner les voix d'abord :
+// s'asseoir avec un courant », et aucun ordre ne pouvait le faire — le verdict
+// calculait toujours le courant du pape seul. Un ordre qui propose un pacte à un
+// courant nommé l'assoit à la table ; s'il est accordé, le pacte tient pour les
+// votes suivants. Un courant tourné contre le pape refuse (coalition, plus haut).
+
+export const PACTE = /(voter avec (nous|moi|le pape|le saint-siège)|s'asseoir avec|alliance|pacte|coalition|rallier|négocier avec|proposer (à|aux|au) .{0,80}(vot|soutien|appui|alli|pacte))/i;
+
+const ALIAS_DE_COURANT = [
+  [/j[ée]su/i, /jésus|jésuite/i],
+  [/dubia|traditionali/i, /dubia/i],
+  [/chemin synodal|synodal allemand|évêques allemands/i, /chemin synodal/i],
+  [/vieille garde|secrétairerie/i, /vieille garde/i],
+  [/appareil financier|apsa|temporel/i, /appareil financier/i],
+  [/opus/i, /opus dei/i],
+];
+
+/** Les courants du collège qu'un texte nomme. */
+export const courantsNommes = (texte, assembly) => {
+  const a = normalizeAssembly(assembly);
+  if (!a) return [];
+  const t = str(texte);
+  const noms = groupsOn(a, "follows").map((g) => g.name).filter(Boolean);
+  const trouves = new Set();
+  for (const nom of noms) {
+    if (lower(t).includes(lower(nom))) trouves.add(nom);
+  }
+  for (const [dansLeTexte, dansLeNom] of ALIAS_DE_COURANT) {
+    if (!dansLeTexte.test(t)) continue;
+    const nom = noms.find((n) => dansLeNom.test(n));
+    if (nom) trouves.add(nom);
+  }
+  return [...trouves];
+};
+
+/** Les courants que des ordres invitent à un pacte. */
+export const courantsSollicites = (ordres, assembly, player = "") => {
+  const out = new Set();
+  for (const o of Array.isArray(ordres) ? ordres : []) {
+    if (!o || o.kind === "chat") continue;
+    const texte = `${str(o.title)} ${str(o.text)}`;
+    if (!PACTE.test(texte)) continue;
+    for (const nom of courantsNommes(texte, assembly)) if (lower(nom) !== lower(player)) out.add(nom);
+  }
+  return [...out];
+};
