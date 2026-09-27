@@ -363,7 +363,8 @@ export const assessAction = (action, ctx = {}) => {
         "");
     }
     if (pacte && !pacte.carries) {
-      const courants = groupsOn(assembly, "follows").filter((g) => g.name && lower(g.name) !== lower(player))
+      const assisNoms = new Set(pacte.partners.map((p) => lower(p.name)));
+      const courants = groupsOn(assembly, "follows").filter((g) => g.name && lower(g.name) !== lower(player) && !assisNoms.has(lower(g.name)))
         .map((g) => `${g.name} ${g.seats}`).join(", ");
       push("vote", clamp(0.45 + 0.4 * (pacte.short / salle.majority), 0.45, 0.85),
         `le collège vote : ${salle.seats} électeurs, il en faut ${salle.majority}. Votre courant en compte ${pacte.alone}${pacte.partners.length ? `, vos alliés en apportent ${pacte.held - pacte.alone} (${pacte.partners.map((p) => `${p.name} ${p.seats}`).join(", ")})` : ""}${pacte.refused.length ? ` ; refusent de s'asseoir : ${pacte.refused.map((r) => r.name).join(", ")}` : ""} ; il en manque ${pacte.short}. Les autres courants : ${courants || "aucun"} ; ${pacte.unattached} électeurs ne suivent personne. Opinion de la salle : ${salle.with} favorables, ${salle.undecided} indécis, ${salle.against} hostiles`,

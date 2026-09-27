@@ -34,11 +34,12 @@ export const SPANS = Object.freeze({
 });
 
 // A body has to be summoned, its members have to travel, and it has to sit.
-const ASSEMBLY = /\b(consistoire|conclave|synode|concile|assembl[ée]e|congr[èe]s|consistory|synod|council|assembly|congress|convoquer|convoke|summon)\b/i;
+// \b ne connaît que l'ASCII : « écrire » et « élection » n'étaient jamais lus.
+const ASSEMBLY = /(?<![\p{L}])(consistoire|conclave|synode|concile|assembl[ée]e|congr[èe]s|coll[èe]ge|vote|voter|scrutin|consistory|synod|council|assembly|congress|convoquer|convoke|summon)(?![\p{L}])/iu;
 // A letter is answered in the ordinary post, not in a season.
-const LETTER = /\b(lettre|courrier|[ée]crire|r[ée]pondre|adresse|message|letter|write to|reply|address\b)\b/i;
+const LETTER = /(?<![\p{L}])(lettre|courrier|[ée]crire|r[ée]pondre|adresse|message|audience|recevoir|proposer (à|aux|au)|n[ée]gocier|visite|se rendre|letter|write to|reply|address)(?![\p{L}])/iu;
 // Things that run on their own calendar and report when they are done.
-const LONG = /\b(campagne|collecte|lev[ée]e de fonds|rassemblement|construire|chantier|programme|drive|fundraising|gathering|build|programme|construction)\b/i;
+const LONG = /(?<![\p{L}])(campagne|collecte|lev[ée]e de fonds|rassemblement|construire|chantier|programme|drive|fundraising|gathering|build|construction)(?![\p{L}])/iu;
 
 const kindOf = (order) => {
   const text = `${str(order?.title)} ${str(order?.text)}`;

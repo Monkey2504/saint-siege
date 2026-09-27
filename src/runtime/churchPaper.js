@@ -228,7 +228,9 @@ export const decomptesDuCollege = (assembly, player, pactes = []) => {
   // Et les pactes conclus : leur total est le décompte des votes du pape.
   const allies = (Array.isArray(pactes) ? pactes : []).map((p) => p?.courant).filter(Boolean);
   const table = allies.length ? coalition(a, { player, need: s.majority, sitWith: allies }) : null;
-  if (table) { permis.add(table.held); permis.add(a.seats - table.held); }
+  if (table) { permis.add(table.held); permis.add(a.seats - table.held); permis.add(table.held - mien); permis.add(table.short); }
+  // Ceux qui ne suivent aucun courant : le récit les nomme quand un vote est serré.
+  permis.add(a.electors.filter((e) => !e.follows).length);
   const avec = table && table.partners.length
     ? `${table.held} voix votent avec vous (votre courant ${mien}, ${table.partners.map((p) => `${p.name} ${p.seats}`).join(", ")})`
     : `votre courant vote avec vous (${mien} voix)`;

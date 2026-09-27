@@ -78,3 +78,10 @@ test("without a date on the game there is still a span to run", () => {
   assert.equal(out.days, SPANS.idle);
   assert.equal(out.date, "");
 });
+
+test("« Écrire aux évêques » est une lettre, et un vote au collège fait siéger un corps", () => {
+  const lettre = nextEdition({}, [order("Écrire aux évêques de France pour leur demander un rapport.")], { today: TODAY });
+  assert.equal(lettre.days, SPANS.letter);
+  const vote = nextEdition({}, [order("Soumettre au vote du collège la réforme du fonds de pension.")], { today: TODAY });
+  assert.match(vote.reason, /un corps qui doit siéger/);
+});

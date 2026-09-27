@@ -1867,7 +1867,14 @@ const applySimulationResult = async ({
       }
     }
     // Un décompte du collège que le moteur ne connaît pas reçoit le vrai.
-    const decomptes = decomptesDuCollege(normalizeWorldState(baseWorld).assembly, baseGame.country, normalizeWorldState(baseWorld).pactes);
+    // Les pactes conclus ET ceux que le pape propose ce tour-ci : le récit peut
+    // compter les alliés invités à la table (« 42 + 33 = 75 voix »).
+    const assembleeAvant = normalizeWorldState(baseWorld).assembly;
+    const pactesDuTour = [
+      ...(Array.isArray(normalizeWorldState(baseWorld).pactes) ? normalizeWorldState(baseWorld).pactes : []),
+      ...courantsSollicites(normalizeActions(baseActions).filter((a) => a.status === "planned"), assembleeAvant, baseGame.country).map((courant) => ({ courant })),
+    ];
+    const decomptes = decomptesDuCollege(assembleeAvant, baseGame.country, pactesDuTour);
     if (decomptes) {
       for (const event of generatedEvents) {
         const note = noteDuCollege(`${event.title ?? ""} ${event.description ?? ""}`, decomptes);
