@@ -49,3 +49,11 @@ test("« de » et « à » devant un nom s'accordent aussi", () => {
   assert.equal(sansPrelatsReels("une lettre de Pietro Parolin"), "une lettre du secrétaire d'État");
   assert.equal(sansPrelatsReels("écrire à Kevin Farrell"), "écrire au camerlingue");
 });
+
+test("« annoncée » n'est pas un nonce, et le budget de Moscou n'est pas vérifié contre les comptes du Saint-Siège", async () => {
+  const { parleDesComptesDuSaintSiege } = await import("./churchPaper.js");
+  const moscou = { title: "Restructuration budgétaire annoncée par Moscou", description: "Les dépenses publiques sont projetées à 3,46 milliards ; les promesses du gouvernement…", kind: "world", playerRelated: false };
+  assert.equal(regardeLEglise(moscou), false);
+  assert.equal(parleDesComptesDuSaintSiege(moscou), false);
+  assert.equal(parleDesComptesDuSaintSiege({ title: "Point sur le fonds de pension de la Curie", description: "", playerRelated: false }), true);
+});

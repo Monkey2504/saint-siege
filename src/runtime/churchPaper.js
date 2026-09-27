@@ -22,7 +22,10 @@ const str = (v) => String(v ?? "").trim();
 
 // Ce qui fait qu'une nouvelle regarde l'Église. Large à dessein : on ne retire
 // que ce qui ne la concerne manifestement pas.
-const EGLISE = /(églis|eglis|church|vatican|saint-si[èe]ge|holy see|pap(e|al|auté|e\b)|pontif|cardinal|évêque|eveque|épiscop|episcop|bishop|dioc[èe]s|synod|catholi|curie|curia|prêtre|pretre|priest|clerg|séminair|seminar|fidèles|faithful|nonc|dicast[èe]re|religieu|chrétien|chretien|christian|concordat|paroiss|parish|messe|liturg|abus|dubia|jésuite|jesuit|opus dei|conclave|consistoire|consistory|apsa|ior\b|denier de saint-pierre|basilique|pèlerin|pelerin|pilgrim|canoni|mission(naire)?s?\b|congrégation|monast|couvent|abbaye|sœurs?\b|soeurs?\b|frères?\b|moines?|ordres? religieu|caritas|sant'egidio|malte|fsspx|lefebvr)/i;
+// Chaque mot doit commencer un mot : « annoncée » contenait « nonc » (nonce),
+// « promesse » contenait « messe », et le budget de Moscou passait pour une
+// nouvelle de l'Église.
+const EGLISE = /(?<![\p{L}])(églis|eglis|church|vatican|saint-si[èe]ge|holy see|pap(e|al|auté|e\b)|pontif|cardinal|évêque|eveque|épiscop|episcop|bishop|dioc[èe]s|synod|catholi|curie|curia|prêtre|pretre|priest|clerg|séminair|seminar|fidèles|faithful|nonc(e|es|iature)|dicast[èe]re|religieu|chrétien|chretien|christian|concordat|paroiss|parish|messe|liturg|abus|dubia|jésuite|jesuit|opus dei|conclave|consistoire|consistory|apsa|ior\b|denier de saint-pierre|basilique|pèlerin|pelerin|pilgrim|canoni|mission(naire)?s?\b|congrégation|monast|couvent|abbaye|sœurs?\b|soeurs?\b|frères?\b|moines?|ordres? religieu|caritas|sant'egidio|malte|fsspx|lefebvr)/iu;
 
 /** La nouvelle regarde-t-elle l'Église, le pape ou ses corps ? */
 export const regardeLEglise = (event) => {
@@ -184,3 +187,11 @@ export const noteDuRegistre = (texte, comptesEur) => {
   }
   return lignes.length ? `Au registre : ${lignes.join(" ; ")}.` : "";
 };
+
+// Les comptes du registre sont ceux du Saint-Siège : une nouvelle sur le budget
+// d'un autre (Moscou, Tokyo, une conférence épiscopale) ne se vérifie pas
+// contre eux. Relevé en jouant : la note du registre tombait sous le budget russe.
+const COMPTES_DU_SAINT_SIEGE = /(?<![\p{L}])(saint-si[èe]ge|vatican|curie|apsa|ior\b|denier de saint-pierre|fonds de pension|secrétari(at|e) pour l'économie|conseil pour l'économie|dicast[èe]re|pape|pontif)/iu;
+/** La nouvelle parle-t-elle de l'argent du Saint-Siège lui-même ? */
+export const parleDesComptesDuSaintSiege = (event) => Boolean(event && (event.playerRelated
+  || COMPTES_DU_SAINT_SIEGE.test(`${str(event.title)} ${str(event.description)}`)));
