@@ -383,7 +383,7 @@ const ScenarioCard = ({ onClone, onEdit, onPlay, onSelect, onUpdate, scenario, s
   const assetBadges = Object.entries(scenarioBadgeLabels)
     .filter(([key]) => scenario.assetStatus?.[key])
     .map(([, label]) => label.replace(" PMTiles", "").replace(" JSON", ""));
-  const cardImageUrl = scenario.coverImageUrl || "/loading_screen.jpg";
+  const cardImageUrl = scenario.coverImageUrl || "/vatican.jpg";
 
   return (
     <div
@@ -542,7 +542,7 @@ const ScenarioCard = ({ onClone, onEdit, onPlay, onSelect, onUpdate, scenario, s
 };
 
 const GameCard = ({ active, game, onActivate, onArchive, onClone, onEdit }) => {
-  const cardImageUrl = game.coverImageUrl || "/loading_screen.jpg";
+  const cardImageUrl = game.coverImageUrl || "/vatican.jpg";
 
   return (
     <div

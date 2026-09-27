@@ -104,7 +104,7 @@ export const nextEdition = (world, actions, { today = "" } = {}) => {
   }
 
   // An empty desk carries the world at its own pace.
-  const base = paced ?? { days: SPANS.idle, reason: "rien sur le bureau — le pas du monde lui-même", from: "" };
+  const base = paced ?? { days: SPANS.idle, reason: "aucun ordre sur le bureau — le monde avance à son pas", from: "" };
   const target = now + base.days * DAY;
 
   // A dated event sooner than that pulls the edition forward: print when there

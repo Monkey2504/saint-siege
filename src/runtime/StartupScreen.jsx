@@ -4,12 +4,15 @@ import React, { useEffect, useState } from "react";
 // Loading-screen artwork. The first is the original; the rest cycle in once the
 // files exist in /public. Missing files are skipped (see the preload check), so
 // the screen never flashes a broken image.
+//
+// Saint-Siège : les illustrations d'Open Historia (champignon atomique, statue
+// de la Liberté, marteau et faucille, catapultes) étaient le premier écran d'un
+// jeu où l'on devient pape. Relevé en jouant comme un nouveau venu : ce qui
+// s'affiche avant « Devenez le nouveau pape » annonçait un jeu de guerre. Les
+// deux photographies du jeu lui-même les remplacent.
 const LOADING_IMAGES = [
-  "/loading_screen.jpg",
-  "/loading_screen_2.jpg",
-  "/loading_screen_3.jpg",
-  "/loading_screen_4.jpg",
-  "/loading_screen_5.png",
+  "/vatican.jpg",
+  "/basilica.jpg",
 ];
 const IMAGE_ROTATE_MS = 4500;
 

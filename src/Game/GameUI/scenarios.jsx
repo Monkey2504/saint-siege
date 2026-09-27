@@ -174,7 +174,7 @@ const ScenarioCard = ({
     style={{
       background:
       `radial-gradient(circle at 14% 18%, ${scenario.accentColor}bb, transparent 34%), ` +
-      "url('/loading_screen.jpg') center/cover",
+      "url('/vatican.jpg') center/cover",
           flexShrink: 0,
           height: "6.5rem",
     }}

@@ -598,3 +598,12 @@ test("un vote dont la majorité est acquise passe, même si le modèle dit « en
   assert.equal(judged.outcome, "success");
   assert.match(judged.outcomeNote, /le collège a voté : 85 voix avec vous.*a passé/);
 });
+
+test("une visite pastorale est un geste ; payé par la Caritas, ce n'est pas le budget du Saint-Siège", () => {
+  const world = normalizeWorldState(applyChurchPreset({}, { date: "2026-09-01" }));
+  const ctx = { playerPolity: HOLY_SEE, economy: world.economies[HOLY_SEE], world, jumpDays: 30 };
+  const visite = assessAction(order("Se rendre en visite pastorale au Soudan du Sud."), ctx);
+  assert.ok(!visite.constraints.some((c) => c.factor === "time"), JSON.stringify(visite.constraints));
+  const caritas = assessAction(order("Ouvrir des centres d'accueil pour migrants dans les diocèses d'Italie du Sud, financés par la Caritas."), ctx);
+  assert.ok(!caritas.constraints.some((c) => c.factor === "budget"), JSON.stringify(caritas.constraints));
+});
