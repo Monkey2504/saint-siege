@@ -17,6 +17,7 @@ import { buildEconomyBrief, seedEconomy, yearOf } from "../../runtime/economyBri
 import { describeOrganizations, seedOrganizations } from "../../runtime/organizations.js";
 import { describeIntents, intentsNeedOtherPowers } from "../../runtime/intents.js";
 import { describeFaithful } from "../../runtime/churchFaithful.js";
+import { describeChurchBody } from "../../runtime/fronts.js";
 import { describeDrives } from "../../runtime/drives.js";
 import { describeRecord } from "../../runtime/record.js";
 import { describeTreasuries } from "../../runtime/treasuries.js";
@@ -672,7 +673,7 @@ export const buildPromptContext = async (bundle, {
     organizationsSummary: minimal ? "" : describeOrganizations(seededOrganizations, { playerPolity, full: "relevant" }),
     intentsSummary: minimal ? "" : describeIntents(world.intents, { revealSecrets: true }),
     canonFactsText: minimal ? "" : [...new Set([...world.canonFacts, ...(world.church ? FAITS_ETABLIS : [])])].join("\n"),
-    churchSummary: minimal ? "" : describeFaithful(world.church),
+    churchSummary: minimal ? "" : [describeFaithful(world.church), world.church ? describeChurchBody(world.churchBody) : ""].filter(Boolean).join("\n\n"),
     // Every fundraising drive with its target, pledges and collections, and
     // the rule that words move nothing (runtime/drives.js). "Last edition" is
     // measured from the previous jump's date.
