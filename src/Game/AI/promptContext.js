@@ -22,6 +22,7 @@ import { describeRecord } from "../../runtime/record.js";
 import { describeTreasuries } from "../../runtime/treasuries.js";
 import { describeLiabilities } from "../../runtime/liabilities.js";
 import { describeAssembly } from "../../runtime/factions.js";
+import { describeCabinetPourLeRecit } from "../../runtime/regleDuRecit.js";
 import { describeGatherings } from "../../runtime/gatherings.js";
 import { describeWars } from "../../runtime/wars.js";
 import { describeLeaders } from "../../runtime/succession.js";
@@ -687,6 +688,7 @@ export const buildPromptContext = async (bundle, {
     // The people who decide, counted, and what each faction makes of the year
     // the player has just had (runtime/factions.js).
     assemblySummary: minimal ? "" : describeAssembly(world.assembly),
+    cabinetSummary: minimal ? "" : describeCabinetPourLeRecit(world),
     // Crowds: what each gathering cost, drew and earned (runtime/gatherings.js).
     gatheringsSummary: minimal ? "" : describeGatherings(world.gatherings, { asOf: target || date, church: world.church, economies }),
     warsSummary: minimal ? "" : describeWars(world.wars, { playerPolity }),

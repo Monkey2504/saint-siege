@@ -6,7 +6,7 @@ import { toCountryName } from "../../runtime/ownerNames.js";
 import { describesOrganizationalPower } from "../../runtime/organizations.js";
 import { applyFaithfulOps, stepFaithful } from "../../runtime/churchFaithful.js";
 import { ensureBodyFromOrders } from "../../runtime/fronts.js";
-import { bequestEvent, bequestFor, consequencesOf } from "../../runtime/consequences.js";
+import { bequestFor, consequencesOf } from "../../runtime/consequences.js";
 import { filterUnitOpsByWars, resolveAiClashes, warEconomyFlags } from "../../runtime/wars.js";
 import { seedLeaderFromStats, stepLeaders } from "../../runtime/succession.js";
 import { stepMigration } from "../../runtime/migration.js";
@@ -18,7 +18,7 @@ import { ensureDrivesFromOrders, pruneDormantDrives, reconcileNarration } from "
 import { appendRecord } from "../../runtime/record.js";
 import { ensureTreasuryMovesFromOrders, stepTreasuries } from "../../runtime/treasuries.js";
 import { ensureLiabilityMovesFromOrders } from "../../runtime/liabilities.js";
-import { applySpeech, driftFromBlunders, judgeGovernance, persuadeNeighbours, speechFromOrder, standing } from "../../runtime/factions.js";
+import { applySpeech, driftFromBlunders, judgeGovernance, persuadeNeighbours, reactionsAuxOrdres, speechFromOrder, standing } from "../../runtime/factions.js";
 import { checkLedgerClaims } from "../../runtime/claimCheck.js";
 import { naturalizeContacts } from "../../runtime/naturalize.js";
 import { economyIndicators } from "../../runtime/economy.js";
@@ -1841,7 +1841,7 @@ const applySimulationResult = async ({
   const realityAssessments = buildRealityAssessments({ game: baseGame, world: baseWorld, actions: baseActions }, { jumpDays: daysBetween(baseGame.gameDate, nextGame.gameDate) });
   const narratedOutcomes = freshEvents.flatMap((event) => (Array.isArray(event.impacts?.actionOutcomes) ? event.impacts.actionOutcomes : []));
   const nextActions = result.clearActions
-    ? applyActionOutcomes(normalizeActions(baseActions), narratedOutcomes, realityAssessments, { defaultStatus: "resolved", date: nextGame.gameDate })
+    ? applyActionOutcomes(normalizeActions(baseActions), narratedOutcomes, realityAssessments, { defaultStatus: "resolved", date: nextGame.gameDate, events: freshEvents })
     : normalizeActions(baseActions);
 
   // The verdict binds the impacts (realityCheck.bindImpactsToVerdicts): an
@@ -2123,6 +2123,31 @@ const applySimulationResult = async ({
     // and twenty radicals for a year with nothing passing between them.
     const preached = persuadeNeighbours(blundered.assembly, { date: nextGame.gameDate });
     worldWithImpacts.assembly = preached.assembly;
+    // Et ce que le pape a FAIT ce tour : chaque ordre jugé touche les groupes
+    // que son sujet concerne, et un ordre refusé comme indigne (le patrimoine)
+    // coûte à toute la salle (runtime/factions.js, reactionsAuxOrdres).
+    const jugesCeTour = nextActions.filter((a) => a && a.judgedOn === nextGame.gameDate && a.kind !== "chat");
+    const indignes = realityAssessments
+      .filter((a) => a.verdict === "blocked" && a.constraints.some((c) => c.factor === "patrimoine"));
+    const reagi = reactionsAuxOrdres(worldWithImpacts.assembly, jugesCeTour, {
+      player: nextGame.country, date: nextGame.gameDate, indignes,
+    });
+    worldWithImpacts.assembly = reagi.assembly;
+    preached.rows.push(...reagi.rows);
+    // L'indignité se paie aussi en crédit : vendre la chapelle Sixtine n'a pas
+    // lieu, mais l'avoir ordonné se sait.
+    const eco = worldWithImpacts.economies?.[nextGame.country];
+    if (indignes.length && eco && Number.isFinite(Number(eco.legitimacy))) {
+      worldWithImpacts.economies = {
+        ...worldWithImpacts.economies,
+        [nextGame.country]: { ...eco, legitimacy: Math.max(0, Number(eco.legitimacy) - 5 * indignes.length) },
+      };
+      worldWithImpacts.record = appendRecord(worldWithImpacts.record, [{
+        date: nextGame.gameDate, polity: nextGame.country, kind: "standing",
+        what: "un ordre jugé indigne de la charge a entamé le crédit du pontificat", amount: -5 * indignes.length, unit: "pt",
+        source: "assembly:indignite",
+      }]);
+    }
     if (preached.preachers) console.warn(`[assembly] ${preached.preachers} electors worked on the room`);
 
     // One row per group that actually shifted, so the paper reads the room
@@ -2171,11 +2196,10 @@ const applySimulationResult = async ({
           [who]: { ...economy, treasury: (Number.isFinite(Number(economy?.treasury)) ? Number(economy.treasury) : 0) + left },
         };
         rows.push({ date: nextGame.gameDate, polity: who, kind: "money", what: "legs et dons non sollicités", amount: left, unit: "SY", source: "step:bequests" });
-        const entry = bequestEvent({ amount: left, player: who, date: nextGame.gameDate, economy });
-        if (entry) {
-          const normalized = normalizeEventEntry({ ...entry, id: `bequest-${nextGame.round}` }, turnEvents.length + battleEvents.length);
-          if (normalized) battleEvents.push(normalized);
-        }
+        // Plus d'article « Legs et dons spontanés » : il paraissait à chaque
+        // édition, mot pour mot — sept fois en trois parties. Une nouvelle
+        // identique tous les mois n'en est plus une. La somme reste au registre,
+        // qui est sa place.
       }
     }
 

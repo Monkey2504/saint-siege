@@ -9,6 +9,8 @@
 
 import { HOLY_SEE } from "./churchPreset.js";
 import { ensureRegisterBaseline } from "./register.js";
+import { atteinteAuPatrimoine } from "./realityCheck.js";
+import { appendRecord } from "./record.js";
 
 const str = (v) => (typeof v === "string" ? v.trim() : v == null ? "" : String(v).trim());
 
@@ -68,7 +70,31 @@ export const inaugurate = (world, { name, declaration }) => {
   };
 
   // Day one of the pontificate is the day every later figure is measured from.
-  return ensureRegisterBaseline(w, HOLY_SEE, { date: str(w.startDate || w.gameDate || "") });
+  const based = ensureRegisterBaseline(w, HOLY_SEE, { date: str(w.startDate || w.gameDate || "") });
+
+  // Un programme indigne de la charge se paie dès le premier jour. « Vendre la
+  // chapelle Sixtine pour acheter un club de foot » laissait la légitimité à
+  // 70 et le collège de marbre : le monde commentait, rien ne coûtait.
+  const bien = atteinteAuPatrimoine(programme);
+  if (!bien) return based;
+  const eco = based.economies?.[HOLY_SEE];
+  const economies = eco && Number.isFinite(Number(eco.legitimacy))
+    ? { ...based.economies, [HOLY_SEE]: { ...eco, legitimacy: Math.max(0, Number(eco.legitimacy) - 8) } }
+    : based.economies;
+  const electors = Array.isArray(based.assembly?.electors)
+    ? based.assembly.electors.map((e) => ({ ...e, approval: Math.max(-100, (Number(e.approval) || 0) - 6) }))
+    : null;
+  const date = str(based.startDate || based.gameDate || "");
+  return {
+    ...based,
+    economies,
+    ...(electors ? { assembly: { ...based.assembly, electors } } : {}),
+    record: appendRecord(based.record, [{
+      date, polity: HOLY_SEE, kind: "standing",
+      what: `un programme qui promet de vendre « ${bien} » a entamé le crédit du pontificat dès son premier jour`,
+      amount: -8, unit: "pt", source: "inauguration:indignite",
+    }]),
+  };
 };
 
 // How far a scheme whose field the declaration touches moves on hearing it.

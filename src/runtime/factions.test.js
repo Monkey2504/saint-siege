@@ -322,3 +322,14 @@ test("affinity is the share of the four axes two electors have in common", () =>
   // An elector attached to no current does not count that as something shared.
   assert.equal(affinity({ ...base, follows: "" }, { ...base, follows: "" }), 0.75);
 });
+
+test("le collège réagit à ce que le pape a fait, pas seulement aux chiffres", async () => {
+  const { applyChurchPreset, HOLY_SEE } = await import("./churchPreset.js");
+  const { reactionsAuxOrdres, groupsOn } = await import("./factions.js");
+  const w = applyChurchPreset({}, { date: "2026-09-01" });
+  const r = reactionsAuxOrdres(w.assembly, [{ title: "Mettre au vote la suppression des exemptions liturgiques accordées aux instituts traditionalistes", outcome: "failure" }], { player: HOLY_SEE });
+  const doctrine = Object.fromEntries(groupsOn(r.assembly, "doctrine").map((g) => [g.name, g.approval]));
+  assert.ok(doctrine.traditional < 0, "les traditionalistes s'en offusquent même quand la motion échoue");
+  assert.ok(doctrine.reforming > 0);
+  assert.ok(r.rows.length > 0, "le registre le dit");
+});

@@ -460,3 +460,14 @@ test("une lettre n'est ni un vote ni un chantier de six mois", () => {
   const vote = assessAction(order("Mettre au vote du consistoire la suppression des exemptions liturgiques."), ctx);
   assert.ok(vote.constraints.some((c) => c.factor === "vote"));
 });
+
+test("quand le récit raconte l'échec d'un ordre, le verdict affiché le dit", () => {
+  const actions = [order("Mettre au vote du consistoire la suppression des exemptions liturgiques accordées aux instituts traditionalistes.", { id: "v1" })];
+  const assessments = [{ id: "v1", verdict: "constrained", constraints: [{ factor: "vote", detail: "il en manque 39" }] }];
+  const events = [{ title: "Ouverture du consistoire et rejet de la proposition", description: "La motion sur la suppression des exemptions liturgiques des instituts traditionalistes n'a recueilli que quarante-deux voix.", playerRelated: true }];
+  const [out] = applyActionOutcomes(actions, [], assessments, { events });
+  assert.equal(out.outcome, "failure");
+  assert.equal(out.status, "failed");
+  const [sansRecit] = applyActionOutcomes(actions, [], assessments, { events: [] });
+  assert.equal(sansRecit.outcome, "partial");
+});

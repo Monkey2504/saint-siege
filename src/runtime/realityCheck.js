@@ -65,6 +65,12 @@ const AU_VOTE = /(fai(re|s|t) voter|mettre au vote|mis au vote|soumettre au vote
 // était compté comme un vote du collège (le mot « consistoire ») et comme un
 // chantier de six mois, donc « accordé en partie » — pour une lettre.
 const CONTACT = /\b(écrire (à|aux|au)|écris (à|aux|au)|envoyer une lettre|une lettre (à|aux|au)|proposer une rencontre|rencontrer|recevoir en audience|audience privée|inviter)\b/i;
+/** Le texte ordonne-t-il de vendre un bien inaliénable (chapelle Sixtine…) ? */
+export const atteinteAuPatrimoine = (texte) => {
+  const t = str(texte);
+  const bien = t.match(INALIENABLE);
+  return bien && ALIENER.test(t) ? bien[0] : "";
+};
 const COLLECTE = /(campagne de (dons|collecte|souscription)|collecte de fonds|lev(ée|er) de fonds|lever des fonds|appel (aux|à des) dons|quête|souscription|denier de saint-pierre|fundrais|donation drive|appeal for donations)/i;
 const DEPENSE_EXPLICITE = /(construire|acheter|dépenser|verser .{0,20}(salaire|prime)|embaucher|subventionner)/i;
 const INALIENABLE = /(chapelle sixtine|sixtine|sistine|basilique saint-pierre|saint-pierre de rome|st\.? peter'?s basilica|place saint-pierre|musées du vatican|musees du vatican|vatican museums|bibliothèque (apostolique )?vaticane|archives (apostoliques )?vaticanes|archives apostoliques|pietà|pieta|saint-jean-de-latran|latran)/i;
@@ -405,7 +411,28 @@ const sameOrder = (action, actionId) => {
   return lower(action.id) === key || lower(action.title) === key || (key.length > 12 && lower(action.text).startsWith(key));
 };
 
-export const applyActionOutcomes = (actions, outcomes, assessments, { defaultStatus = "resolved", date = "" } = {}) => {
+// Ce que le récit a dit de l'ordre, quand le modèle n'a pas rendu son issue.
+// Mesuré : le consistoire avait rejeté la motion (42 voix sur 81), l'édition le
+// racontait, et « Le sort de vos ordres » affichait « Accordé en partie » — le
+// verdict par défaut. On retrouve l'événement de l'ordre par les mots qu'ils
+// partagent, et on lit s'il dit un échec.
+const ECHEC = /(rejet|rejeté|rejetée|échec|échoue|échoué|n'a recueilli que|refus|repouss|avort|enterr|renonc|suspend|ajourn|sans accord|aucun accord)/i;
+const motsDe = (texte) => new Set(lower(texte).normalize("NFD").replace(/[\u0300-\u036f]/g, "").split(/[^a-z]+/).filter((w) => w.length >= 6));
+const recitDeLOrdre = (action, events) => {
+  const cle = motsDe(`${action.title} ${action.text}`);
+  if (cle.size < 2) return null;
+  let meilleur = null;
+  for (const event of Array.isArray(events) ? events : []) {
+    if (!event || !event.playerRelated) continue;
+    const mots = motsDe(`${event.title} ${event.description}`);
+    let commun = 0;
+    for (const w of cle) if (mots.has(w)) commun += 1;
+    if (commun >= Math.min(3, cle.size) && (!meilleur || commun > meilleur.commun)) meilleur = { event, commun };
+  }
+  return meilleur?.event ?? null;
+};
+
+export const applyActionOutcomes = (actions, outcomes, assessments, { defaultStatus = "resolved", date = "", events = [] } = {}) => {
   const list = (Array.isArray(outcomes) ? outcomes : []).map(normalizeActionOutcome).filter(Boolean);
   const verdictById = new Map((Array.isArray(assessments) ? assessments : []).map((a) => [a.id, a]));
   return (Array.isArray(actions) ? actions : []).map((action) => {
@@ -415,12 +442,15 @@ export const applyActionOutcomes = (actions, outcomes, assessments, { defaultSta
     const o = list.find((entry) => sameOrder(action, entry.actionId));
     if (!o) {
       if (!a || action.kind === "chat") return { ...action, status: defaultStatus, ...judged };
-      const outcome = OUTCOME_BY_VERDICT[a.verdict] ?? "success";
+      const plafond = OUTCOME_BY_VERDICT[a.verdict] ?? "success";
+      const recit = recitDeLOrdre(action, events);
+      const raconteEchec = recit && ECHEC.test(`${recit.title} ${recit.description}`);
+      const outcome = raconteEchec ? "failure" : plafond;
       return {
         ...action,
         status: STATUS_BY_OUTCOME[outcome],
         outcome,
-        outcomeNote: a.constraints[0]?.detail || "",
+        outcomeNote: raconteEchec ? `${str(recit.title)}${a.constraints[0]?.detail ? ` — ${a.constraints[0].detail}` : ""}` : (a.constraints[0]?.detail || ""),
         verdict: a.verdict,
         ...judged,
       };

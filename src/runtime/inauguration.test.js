@@ -157,3 +157,14 @@ test("une déclaration qui ne nomme aucun sujet met quand même toutes les puiss
   assert.match(texte, /- Bloc des cardinaux des dubia\n    pursuing: /, "chaque puissance paraît avec ce qu'elle poursuit");
   assert.doesNotMatch(texte, /\bsupportive\b|\bhostile\b/, "et jamais avec une étiquette de camp");
 });
+
+test("un programme qui promet de vendre la chapelle Sixtine coûte dès le premier jour", async () => {
+  const { applyChurchPreset, HOLY_SEE } = await import("./churchPreset.js");
+  const w = applyChurchPreset({}, { date: "2026-09-01" });
+  const avant = w.economies[HOLY_SEE].legitimacy;
+  const pizza = inaugurate(w, { name: "Pizza Ier", declaration: "Vendre la chapelle Sixtine pour acheter un club de foot." });
+  assert.equal(pizza.economies[HOLY_SEE].legitimacy, avant - 8);
+  assert.ok(pizza.assembly.electors.every((e) => e.approval <= -6));
+  const sage = inaugurate(w, { name: "Jean XXIV", declaration: "Mettre de l'ordre dans les comptes." });
+  assert.equal(sage.economies[HOLY_SEE].legitimacy, avant);
+});

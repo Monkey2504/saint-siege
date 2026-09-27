@@ -1182,7 +1182,9 @@ const Bulletin = ({ onOpenAdvisor, pressFocus = 0, nav = null }) => {
         // et contredisaient parfois la page : la campagne « refusée » était
         // bel et bien ouverte dans le cahier des Comptes. Le modèle les relit au
         // tour suivant ; le lecteur n'a pas à les lire.
-        const dated = events.filter((event) => event && event.title && event.kind !== REJECTION_EVENT_KIND);
+        // Les parties déjà jouées gardent leurs articles « Legs et dons
+        // spontanés », un par édition, identiques : ils sortent de la une.
+        const dated = events.filter((event) => event && event.title && event.kind !== REJECTION_EVENT_KIND && event.title !== "Legs et dons spontanés");
         dated.sort((a, b) => String(b.date).localeCompare(String(a.date)));
         const round = Array.isArray(world?.simulationHistory) ? world.simulationHistory[0] : null;
         const ids = new Set((round?.eventIds ?? []).filter(Boolean));
