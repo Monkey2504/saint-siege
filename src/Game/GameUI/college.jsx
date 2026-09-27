@@ -105,7 +105,7 @@ const Hemicycle = ({ electors, axis, colours, selected, onSelect, byMood }) => {
  * contradiction que ce journal promet de ne pas imprimer. Les marques n'y sont
  * pas cliquables : d'ici on lit la salle, on ne l'interroge pas.
  */
-export const ApercuDuCollege = ({ assembly: brut, player = "" }) => {
+export const ApercuDuCollege = ({ assembly: brut, player = "", pactes = [] }) => {
     const assembly = useMemo(() => normalizeAssembly(brut), [brut]);
     const room = useMemo(() => (assembly ? standing(assembly) : null), [assembly]);
     if (!assembly || !room) return null;
@@ -126,7 +126,13 @@ export const ApercuDuCollege = ({ assembly: brut, player = "" }) => {
             votent avec vous ; l'opinion dit ce que la salle pense de votre
             gouvernement ce mois-ci, et elle part de zéro pour tout le monde. */}
         <p style={{ fontSize: "var(--oh-t-xs)", lineHeight: 1.5, margin: "0.4rem 0 0" }}>
-        {player && <>Votre courant vote avec vous : <b>{ownBloc(assembly, player).seats}</b> voix. </>}Un vote se gagne à {room.majority} voix sur {room.seats}.
+        {player && <>Votre courant vote avec vous : <b>{ownBloc(assembly, player).seats}</b> voix. </>}
+        {(() => {
+            // Les pactes accordés : leurs électeurs votent avec le pape.
+            const allies = (Array.isArray(pactes) ? pactes : []).map((p) => groupsOn(assembly, "follows").find((g) => g.name === p?.courant)).filter(Boolean);
+            return allies.length ? <>Vos alliés : {allies.map((g) => `${g.name} (${g.seats})`).join(", ")}. </> : null;
+        })()}
+        Un vote se gagne à {room.majority} voix sur {room.seats}.
         </p>
         <p style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)", lineHeight: 1.5, margin: "0.2rem 0 0" }}>
         Ce que la salle pense de votre gouvernement : <b style={{ color: "var(--oh-grant)" }}>{room.with}</b> favorables ·{" "}
