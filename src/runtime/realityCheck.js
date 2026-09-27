@@ -79,6 +79,8 @@ const GROUPE_DU_COURANT = [
   [/appareil financier|temporel/i, "temporal"],
 ];
 const VOTE_ACQUIS = "le vote est acquis : il se tient ce mois-ci et passe";
+// Ce que le modèle lit en plus : le scrutin a lieu AVANT la fin de la période.
+const VOTE_ACQUIS_CONSIGNE = "racontez le scrutin et son résultat dans cette édition, daté avant la fin de la période ; ne le reportez pas à une session ultérieure";
 /** L'ordre se décide-t-il au vote du collège ? */
 export const seDecideAuVote = (texte) => AU_VOTE.test(str(texte));
 /** Le texte ordonne-t-il de vendre un bien inaliénable (chapelle Sixtine…) ? */
@@ -350,7 +352,7 @@ export const assessAction = (action, ctx = {}) => {
     if (pacte && pacte.carries) {
       push("vote", 0.05,
         `le collège vote : ${pacte.held} voix avec vous (votre courant ${pacte.alone}${pacte.partners.length ? `, ${pacte.partners.map((p) => `${p.name} ${p.seats}`).join(", ")}` : ""}), il en faut ${salle.majority} — ${VOTE_ACQUIS}`,
-        "");
+        VOTE_ACQUIS_CONSIGNE);
     }
     if (pacte && !pacte.carries) {
       const courants = groupsOn(assembly, "follows").filter((g) => g.name && lower(g.name) !== lower(player))
@@ -567,7 +569,9 @@ export const applyActionOutcomes = (actions, outcomes, assessments, { defaultSta
         ...action,
         status: STATUS_BY_OUTCOME[outcome],
         outcome,
-        outcomeNote: raconteEchec ? `${str(recit.title)}${a.constraints[0]?.detail ? ` — ${a.constraints[0].detail}` : ""}` : (a.constraints[0]?.detail || ""),
+        outcomeNote: raconteEchec
+          ? `${str(recit.title)}${a.constraints[0]?.detail ? ` — ${a.constraints[0].detail}` : ""}`
+          : (a.constraints.find((c) => c.factor === "vote" && String(c.detail).includes(VOTE_ACQUIS))?.detail || a.constraints[0]?.detail || ""),
         verdict: a.verdict,
         ...judged,
       };
