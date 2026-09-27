@@ -18,7 +18,7 @@ import { ensureDrivesFromOrders, pruneDormantDrives, reconcileNarration } from "
 import { appendRecord } from "../../runtime/record.js";
 import { ensureTreasuryMovesFromOrders, stepTreasuries } from "../../runtime/treasuries.js";
 import { ensureLiabilityMovesFromOrders } from "../../runtime/liabilities.js";
-import { applySpeech, driftFromBlunders, judgeGovernance, nomDeGroupe, persuadeNeighbours, reactionsAuxOrdres, speechFromOrder, standing } from "../../runtime/factions.js";
+import { applySpeech, driftFromBlunders, electeursDuGroupe, judgeGovernance, nomDeGroupe, persuadeNeighbours, reactionsAuxOrdres, speechFromOrder, standing } from "../../runtime/factions.js";
 import { checkLedgerClaims } from "../../runtime/claimCheck.js";
 import { naturalizeContacts } from "../../runtime/naturalize.js";
 import { economyIndicators } from "../../runtime/economy.js";
@@ -2219,12 +2219,15 @@ const applySimulationResult = async ({
     const playerName = normalizeString(nextGame.country);
     for (const row of [...judged.rows, ...blundered.rows, ...preached.rows]) {
       if (Math.abs(Number(row.step) || 0) < 0.5) continue;
-      const qui = row.group === playerName ? `votre courant (${row.seats} électeurs)` : `${nomDeGroupe(row.group)} (${row.seats} électeurs)`;
+      const groupe = row.axis && row.axis !== "follows" ? electeursDuGroupe(row.group, row.seats) : "";
+      const qui = row.group === playerName ? `votre courant (${row.seats} électeurs)` : groupe || `${nomDeGroupe(row.group)} (${row.seats} électeurs)`;
       // Rangée au nom du pape : c'est son registre, et le groupe est nommé dans
       // la ligne. Rangée au nom du groupe, elle était filtrée hors de la page.
       worldWithImpacts.record = appendRecord(worldWithImpacts.record, [{
         date: nextGame.gameDate, polity: playerName || row.group, kind: "standing",
-        what: `${qui} ${row.reason}`, amount: row.step, unit: "pt",
+        // « Traditionnels (37 électeurs) approuve » : les groupes du collège
+        // (doctrine, région, rôle) sont des pluriels, les courants des singuliers.
+        what: `${qui} ${groupe && row.group !== playerName ? String(row.reason).replace(/^(dés)?approuve\b/, (m) => `${m}nt`) : row.reason}`, amount: row.step, unit: "pt",
         source: `assembly:${row.axis || "all"}:${row.seats} electors`,
       }]);
     }

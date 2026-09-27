@@ -16,7 +16,7 @@ import { normalizeEconomy, annualRevenue, fiscalBalance, debtCeiling, interestRa
 import { normalizeIntents } from "./intents.js";
 import { normalizeOrganizations, isMember } from "./organizations.js";
 import { fmtMoneyFromUsd, fmtSY, pourcent } from "./money.js";
-import { coalition, groupsOn, normalizeAssembly, standing } from "./factions.js";
+import { coalition, groupsOn, normalizeAssembly, reactionsAuxOrdres, standing } from "./factions.js";
 
 const str = (v) => String(v ?? "").trim();
 const lower = (v) => str(v).toLowerCase();
@@ -68,6 +68,13 @@ const AU_VOTE = /(fai(re|s|t) voter|mettre au vote|mis au vote|soumettre au vote
 // frontière, et « écrire aux évêques… » n'était jamais reconnu comme un geste.
 const CONTACT = /(?<![\p{L}\p{N}])(écrire (à|aux|au)|écris (à|aux|au)|envoyer une lettre|une lettre (à|aux|au)|proposer une rencontre|rencontrer|recevoir en audience|audience privée|inviter)(?![\p{L}\p{N}])/iu;
 const DECIDE = /\b(réform\w*|supprim\w*|abol\w*|cré(er|ez|ons)|fond(er|ez)|nomm(er|ez)|destitu\w*|impos(er|ez)|interdi\w*|ouvr(ir|ez)|ferm(er|ez)|vend(re|ez)|céd(er|ez)|achet\w*|financ(er|ez)|soumett\w*|mettre au vote|fai(re|tes) voter|publi(er|ez)|décrét\w*|promulgu\w*|rédui(re|sez)|augment\w*|lanc(er|ez)|convoqu\w*|sanctionn\w*|limog\w*)\b/i;
+// Le groupe du collège dont chaque courant porte la cause.
+const GROUPE_DU_COURANT = [
+  [/dubia|traditionali/i, "traditional"],
+  [/chemin synodal|synodal/i, "reforming"],
+  [/vieille garde|secrétairerie/i, "curia"],
+  [/appareil financier|temporel/i, "temporal"],
+];
 /** Le texte ordonne-t-il de vendre un bien inaliénable (chapelle Sixtine…) ? */
 export const atteinteAuPatrimoine = (texte) => {
   const t = str(texte);
@@ -333,7 +340,31 @@ export const assessAction = (action, ctx = {}) => {
   // La portée EST le test de sujet : elle est écrite à la main, corps par
   // corps, dans les mots de ce corps. Le genre ne sert plus qu'aux chantiers
   // qui n'ont pas de portée, où il n'y a pas d'autre signal.
-  const relevant = concernes.filter((it) => it.scope.length || (INTENT_KIND_DOMAINS[it.kind] ?? []).some((d) => has(d)));
+  // Un courant hostile au pape ne s'oppose pas à un ordre qui lui plaît.
+  // Relevé en jouant : « rétablir la liberté de célébrer selon le rite ancien »
+  // listait le bloc des dubia « contre vous » — le seul courant qui le
+  // réclamait. Ce qu'un courant défend se lit sur le groupe qu'il représente
+  // (les traditionnels pour les dubia, le temporel pour l'appareil financier…),
+  // et le collège dit lui-même ce qu'un ordre fait à ce groupe
+  // (reactionsAuxOrdres). Le courant que l'ordre sert sort de l'opposition sur
+  // cet ordre-là.
+  const salleDuCollege = normalizeAssembly(ctx.world?.assembly);
+  const servis = new Set();
+  if (salleDuCollege) {
+    const apres = normalizeAssembly(reactionsAuxOrdres(salleDuCollege, [{ title: text, outcome: "success" }], { player }).assembly);
+    const pas = new Map();
+    for (const axis of ["doctrine", "role"]) {
+      const avant = new Map(groupsOn(salleDuCollege, axis).map((g) => [g.name, g.approval]));
+      for (const g of groupsOn(apres ?? salleDuCollege, axis)) pas.set(g.name, g.approval - (avant.get(g.name) ?? 0));
+    }
+    for (const it of concernes) {
+      const groupe = GROUPE_DU_COURANT.find(([re]) => re.test(it.owner))?.[1];
+      if (groupe && (pas.get(groupe) ?? 0) > 0.5) servis.add(it.owner);
+    }
+  }
+  const relevant = concernes
+    .filter((it) => it.scope.length || (INTENT_KIND_DOMAINS[it.kind] ?? []).some((d) => has(d)))
+    .filter((it) => !servis.has(it.owner));
   if (relevant.length) {
     const strongest = relevant.reduce((m, it) => Math.max(m, it.stage), 0);
     // One early scheme is a warning, not a wall; several far along are a wall.

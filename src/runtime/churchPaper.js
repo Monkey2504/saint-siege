@@ -54,23 +54,23 @@ const TITRE = "(?:cardinal|card\\.|mgr|monseigneur|mons\\.|évêque|archevêque|
 const echappe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 // Article devant le nom (ou devant le titre), pour accorder le remplacement.
-const ARTICLE = "(\\b(?:par le|pour le|avec le|sur le|le|du|au)\\s+)?";
+const ARTICLE = "((?<![\\p{L}])(?:par le|pour le|avec le|sur le|le|du|au|de|à)\\s+)?";
 
 const accorde = (article, prelat) => {
   const a = str(article).toLowerCase();
   if (prelat.defini) {
     const r = prelat.defini;
     const commenceParVoyelle = /^[aeiouéèêh]/i.test(r);
-    if (a === "du") return commenceParVoyelle ? `de l'${r}` : `du ${r}`;
-    if (a === "au") return commenceParVoyelle ? `à l'${r}` : `au ${r}`;
+    if (a === "du" || a === "de") return commenceParVoyelle ? `de l'${r}` : `du ${r}`;
+    if (a === "au" || a === "à") return commenceParVoyelle ? `à l'${r}` : `au ${r}`;
     if (a.startsWith("par ") || a.startsWith("pour ") || a.startsWith("avec ") || a.startsWith("sur ")) {
       return `${a.split(" ")[0]} ${commenceParVoyelle ? "l'" : "le "}${r}`;
     }
     return commenceParVoyelle ? `l'${r}` : `le ${r}`;
   }
   const r = prelat.indefini;
-  if (a === "du") return `d'un ${r}`;
-  if (a === "au") return `à un ${r}`;
+  if (a === "du" || a === "de") return `d'un ${r}`;
+  if (a === "au" || a === "à") return `à un ${r}`;
   if (a.startsWith("par ") || a.startsWith("pour ") || a.startsWith("avec ") || a.startsWith("sur ")) return `${a.split(" ")[0]} un ${r}`;
   return `un ${r}`;
 };
@@ -82,7 +82,7 @@ const MOTIFS = PRELATS.flatMap((prelat) => prelat.noms.map((nom) => {
   const titre = prelat.titreRequis && !nom.includes(" ") ? `${TITRE}\\s+` : `(?:${TITRE}\\s+)?`;
   return {
     prelat,
-    re: new RegExp(`${ARTICLE}${titre}${echappe(nom)}\\b`, "gi"),
+    re: new RegExp(`${ARTICLE}${titre}${echappe(nom)}(?![\\p{L}])`, "giu"),
   };
 }));
 

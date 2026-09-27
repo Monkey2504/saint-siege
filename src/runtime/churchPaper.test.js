@@ -43,3 +43,9 @@ test("un chiffre du récit que les comptes contredisent reçoit la note du regis
   assert.equal(noteDuRegistre("un déficit de 29 millions d'euros", comptes), "", "un arrondi n'est pas une contradiction");
   assert.equal(noteDuRegistre("le passif du fonds de pension, estimé à 664 millions de dollars", comptes), "", "des dollars convertis");
 });
+
+test("« de » et « à » devant un nom s'accordent aussi", () => {
+  assert.equal(sansPrelatsReels("l'invitation de cardinal Burke"), "l'invitation d'un cardinal du bloc des dubia");
+  assert.equal(sansPrelatsReels("une lettre de Pietro Parolin"), "une lettre du secrétaire d'État");
+  assert.equal(sansPrelatsReels("écrire à Kevin Farrell"), "écrire au camerlingue");
+});

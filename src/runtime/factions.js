@@ -759,3 +759,15 @@ export const NOMS_DE_GROUPE = Object.freeze({
   curia: "Curie", diplomacy: "Diplomatie", bishops: "Évêques", orders: "Ordres", temporal: "Temporel",
 });
 export const nomDeGroupe = (v) => NOMS_DE_GROUPE[String(v || "").toLowerCase()] || String(v || "");
+
+// Un groupe du collège dit comme un pluriel de personnes : « 37 électeurs
+// traditionnels approuvent », et non « Traditionnels (37 électeurs) approuve ».
+const ELECTEURS_DU_GROUPE = Object.freeze({
+  africa: "d'Afrique", americas: "des Amériques", asia: "d'Asie", europe: "d'Europe", oceania: "d'Océanie",
+  traditional: "traditionnels", centrist: "centristes", reforming: "réformateurs",
+  curia: "de la Curie", diplomacy: "de la diplomatie", bishops: "évêques diocésains", orders: "des ordres religieux", temporal: "du temporel",
+});
+export const electeursDuGroupe = (v, seats) => {
+  const k = String(v || "").toLowerCase();
+  return ELECTEURS_DU_GROUPE[k] ? `${seats} électeurs ${ELECTEURS_DU_GROUPE[k]}` : "";
+};
