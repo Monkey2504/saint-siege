@@ -939,6 +939,8 @@ const Record = ({ record, treasuries, player, usdPerSY }) => {
     // (runtime/record.js); print the amount in that unit and nothing else.
     const amountOf = (row) => {
         const size = Math.abs(row.amount);
+        // Une note sans montant (« la Curie juge plus vite ») : pas de « +0 € ».
+        if (!row.unit || row.unit === "note") return "";
         if (row.unit === "SY") return money(size);
         if (row.unit === "people") return `${fmtCount(size)} personnes`;
         // Des points d'opinion : une décimale sous dix, sinon « +0 pt » pour 0,4.
@@ -968,7 +970,7 @@ const Record = ({ record, treasuries, player, usdPerSY }) => {
                 {ligneDeRegistre(row.what)}
                 </td>
                 <td style={{ color: row.amount < 0 ? "var(--oh-alert)" : "var(--oh-grant)", fontWeight: 700, whiteSpace: "nowrap" }}>
-                {row.amount < 0 ? "−" : "+"}{amountOf(row)}
+                {amountOf(row) ? `${row.amount < 0 ? "−" : "+"}${amountOf(row)}` : ""}
                 </td>
                 </tr>
             ))}
