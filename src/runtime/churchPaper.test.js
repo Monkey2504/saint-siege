@@ -38,7 +38,7 @@ test("un chiffre du récit que les comptes contredisent reçoit la note du regis
   const comptes = { revenue: 500e6, spending: 528e6, balance: -28e6, treasury: 10e6, endowment: 2.6e9, unfundedLiabilities: 614e6 };
   assert.equal(
     noteDuRegistre("pour atténuer le déficit structurel, évalué à 44,5 millions d'euros par an", comptes),
-    "Au registre : solde de l'année en déficit de 28,0 M€.",
+    "Au registre : solde de l'année (cœur du Saint-Siège, hors produits exceptionnels) en déficit de 28,0 M€.",
   );
   assert.equal(noteDuRegistre("un déficit de 29 millions d'euros", comptes), "", "un arrondi n'est pas une contradiction");
   assert.equal(noteDuRegistre("le passif du fonds de pension, estimé à 664 millions de dollars", comptes), "", "des dollars convertis");

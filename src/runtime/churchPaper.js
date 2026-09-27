@@ -141,7 +141,7 @@ const MONNAIE = ["revenue", "spending", "balance", "treasury", "endowment", "unf
 const NOM_DU_POSTE = {
   revenue: "recettes annuelles",
   spending: "dépenses annuelles",
-  balance: "solde de l'année",
+  balance: "solde de l'année (cœur du Saint-Siège, hors produits exceptionnels)",
   treasury: "trésorerie",
   endowment: "patrimoine",
   unfundedLiabilities: "promesses non financées du Saint-Siège seul (retraites, hors Cité du Vatican et Vicariat)",
