@@ -29,6 +29,21 @@ const MOOD = [
     { at: -Infinity, tone: "var(--oh-alert)", word: "au-delà de la discussion" },
 ];
 const moodOf = (approval) => MOOD.find((m) => approval >= m.at) ?? MOOD[MOOD.length - 1];
+// La teinte d'une marque, par degré et non par seuil. Relevé en jouant : le
+// registre notait +3,6 pt chez les réformateurs, −0,8 chez les centristes, et
+// l'hémicycle restait 160 points gris, faute qu'un seul électeur ait franchi
+// ±20. Dans la bande des indécis, la marque glisse du gris vers le vert quand
+// elle se rapproche de vous, vers l'ocre quand elle s'éloigne.
+const teinteDe = (approval) => {
+    const m = moodOf(approval);
+    if (m.word !== "indécis") return m.tone;
+    // Un demi-point suffit à se voir : la teinte part de 30 % dès que l'électeur
+    // a bougé, et monte jusqu'à 85 % au seuil. À 70 % au maximum et proportionnelle,
+    // les +1 à +4 pt qu'un mois produit restaient indiscernables du gris.
+    if (Math.abs(approval) < 0.5) return m.tone;
+    const part = Math.round(30 + Math.min(1, Math.abs(approval) / LOYAL_AT) * 55);
+    return `color-mix(in oklab, ${approval > 0 ? "var(--oh-grant)" : "var(--oh-caution)"} ${part}%, var(--oh-text-dim))`;
+};
 
 // Les clés du moteur restent anglaises : `AXES` vient de runtime/factions.js,
 // les noms de groupes sont ceux du préréglage (churchPreset.js), et les deux
@@ -62,15 +77,27 @@ const seatPositions = (total) => {
         for (let i = 0; i < take; i += 1) {
             const t = take === 1 ? 0.5 : i / (take - 1);
             const angle = Math.PI * (0.05 + t * 0.9);
-            points.push({ x: 100 - Math.cos(angle) * radius, y: 101 - Math.sin(angle) * radius });
+            points.push({ angle, radius, x: 100 - Math.cos(angle) * radius, y: 101 - Math.sin(angle) * radius });
         }
     });
-    return points;
+    // Rangés par angle, de gauche à droite, toutes rangées confondues : un
+    // groupe forme alors un secteur, et non une rangée intérieure pleine.
+    return points.sort((a, b) => a.angle - b.angle || a.radius - b.radius);
 };
 
-const Hemicycle = ({ electors, axis, colours, selected, onSelect, byMood }) => {
+// Ceux qui VOTENT avec le pape (son courant et les courants liés par un pacte),
+// dessinés pleins, en couleur d'encre : relevé en jouant, « votre courant vote
+// avec vous : 42 voix » sous un hémicycle de 160 points gris — les 42
+// n'étaient allumés nulle part.
+const VOTE_AVEC_VOUS = "var(--oh-accent)";
+const Hemicycle = ({ electors, axis, colours, selected, onSelect, byMood, votants = null }) => {
+    const vote = (e) => Boolean(votants && votants.has(String(e.follows || "").toLowerCase()));
     // Sorted by the chosen axis so each group is one wedge, not confetti.
-    const seated = useMemo(() => [...electors].sort((a, b) => String(a[axis]).localeCompare(String(b[axis]))), [electors, axis]);
+    // Par humeur, triés par approbation : la salle se lit de gauche (avec vous)
+    // à droite (contre vous), comme un dégradé et non comme des confettis.
+    const seated = useMemo(() => [...electors].sort((a, b) => (byMood
+        ? (Number(vote(b)) - Number(vote(a))) || b.approval - a.approval
+        : String(a[axis]).localeCompare(String(b[axis])))), [electors, axis, byMood, votants]);
     const points = useMemo(() => seatPositions(seated.length), [seated.length]);
     return (
         <svg viewBox="0 0 200 112" role="img" aria-label={`${seated.length} électeurs par ${(AXE_LABEL[axis] || axis).toLowerCase()}`} style={{ display: "block", width: "100%" }}>
@@ -82,7 +109,7 @@ const Hemicycle = ({ electors, axis, colours, selected, onSelect, byMood }) => {
             return (
                 <circle
                 key={i} cx={p.x} cy={p.y} r={2.2}
-                fill={byMood ? moodOf(e.approval).tone : colours[group]}
+                fill={byMood ? (vote(e) ? VOTE_AVEC_VOUS : teinteDe(e.approval)) : colours[group]}
                 opacity={dim ? 0.2 : 1}
                 stroke={group === selected ? "var(--oh-text-strong)" : "none"} strokeWidth={0.6}
                 style={{ cursor: "pointer" }}
@@ -105,6 +132,23 @@ const Hemicycle = ({ electors, axis, colours, selected, onSelect, byMood }) => {
  * contradiction que ce journal promet de ne pas imprimer. Les marques n'y sont
  * pas cliquables : d'ici on lit la salle, on ne l'interroge pas.
  */
+const votantsDu = (player, pactes) => new Set([
+    String(player || "").toLowerCase(),
+    ...(Array.isArray(pactes) ? pactes : []).map((p) => String(p?.courant || "").toLowerCase()),
+].filter(Boolean));
+
+const Pastille = ({ couleur }) => (
+    <span style={{ background: couleur, borderRadius: "50%", display: "inline-block", height: "0.6rem", marginRight: "0.3rem", verticalAlign: "middle", width: "0.6rem" }} />
+);
+const LegendeDesVoix = () => (
+    <p style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)", lineHeight: 1.6, margin: "0.3rem 0 0" }}>
+    <Pastille couleur={VOTE_AVEC_VOUS} />votent avec vous{" · "}
+    <Pastille couleur="var(--oh-grant)" />vous approuvent{" · "}
+    <Pastille couleur="var(--oh-text-dim)" />indécis{" · "}
+    <Pastille couleur="var(--oh-caution)" />vous désapprouvent
+    </p>
+);
+
 export const ApercuDuCollege = ({ assembly: brut, player = "", pactes = [] }) => {
     const assembly = useMemo(() => normalizeAssembly(brut), [brut]);
     const room = useMemo(() => (assembly ? standing(assembly) : null), [assembly]);
@@ -119,7 +163,9 @@ export const ApercuDuCollege = ({ assembly: brut, player = "", pactes = [] }) =>
             selected=""
             onSelect={() => {}}
             byMood
+            votants={votantsDu(player, pactes)}
         />
+        <LegendeDesVoix />
         {/* Le vote d'abord, l'opinion ensuite, chacun avec son mot. Rapport de
             terrain : « 0 favorables · 160 indécis » imprimé au-dessus de « Votre
             courant : 42 électeurs » se lisait comme une contradiction. Les 42
@@ -310,9 +356,12 @@ export const College = ({ nav = null }) => {
 
         <div style={{ display: "grid", gap: "1.5rem", gridTemplateColumns: "minmax(0, 1.3fr) minmax(0, 1fr)" }}>
         <div>
-        <Hemicycle electors={assembly.electors} axis={axis} colours={colours} selected={selected} onSelect={setSelected} byMood={byMood} />
+        <Hemicycle electors={assembly.electors} axis={axis} colours={colours} selected={selected} onSelect={setSelected} byMood={byMood} votants={byMood ? votantsDu(player, world?.pactes) : null} />
+        {byMood && <LegendeDesVoix />}
         <p style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)", lineHeight: 1.5, margin: "0.3rem 0 0" }}>
-        Une marque, un électeur. Personne n'appartient à un parti : les mêmes cent soixante personnes se regroupent par doctrine, par région ou par charge, et c'est pourquoi une réforme populaire sur un axe échoue sur un autre.
+        {byMood
+            ? "Une marque, un électeur. En bleu, à gauche, ceux qui votent avec vous : votre courant et les courants liés par un pacte. Les autres suivent, rangés du plus proche au plus éloigné ; leur teinte dit l'approbation — grise à zéro, verte à mesure qu'ils se rapprochent, ocre à mesure qu'ils s'éloignent."
+            : "Une marque, un électeur. Personne n'appartient à un parti : les mêmes cent soixante personnes se regroupent par doctrine, par région ou par charge, et c'est pourquoi une réforme populaire sur un axe échoue sur un autre."}
         </p>
         </div>
 

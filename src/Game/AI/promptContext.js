@@ -223,7 +223,10 @@ export const buildActionHistoryText = (actions, { includeResolved = false, limit
     const kindLabel = action.kind === "chat" ? "chat" : "action";
     const statusLabel = action.status !== "planned" ? ` [${action.status}]` : "";
     const why = action.outcomeNote ? ` — ${action.outcomeNote}` : "";
-    return `- (${kindLabel}) ${action.title}${statusLabel}: ${buildActionDisplayText(action)}${why}`;
+    // Un ordre engagé qui porte encore : le modèle doit le poursuivre, pas
+    // l'oublier ni le rejouer de zéro.
+    const engage = action.enCours && action.echeance ? ` (engaged and still under way until ${action.echeance}: narrate its progress, do not restart it)` : "";
+    return `- (${kindLabel}) ${action.title}${statusLabel}${engage}: ${buildActionDisplayText(action)}${why}`;
   };
 
   if (!includeResolved) {

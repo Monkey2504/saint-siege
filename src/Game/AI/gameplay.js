@@ -5,7 +5,7 @@ import { LEVIERS_DE_CARTE, getGameplayTool, laCarteEstEnJeu, outilSansLeviers, v
 import { toCountryName } from "../../runtime/ownerNames.js";
 import { describesOrganizationalPower } from "../../runtime/organizations.js";
 import { applyFaithfulOps, stepFaithful } from "../../runtime/churchFaithful.js";
-import { ensureBodyFromOrders } from "../../runtime/fronts.js";
+import { ensureBodyFromOrders, seminairesDuMoteur } from "../../runtime/fronts.js";
 import { bequestFor, consequencesOf } from "../../runtime/consequences.js";
 import { filterUnitOpsByWars, resolveAiClashes, warEconomyFlags } from "../../runtime/wars.js";
 import { seedLeaderFromStats, stepLeaders } from "../../runtime/succession.js";
@@ -26,9 +26,11 @@ import { registerRows } from "../../runtime/register.js";
 import { ensureGatheringsFromOrders, holdDueGatherings, realizedMargin, runNationalProgramme, runWorldProgramme } from "../../runtime/gatherings.js";
 import { reconcileBodies } from "../../runtime/bodyCheck.js";
 import { markDeclarationAnswered } from "../../runtime/inauguration.js";
-import { comptesEnEuros, decomptesDuCollege, noteDuCollege, noteDuRegistre, parleDesComptesDuSaintSiege, regardeLEglise, sansPrelatsReels } from "../../runtime/churchPaper.js";
+import { comptesEnEuros, decomptesDuCollege, noteDesSeminaires, noteDuCollege, noteDuRegistre, parleDesComptesDuSaintSiege, regardeLEglise, sansPrelatsReels } from "../../runtime/churchPaper.js";
 import { buildRealityAssessments } from "./promptContext.js";
 import { EUR_USD_2024, HOLY_SEE, transfersForChurchEur } from "../../runtime/churchPreset.js";
+import { cessionsAEncaisser, encaisserLesCessions } from "../../runtime/cessions.js";
+import { fmtMoneyFromUsd } from "../../runtime/money.js";
 import { applyEconomyChange, daysBetween, describeEconomy, anchorUnitValue, describeSeedForRefinement, ensureEconomyMovesFromOrders, pinStatSheetToEngine, refineSeed, repinCountryStats, stepWorldEconomies } from "../../runtime/economyBridge.js";
 import { composeTaskSystemPrompt } from "./promptAssembly.js";
 import { echoesExistingMessage, renderOpenChatsForPrompt } from "../../runtime/chatEcho.js";
@@ -1874,6 +1876,12 @@ const applySimulationResult = async ({
       ...(Array.isArray(normalizeWorldState(baseWorld).pactes) ? normalizeWorldState(baseWorld).pactes : []),
       ...courantsSollicites(normalizeActions(baseActions).filter((a) => a.status === "planned"), assembleeAvant, baseGame.country).map((courant) => ({ courant })),
     ];
+    // Une tendance des séminaires que le moteur ne tient pas reçoit les siennes.
+    const seminaires = seminairesDuMoteur(normalizeWorldState(baseWorld).churchBody);
+    for (const event of generatedEvents) {
+      const note = noteDesSeminaires(`${event.title ?? ""} ${event.description ?? ""}`, seminaires);
+      if (note) event.description = `${String(event.description ?? "").trim()} ${note}`.trim();
+    }
     const decomptes = decomptesDuCollege(assembleeAvant, baseGame.country, pactesDuTour);
     if (decomptes) {
       for (const event of generatedEvents) {
@@ -2296,6 +2304,48 @@ const applySimulationResult = async ({
         if (lignes.length) {
           worldWithImpacts.economies = { ...worldWithImpacts.economies, [nextGame.country]: { ...ecoPape, civilSpending: civil } };
           worldWithImpacts.record = appendRecord(worldWithImpacts.record, lignes);
+        }
+      }
+    }
+    // Une vente ordonnée se lit au registre : le prix entre en caisse, le bien
+    // sort du patrimoine (runtime/cessions.js). Un ordre engagé encaisse à son
+    // échéance, une seule fois ; un ordre exécuté en entier, ce tour.
+    {
+      const ecoPape = worldWithImpacts.economies?.[nextGame.country];
+      const { ventes } = cessionsAEncaisser(nextActions, nextGame.gameDate);
+      // Le modèle a déjà passé une vente au livre ce tour (patrimoine en moins,
+      // caisse en plus, pour le pape) : elle est tenue pour encaissée, sans
+      // payer une seconde fois.
+      const venteDejaPassee = freshEvents.some((e) => (e.impacts?.polityChanges ?? []).some((p) => {
+        const sh = p?.economy?.shift;
+        return sh && normalizeString(p.code ?? p.polity ?? p.country ?? p.name) === normalizeString(nextGame.country)
+          && Number(sh.endowment) < 0 && Number(sh.treasury) > 0;
+      }));
+      if (venteDejaPassee) for (const { ordre } of ventes) ordre.cessionEncaissee = true;
+      if (ecoPape && ventes.length && !venteDejaPassee) {
+        const fait = encaisserLesCessions(ecoPape, ventes, { date: nextGame.gameDate, polity: normalizeString(nextGame.country) });
+        if (fait.encaisses.length) {
+          worldWithImpacts.economies = { ...worldWithImpacts.economies, [nextGame.country]: fait.eco };
+          worldWithImpacts.record = appendRecord(worldWithImpacts.record, fait.lignes);
+          for (const { ordre, sy } of fait.encaisses) {
+            ordre.cessionEncaissee = true;
+            // La vente conclue est une nouvelle : si aucun récit ne la dit, le
+            // moteur l'imprime, pour que l'édition et le registre s'accordent.
+            const racontee = freshEvents.some((e) => /(vend|vente|cession|céd)/i.test(`${e.title ?? ""} ${e.description ?? ""}`) && /(conclu|sign|réalis|encaiss|acqu[ée]reur|finalis)/i.test(`${e.title ?? ""} ${e.description ?? ""}`));
+            if (racontee) continue;
+            const entry = normalizeEventEntry({
+              date: nextGame.gameDate,
+              kind: "player",
+              importance: "major",
+              source: "engine",
+              notable: true,
+              playerRelated: true,
+              participants: [nextGame.country],
+              title: `Vente conclue : ${normalizeString(ordre.title).replace(/\.$/, "")}`,
+              description: `L'acte est signé et le prix est encaissé : ${fmtMoneyFromUsd(sy * (Number(ecoPape.usdPerSY) || 0))} entrent en caisse, et le bien sort du patrimoine placé.`,
+            }, battleEvents.length);
+            if (entry) battleEvents.push(entry);
+          }
         }
       }
     }
@@ -2727,6 +2777,17 @@ export const generateActionSuggestions = async ({ force = true } = {}) => {
   }
 
   const world = normalizeWorldState(await readWorldState());
+  // Les suggestions parlent comme l'édition : pas de prélat réel vivant, sa
+  // fonction à la place (runtime/churchPaper.js).
+  if (world.church) {
+    const propre = (t) => (typeof t === "string" ? sansPrelatsReels(t) : t);
+    topics = topics.map((topic) => ({
+      ...topic,
+      title: propre(topic.title),
+      description: propre(topic.description),
+      actions: topic.actions.map((a) => ({ ...a, title: propre(a.title), text: propre(a.text), rawInput: propre(a.rawInput) })),
+    }));
+  }
   world.actionSuggestions = topics;
   await writeWorldState(world);
 
