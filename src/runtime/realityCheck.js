@@ -450,7 +450,11 @@ export const assessAction = (action, ctx = {}) => {
       : ECONOMIE.test(text) || CONSULTATION.test(text)
       ? 0.5
       : Math.max(...domains.map((d) => IMPLEMENTATION_LAG_YEARS[d] ?? 0.5));
-  if (years > 0 && years < lag) {
+  // Cinq jours de grâce : relevé en jouant, un saut de « 6 mois » (180 jours)
+  // laissait « vendre l'immeuble » accordé en partie, faute de deux jours et
+  // demi sur une demi-année de 182,6 jours. Un mois de trente jours ne doit pas
+  // non plus manquer un mois de 30,4.
+  if (years > 0 && years + 5 / 365.25 < lag) {
     push("time", clamp(0.35 * (1 - years / lag) + 0.15, 0, 0.5),
       `ce genre d'ordre met environ ${delai(lag)} à porter ; ce saut en couvre ${duree(years)}`,
       "il est engagé ce tour-ci et ne porte qu'en partie ; la suite se joue dans les tours suivants");

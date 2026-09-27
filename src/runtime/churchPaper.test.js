@@ -87,3 +87,24 @@ test("une tendance des séminaires que le moteur ne tient pas reçoit les sienne
   assert.equal(noteDesSeminaires("Les dons représentent 43 % des recettes du Denier.", seminaires), "", "pas de séminaire, pas de note");
   assert.equal(noteDesSeminaires("Les séminaires d'Afrique accueillent 43 % des séminaristes du monde.", seminaires), "", "une part n'est pas une tendance");
 });
+
+test("l'argent tient au plus un tiers de l'édition, les ordres du pape restent", async () => {
+  const { plafondDeLArgent, parleDArgent } = await import("./churchPaper.js");
+  const ev = (title, extra = {}) => ({ title, description: "", importance: "notable", ...extra });
+  const edition = [
+    ev("Déficit de l'APSA : la Curie s'inquiète"),
+    ev("Le Denier de Saint-Pierre recule en Allemagne"),
+    ev("Vente conclue : immeuble de Milan", { playerRelated: true }),
+    ev("Canonisation de trois martyrs coréens"),
+    ev("Un évêque arrêté au Nicaragua"),
+    ev("Le synode d'Afrique s'ouvre à Kinshasa"),
+  ];
+  assert.equal(parleDArgent(edition[3]), false);
+  assert.equal(parleDArgent(edition[0]), true);
+  const { gardes, retires } = plafondDeLArgent(edition);
+  assert.equal(retires.length, 1, "trois nouvelles d'argent sur six : une de trop");
+  assert.ok(gardes.includes(edition[2]), "le compte rendu d'un ordre reste");
+  assert.equal(gardes.length, 5);
+  const calme = plafondDeLArgent(edition.slice(3));
+  assert.equal(calme.retires.length, 0);
+});

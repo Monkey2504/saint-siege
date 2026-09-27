@@ -280,3 +280,48 @@ export const noteDesSeminaires = (texte, seminaires) => {
   }
   return "";
 };
+
+// ── L'argent, un front sur six ──────────────────────────────────────────────
+//
+// Relevé par le joueur : « narrativement tout tourne autour des tunes alors
+// qu'on parle du Vatican ». La consigne existe (churchFaithful.FAITHFUL_RULES :
+// au plus un tiers des nouvelles sur l'argent), le modèle ne la tient pas : les
+// règles d'économie héritées du moteur réclament un chiffre à chaque nouvelle,
+// et la référence du scénario consacre ses plus longs paragraphes aux comptes.
+// Le moteur tient donc la proportion lui-même. Une nouvelle qui rend compte
+// d'un ordre du pape (playerRelated) reste toujours : le joueur doit lire ce
+// que son ordre a produit. Ce sont les nouvelles d'argent venues du monde qui
+// cèdent la place, les moins importantes d'abord.
+
+const MOTS_D_ARGENT = /(?<![\p{L}])(budg[ée]t\p{L}*|d[ée]ficit\p{L}*|financ\p{L}*|comptes?|comptab\p{L}*|apsa|ior|patrimoine|immobili\p{L}*|immeubles?|ventes?|cessions?|fonds de pension|retraites?|denier|recettes|d[ée]penses|audit\p{L}*|investiss\p{L}*|tr[ée]sorerie|banques?|placements?|millions? d'euros|milliards? d'euros|m€|md€|dons)(?![\p{L}])/giu;
+
+/** La nouvelle parle-t-elle d'abord d'argent ? (titre, ou trois mots d'argent dans le chapeau) */
+export const parleDArgent = (event) => {
+  if (!event) return false;
+  const titre = str(event.title);
+  const tete = str(event.description).slice(0, 320);
+  const dansTitre = (titre.match(MOTS_D_ARGENT) || []).length;
+  const dansTete = (tete.match(MOTS_D_ARGENT) || []).length;
+  return dansTitre >= 1 || dansTete >= 3;
+};
+
+const RANG = { major: 0, notable: 1, minor: 2 };
+
+/**
+ * Tient l'argent à un tiers de l'édition au plus (au moins une nouvelle
+ * permise). Rend { gardes, retires } dans l'ordre d'origine.
+ */
+export const plafondDeLArgent = (events) => {
+  const liste = (Array.isArray(events) ? events : []).filter(Boolean);
+  const permis = Math.max(1, Math.floor(liste.length / 3));
+  const argent = liste.filter(parleDArgent);
+  if (argent.length <= permis) return { gardes: liste, retires: [] };
+  const duJoueur = argent.filter((e) => e.playerRelated);
+  const duMonde = argent.filter((e) => !e.playerRelated)
+    .map((e, i) => ({ e, i }))
+    .sort((a, b) => (RANG[a.e.importance] ?? 1) - (RANG[b.e.importance] ?? 1) || a.i - b.i)
+    .map(({ e }) => e);
+  const place = Math.max(0, permis - duJoueur.length);
+  const retires = new Set(duMonde.slice(place));
+  return { gardes: liste.filter((e) => !retires.has(e)), retires: [...retires] };
+};
