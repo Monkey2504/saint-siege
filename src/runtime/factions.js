@@ -669,7 +669,8 @@ const SUJETS = [
   [/(restreindre|restriction|limiter|supprim\w*|suppress\w*|abolir|abolition|interdire|retirer).{0,80}(latin|tridentin|rite ancien|usus antiquior|traditionalist\w*)/i, ["reforming"], ["traditional"]],
   [/(libéralis\w*|rétablir|autoriser|étendre).{0,60}(latin|tridentin|rite ancien|usus antiquior)/i, ["traditional"], ["reforming"]],
   [/(diaconat|ordination|prêtrise).{0,40}(femme|féminin)|(femmes?).{0,40}(diaconat|ordination)|bénédiction.{0,30}(couples?|homosexu)|célibat/i, ["reforming"], ["traditional", "africa"]],
-  [/(discipline doctrinale|rappeler la doctrine|réaffirmer.{0,30}doctrine|orthodoxie|uniformité doctrinale)/i, ["traditional"], ["reforming"]],
+  // « réaffirmant la doctrine » ne passait pas : seul l'infinitif était lu.
+  [/(discipline doctrinale|rappel\w* la doctrine|réaffirm\w*.{0,30}(doctrine|enseignement|magistère)|orthodoxie|uniformité doctrinale|restaur\w*.{0,30}discipline)/i, ["traditional"], ["reforming"]],
   // Les traditionnels comptent parmi les opposants à la synodalité : relevé en
   // jouant, un synode sur la place des laïcs faisait « approuver » le bloc des
   // dubia (ses évêques y gagnaient) le mois même où l'édition racontait ce bloc

@@ -505,3 +505,13 @@ test("le bloc des dubia ne s'oppose pas à un ordre qu'il réclame", () => {
   const contre = restreindre.constraints.find((c) => c.factor === "opposition");
   assert.ok(contre && /dubia/i.test(contre.detail), "restreindre le rite ancien les trouve contre soi");
 });
+
+test("couper la masse salariale n'est pas une dépense, et réaffirmer la doctrine ne met pas les dubia contre soi", () => {
+  const world = normalizeWorldState(applyChurchPreset({}, { date: "2026-09-01" }));
+  const ctx = { playerPolity: HOLY_SEE, economy: world.economies[HOLY_SEE], world, jumpDays: 30 };
+  const coupe = assessAction(order("Réduire de 10 % la masse salariale de la Curie."), ctx);
+  assert.ok(!coupe.constraints.some((c) => c.factor === "budget"), JSON.stringify(coupe.constraints));
+  const doctrine = assessAction(order("Soumettre au vote du collège un motu proprio réaffirmant la doctrine sur le mariage."), ctx);
+  const opposition = doctrine.constraints.find((c) => c.factor === "opposition");
+  assert.ok(!opposition || !/dubia/i.test(opposition.detail), opposition?.detail);
+});

@@ -68,6 +68,8 @@ const AU_VOTE = /(fai(re|s|t) voter|mettre au vote|mis au vote|soumettre au vote
 // frontière, et « écrire aux évêques… » n'était jamais reconnu comme un geste.
 const CONTACT = /(?<![\p{L}\p{N}])(écrire (à|aux|au)|écris (à|aux|au)|envoyer une lettre|une lettre (à|aux|au)|proposer une rencontre|rencontrer|recevoir en audience|audience privée|inviter)(?![\p{L}\p{N}])/iu;
 const DECIDE = /\b(réform\w*|supprim\w*|abol\w*|cré(er|ez|ons)|fond(er|ez)|nomm(er|ez)|destitu\w*|impos(er|ez)|interdi\w*|ouvr(ir|ez)|ferm(er|ez)|vend(re|ez)|céd(er|ez)|achet\w*|financ(er|ez)|soumett\w*|mettre au vote|fai(re|tes) voter|publi(er|ez)|décrét\w*|promulgu\w*|rédui(re|sez)|augment\w*|lanc(er|ez)|convoqu\w*|sanctionn\w*|limog\w*)\b/i;
+// La même lecture que le moteur quand il applique une économie (AI/gameplay.js).
+const ECONOMIE = /(gel(er)? (des|les|toutes les) embauches|(réduire|réduction|baisser|baisse|diminuer|diminution|comprimer|couper|rogner).{0,40}(masse salariale|dépenses|coûts|budget|effectifs|frais|salaires)|coupe(s)? budgétaire|économies? de|supprimer des postes)/i;
 // Le groupe du collège dont chaque courant porte la cause.
 const GROUPE_DU_COURANT = [
   [/dubia|traditionali/i, "traditional"],
@@ -237,7 +239,11 @@ export const assessAction = (action, ctx = {}) => {
     // manque déjà de 28 M€ ; toute dépense nouvelle est payée en entamant le
     // patrimoine » — le mot « verser » suffisait à en faire une dépense.
     const cession = ALIENER.test(text) && !INALIENABLE.test(text);
-    if ((has("spending") || has("military") || has("social") || has("monetary")) && revenue > 0 && !collecte && !cession) {
+    // Couper une dépense n'en est pas une. Relevé en jouant : « réduire de 10 %
+    // la masse salariale de la Curie » recevait « toute dépense nouvelle est
+    // payée en entamant le patrimoine ».
+    const economie = ECONOMIE.test(text);
+    if ((has("spending") || has("military") || has("social") || has("monetary")) && revenue > 0 && !collecte && !cession && !economie) {
       const deficitShare = balance < 0 ? -balance / revenue : 0;
       const room = e.financing === "drawdown" ? e.endowment + Math.max(0, e.treasury)
         : e.financing === "print" ? Infinity
