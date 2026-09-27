@@ -26,6 +26,7 @@ import { registerRows } from "../../runtime/register.js";
 import { ensureGatheringsFromOrders, holdDueGatherings, realizedMargin, runNationalProgramme, runWorldProgramme } from "../../runtime/gatherings.js";
 import { reconcileBodies } from "../../runtime/bodyCheck.js";
 import { markDeclarationAnswered } from "../../runtime/inauguration.js";
+import { regardeLEglise, sansPrelatsReels } from "../../runtime/churchPaper.js";
 import { buildRealityAssessments } from "./promptContext.js";
 import { EUR_USD_2024, HOLY_SEE, transfersForChurchEur } from "../../runtime/churchPreset.js";
 import { applyEconomyChange, daysBetween, describeEconomy, anchorUnitValue, describeSeedForRefinement, ensureEconomyMovesFromOrders, pinStatSheetToEngine, refineSeed, repinCountryStats, stepWorldEconomies } from "../../runtime/economyBridge.js";
@@ -1812,7 +1813,7 @@ const applySimulationResult = async ({
   // the refusals the resolver annotated on the raw impacts, and the unit ops
   // normalization throws away, are only visible on the raw side.
   const rawByEvent = new Map();
-  const generatedEvents = normalizeArray(result.events)
+  let generatedEvents = normalizeArray(result.events)
     .map((entry, index) => {
       const event = normalizeGeneratedEvent({
         ...entry,
@@ -1822,6 +1823,21 @@ const applySimulationResult = async ({
       return event;
     })
     .filter(Boolean);
+  // Le journal de l'Église (runtime/churchPaper.js) : les vrais prélats vivants
+  // deviennent leur rôle, et les affaires intérieures d'États sans lien avec
+  // l'Église ne sont ni imprimées, ni enregistrées, ni relues au tour suivant.
+  // Sur place, parce que rawByEvent est indexé par l'objet même.
+  if (normalizeWorldState(baseWorld).church) {
+    for (const event of generatedEvents) {
+      event.title = sansPrelatsReels(event.title);
+      event.description = sansPrelatsReels(event.description);
+    }
+    const horsSujet = generatedEvents.filter((event) => !regardeLEglise(event));
+    if (horsSujet.length) {
+      console.info("[journal] hors sujet, non imprimé :", horsSujet.map((event) => event.title));
+      generatedEvents = generatedEvents.filter((event) => regardeLEglise(event));
+    }
+  }
   // The model is shown the running timeline as context and tends to restate events
   // it already reported; each restatement gets a fresh random id, so only a
   // content-key de-dup catches it. Drop restatements BEFORE they persist, apply
