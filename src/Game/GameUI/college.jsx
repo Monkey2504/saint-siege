@@ -6,7 +6,7 @@ import { CONTENU_TOP } from "./chrome.js";
 import { CahierVide, EnTeteDeCahier, SectionHead, fmtDate } from "./journal.jsx";
 import {
     AXES, HOSTILE_AT, LOYAL_AT, RADICAL_AT, ZEALOUS_AT,
-    coalition, groupsOn, normalizeAssembly, ownBloc, putToTheVote, speechOrderText, standing, temper,
+    coalition, groupsOn, nomDeGroupe, normalizeAssembly, ownBloc, putToTheVote, speechOrderText, standing, temper,
 } from "../../runtime/factions.js";
 
 // Ce qu'il faut pour emporter une décision : la majorité du corps, celle que le
@@ -36,12 +36,7 @@ const moodOf = (approval) => MOOD.find((m) => approval >= m.at) ?? MOOD[MOOD.len
 // français, par table — une valeur inconnue s'affiche telle quelle plutôt que
 // de disparaître.
 const AXE_LABEL = { doctrine: "Doctrine", region: "Région", role: "Charge", follows: "Courant", opinion: "Opinion" };
-const GROUPE_LABEL = {
-    africa: "Afrique", americas: "Amériques", asia: "Asie", europe: "Europe", oceania: "Océanie",
-    traditional: "Traditionnels", centrist: "Centristes", reforming: "Réformateurs",
-    curia: "Curie", diplomacy: "Diplomatie", bishops: "Évêques", orders: "Ordres", temporal: "Temporel",
-};
-const nomDeGroupe = (v) => GROUPE_LABEL[String(v || "").toLowerCase()] || v;
+// Les noms des groupes viennent de runtime/factions.js (nomDeGroupe).
 
 // One hue per group on the chosen axis, spread so neighbours never blur.
 const hues = (names) => Object.fromEntries(names.map((n, i) => [n, `hsl(${Math.round((i / Math.max(1, names.length)) * 320) + 14} 56% 52%)`]));
