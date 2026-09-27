@@ -567,6 +567,33 @@ const recitsDeLOrdre = (action, events) => {
   });
 };
 
+// Un ordre « accordé en partie » pour la seule raison du temps n'est pas un
+// ordre à moitié refusé : il est engagé et continue de porter. Relevé en
+// jouant : « vendre l'immeuble de Milan » sortait du bureau « accordé en partie,
+// six mois à porter », puis plus rien — ni au bureau, ni à l'édition suivante.
+// On garde la trace : `enCours` et la date où l'ordre aura fini de porter.
+const JOUR_MS = 24 * 3600 * 1000;
+const echeanceDe = (date, annees) => {
+  const ms = Date.parse(`${str(date).slice(0, 10)}T00:00:00Z`);
+  if (!Number.isFinite(ms) || !(annees > 0)) return "";
+  // En mois quand l'ordre se compte en mois (« six mois » : du 1er octobre au
+  // 1er avril), en jours sinon.
+  const mois = Math.round(annees * 12);
+  if (mois >= 1) {
+    const d = new Date(ms);
+    d.setUTCMonth(d.getUTCMonth() + mois);
+    return d.toISOString().slice(0, 10);
+  }
+  return new Date(ms + Math.round(annees * 365) * JOUR_MS).toISOString().slice(0, 10);
+};
+const enCoursDe = (outcome, a, date) => {
+  if (outcome !== "partial" || !a) return {};
+  const lourdes = (a.constraints || []).filter((c) => c.severity > 0.1);
+  if (!lourdes.length || !lourdes.every((c) => c.factor === "time")) return {};
+  const echeance = echeanceDe(date, a.lagYears);
+  return echeance ? { enCours: true, echeance } : {};
+};
+
 export const applyActionOutcomes = (actions, outcomes, assessments, { defaultStatus = "resolved", date = "", events = [] } = {}) => {
   const list = (Array.isArray(outcomes) ? outcomes : []).map(normalizeActionOutcome).filter(Boolean);
   const verdictById = new Map((Array.isArray(assessments) ? assessments : []).map((a) => [a.id, a]));
@@ -589,6 +616,7 @@ export const applyActionOutcomes = (actions, outcomes, assessments, { defaultSta
           ? `${str(recit.title)}${a.constraints[0]?.detail ? ` — ${a.constraints[0].detail}` : ""}`
           : (auPasse(a.constraints.find((c) => c.factor === "vote" && String(c.detail).includes(VOTE_ACQUIS))?.detail) || a.constraints[0]?.detail || ""),
         verdict: a.verdict,
+        ...enCoursDe(outcome, a, date),
         ...judged,
       };
     }
@@ -617,7 +645,7 @@ export const applyActionOutcomes = (actions, outcomes, assessments, { defaultSta
       : capped !== o.outcome && a?.constraints[0]
         ? `${a.constraints[0].detail}${o.reason ? ` (le récit : ${o.reason})` : ""}`
         : o.reason;
-    return { ...action, status: STATUS_BY_OUTCOME[capped], outcome: capped, outcomeNote: reason, verdict: a?.verdict ?? "", ...judged };
+    return { ...action, status: STATUS_BY_OUTCOME[capped], outcome: capped, outcomeNote: reason, verdict: a?.verdict ?? "", ...enCoursDe(capped, a, date), ...judged };
   });
 };
 

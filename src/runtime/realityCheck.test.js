@@ -613,3 +613,19 @@ test("une lettre qui demande un rapport reste une lettre", () => {
   const a = assessAction(order("Écrire au secrétaire d'État pour lui demander un rapport sur les nonciatures."), ctx);
   assert.ok(!a.constraints.some((c) => c.factor === "time"), JSON.stringify(a.constraints));
 });
+
+test("un ordre accordé en partie pour la seule raison du temps est engagé, avec son échéance", () => {
+  const actions = [order("Vendre l'immeuble de Milan", { id: "m1" }), order("Faire voter le collège", { id: "m2" })];
+  const assessments = [
+    { id: "m1", verdict: "constrained", lagYears: 0.5, constraints: [{ factor: "time", severity: 0.3, detail: "six mois à porter" }] },
+    { id: "m2", verdict: "constrained", lagYears: 0.05, constraints: [{ factor: "vote", severity: 0.6, detail: "il en manque 39" }, { factor: "time", severity: 0.2, detail: "x" }] },
+  ];
+  const out = applyActionOutcomes(actions, [], assessments, { date: "2026-10-01" });
+  assert.equal(out[0].outcome, "partial");
+  assert.equal(out[0].enCours, true);
+  assert.equal(out[0].echeance, "2027-04-01");
+  assert.equal(out[1].enCours, undefined, "un vote qui manque de voix n'est pas « engagé »");
+  // Le modèle le dit en partie : même chose.
+  const dit = applyActionOutcomes([order("Vendre l'immeuble de Milan", { id: "m1" })], [{ actionId: "m1", outcome: "partial" }], assessments, { date: "2026-10-01" });
+  assert.equal(dit[0].enCours, true);
+});
