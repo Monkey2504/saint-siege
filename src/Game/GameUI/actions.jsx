@@ -284,7 +284,9 @@ const ActionsPanel = ({ isOpen, onClose, onOpenAdvisor, embedded = false }) => {
         () => {
             if (!realityWorld?.world || !country) return null;
             const saut = isoDate ? nextEdition(realityWorld.world, actions, { today: isoDate }).days : 0;
-            return { playerPolity: country, economy: realityWorld.world.economies?.[country] ?? null, world: realityWorld.world, jumpDays: saut };
+            // Les autres ordres du tour : un pacte proposé à côté d'un vote compte
+            // dans ce vote, ici comme au moment du jugement (assessPlannedActions).
+            return { playerPolity: country, economy: realityWorld.world.economies?.[country] ?? null, world: realityWorld.world, jumpDays: saut, orders: actions };
         },
         [realityWorld, country, actions, isoDate],
     );
