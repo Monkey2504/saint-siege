@@ -733,3 +733,11 @@ export const reactionsAuxOrdres = (assembly, ordres, { player = "", date = "", i
   }
   return { assembly: next, rows, ordres: lignes.length };
 };
+
+// Les noms des groupes, en français, pour tout ce qui s'imprime.
+export const NOMS_DE_GROUPE = Object.freeze({
+  africa: "Afrique", americas: "Amériques", asia: "Asie", europe: "Europe", oceania: "Océanie",
+  traditional: "Traditionnels", centrist: "Centristes", reforming: "Réformateurs",
+  curia: "Curie", diplomacy: "Diplomatie", bishops: "Évêques", orders: "Ordres", temporal: "Temporel",
+});
+export const nomDeGroupe = (v) => NOMS_DE_GROUPE[String(v || "").toLowerCase()] || String(v || "");

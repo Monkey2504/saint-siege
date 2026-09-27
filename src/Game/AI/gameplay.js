@@ -18,7 +18,7 @@ import { ensureDrivesFromOrders, pruneDormantDrives, reconcileNarration } from "
 import { appendRecord } from "../../runtime/record.js";
 import { ensureTreasuryMovesFromOrders, stepTreasuries } from "../../runtime/treasuries.js";
 import { ensureLiabilityMovesFromOrders } from "../../runtime/liabilities.js";
-import { applySpeech, driftFromBlunders, judgeGovernance, persuadeNeighbours, reactionsAuxOrdres, speechFromOrder, standing } from "../../runtime/factions.js";
+import { applySpeech, driftFromBlunders, judgeGovernance, nomDeGroupe, persuadeNeighbours, reactionsAuxOrdres, speechFromOrder, standing } from "../../runtime/factions.js";
 import { checkLedgerClaims } from "../../runtime/claimCheck.js";
 import { naturalizeContacts } from "../../runtime/naturalize.js";
 import { economyIndicators } from "../../runtime/economy.js";
@@ -2134,6 +2134,41 @@ const applySimulationResult = async ({
     });
     worldWithImpacts.assembly = reagi.assembly;
     preached.rows.push(...reagi.rows);
+    // Une économie ordonnée se lit au registre même quand le récit oublie de la
+    // chiffrer. Relevé en jouant : « gel des embauches à la Curie pour réduire
+    // la masse salariale », exécuté dans l'édition par le préfet de l'Économie,
+    // et la dépense civile inchangée à l'euro près. Quand le modèle n'a émis
+    // aucun changement d'économie pour le pape ce tour, le moteur applique
+    // l'ordre lui-même, à la mesure de ce qu'il dit — un pourcentage ou une
+    // somme s'ils sont écrits, sinon 1,5 % de la dépense civile (l'érosion
+    // naturelle d'un effectif gelé), réduit de moitié pour un ordre partiel.
+    {
+      const COUPE = /(gel(er)? (des|les|toutes les) embauches|réduire (la masse salariale|les dépenses|les coûts|le budget|les effectifs)|coupe(s)? budgétaire|économies? de|baisser les dépenses|supprimer des postes)/i;
+      const ecoPape = worldWithImpacts.economies?.[nextGame.country];
+      const chiffreParLeRecit = freshEvents.some((e) => (e.impacts?.polityChanges ?? []).some((p) => p?.economy && normalizeString(p.code ?? p.polity ?? p.country ?? p.name) === normalizeString(nextGame.country)));
+      if (ecoPape && !chiffreParLeRecit && Number(ecoPape.civilSpending) > 0) {
+        let civil = Number(ecoPape.civilSpending);
+        const lignes = [];
+        for (const ordre of nextActions.filter((a) => a && a.judgedOn === nextGame.gameDate && (a.outcome === "success" || a.outcome === "partial"))) {
+          const texte = `${ordre.title ?? ""} ${ordre.text ?? ""}`;
+          if (!COUPE.test(texte)) continue;
+          const poids = ordre.outcome === "success" ? 1 : 0.5;
+          const pct = texte.match(/(\d+(?:[.,]\d+)?)\s*%/);
+          const millions = texte.match(/(\d+(?:[.,]\d+)?)\s*millions?/i);
+          const usdPerSY = Number(ecoPape.usdPerSY) || 0;
+          let coupe = civil * 0.015;
+          if (pct) coupe = civil * Math.min(0.2, Number(pct[1].replace(",", ".")) / 100);
+          else if (millions && usdPerSY > 0) coupe = Math.min(civil * 0.2, (Number(millions[1].replace(",", ".")) * 1e6 * EUR_USD_2024) / usdPerSY);
+          coupe *= poids;
+          civil = Math.max(0, civil - coupe);
+          lignes.push({ date: nextGame.gameDate, polity: nextGame.country, kind: "money", what: `dépense annuelle réduite : « ${normalizeString(ordre.title).slice(0, 70)} »`, amount: coupe, unit: "SY", source: `order:cut:${ordre.id}` });
+        }
+        if (lignes.length) {
+          worldWithImpacts.economies = { ...worldWithImpacts.economies, [nextGame.country]: { ...ecoPape, civilSpending: civil } };
+          worldWithImpacts.record = appendRecord(worldWithImpacts.record, lignes);
+        }
+      }
+    }
     // L'indignité se paie aussi en crédit : vendre la chapelle Sixtine n'a pas
     // lieu, mais l'avoir ordonné se sait.
     const eco = worldWithImpacts.economies?.[nextGame.country];
@@ -2158,9 +2193,11 @@ const applySimulationResult = async ({
     const playerName = normalizeString(nextGame.country);
     for (const row of [...judged.rows, ...blundered.rows, ...preached.rows]) {
       if (Math.abs(Number(row.step) || 0) < 0.5) continue;
-      const qui = row.group === playerName ? `votre courant (${row.seats} électeurs)` : `${row.group} (${row.seats} électeurs)`;
+      const qui = row.group === playerName ? `votre courant (${row.seats} électeurs)` : `${nomDeGroupe(row.group)} (${row.seats} électeurs)`;
+      // Rangée au nom du pape : c'est son registre, et le groupe est nommé dans
+      // la ligne. Rangée au nom du groupe, elle était filtrée hors de la page.
       worldWithImpacts.record = appendRecord(worldWithImpacts.record, [{
-        date: nextGame.gameDate, polity: row.group, kind: "standing",
+        date: nextGame.gameDate, polity: playerName || row.group, kind: "standing",
         what: `${qui} ${row.reason}`, amount: row.step, unit: "pt",
         source: `assembly:${row.axis || "all"}:${row.seats} electors`,
       }]);
