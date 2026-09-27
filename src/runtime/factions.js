@@ -645,3 +645,91 @@ export const ASSEMBLY_RULES = [
   "The player commands only the electors who FOLLOW them, which is almost never the whole room. Anything else is carried by sitting down with other currents, and each brings the electors who follow it — so a pontificate either has the votes outright or it negotiates for them, and the engine says which. A current the player has turned against refuses to sit down at all, and the refusal names the reason: a bloc that has been burned cannot be bought back the same afternoon.",
   "Electors who follow no current are the ones actually in play. Name them when a vote is close: that is where the votes a player is short of would have to come from.",
 ].join("\n");
+
+// ---- ce que la salle pense de ce que le pape a FAIT --------------------------------------
+//
+// Relevé en jouant trois parties : un mémorandum contre le pape, une audience
+// ratée, un vote perdu au consistoire — et le collège affichait toujours
+// « 0 favorables, 160 indécis, 0 hostiles ». L'opinion ne bougeait que sur les
+// chiffres du registre (fidèles, dons, solde), jamais sur les actes. Le récit
+// racontait une salle qui se fracture ; la jauge ne le savait pas.
+//
+// Chaque ordre jugé touche les groupes que son sujet concerne, dans le sens de
+// ce qu'il fait, et d'autant plus qu'il a abouti. Un échec en public coûte au
+// courant du pape ; un ordre que le monde refuse comme indigne (vendre la
+// chapelle Sixtine) coûte à toute la salle.
+
+const SUJETS = [
+  // [motif, groupes qui approuvent, groupes qui désapprouvent]
+  [/(restreindre|restriction|limiter|supprim\w*|suppress\w*|abolir|abolition|interdire|retirer).{0,80}(latin|tridentin|rite ancien|usus antiquior|traditionalist\w*)/i, ["reforming"], ["traditional"]],
+  [/(libéralis\w*|rétablir|autoriser|étendre).{0,60}(latin|tridentin|rite ancien|usus antiquior)/i, ["traditional"], ["reforming"]],
+  [/(diaconat|ordination|prêtrise).{0,40}(femme|féminin)|(femmes?).{0,40}(diaconat|ordination)|bénédiction.{0,30}(couples?|homosexu)|célibat/i, ["reforming"], ["traditional", "africa"]],
+  [/(discipline doctrinale|rappeler la doctrine|réaffirmer.{0,30}doctrine|orthodoxie|uniformité doctrinale)/i, ["traditional"], ["reforming"]],
+  [/(synode|synodalit\w*|conférences? épiscopales?|décentralis\w*|collégialit\w*)/i, ["reforming", "bishops"], ["curia"]],
+  [/(audit|comptes consolidés|transparence financière|publier les comptes|laïc à la tête|réviseur)/i, ["reforming", "europe"], ["curia", "temporal"]],
+  [/(abus|victimes|tribunal pontifical|protection des mineurs)/i, ["reforming", "bishops"], ["curia"]],
+  [/(gel des embauches|réduire.{0,20}(dépenses|effectifs|salaires)|coupe budgétaire|licencier)/i, ["temporal"], ["curia"]],
+  [/(séminaires?|vocations?|évangélisation|missions?).{0,60}(afrique|asie|sud)/i, ["africa", "asia", "bishops"], []],
+  [/(paix|médiation|réfugiés|migrants|pauvres)/i, ["diplomacy", "orders"], []],
+];
+
+// Ceux que l'ordre sert l'approuvent à proportion de ce qu'il a obtenu ; ceux
+// qu'il vise s'en offusquent même quand il échoue — la tentative suffit.
+const POIDS_ISSUE = { success: 1, partial: 0.7, failure: 0.4 };
+const POIDS_OFFENSE = { success: 1, partial: 1, failure: 0.8 };
+
+/**
+ * `ordres` : les ordres jugés ce tour ({ title, text, outcome, verdict, constraints? }).
+ * `indigne` : les ordres que le moteur a refusés comme une atteinte au patrimoine
+ * (facteur « patrimoine ») — la salle entière en paie le prix.
+ */
+export const reactionsAuxOrdres = (assembly, ordres, { player = "", date = "", indignes = [] } = {}) => {
+  const a = normalizeAssembly(assembly);
+  if (!a) return { assembly, rows: [] };
+  const delta = new Map(); // elector index -> points
+  const ajoute = (test, points) => a.electors.forEach((e, i) => { if (test(e)) delta.set(i, (delta.get(i) ?? 0) + points); });
+  const lignes = [];
+
+  for (const o of Array.isArray(ordres) ? ordres : []) {
+    if (!o) continue;
+    const texte = `${str(o.title)} ${str(o.text)}`;
+    const poids = POIDS_ISSUE[o.outcome] ?? 0.7;
+    const offense = POIDS_OFFENSE[o.outcome] ?? 1;
+    for (const [motif, pour, contre] of SUJETS) {
+      if (!motif.test(texte)) continue;
+      ajoute((e) => pour.some((g) => g === e.doctrine || g === e.region || g === e.role), 7 * poids);
+      ajoute((e) => contre.some((g) => g === e.doctrine || g === e.region || g === e.role), -7 * offense);
+    }
+    // Perdre en public coûte à ceux qui vous suivent ; gagner les soude.
+    if (player && o.outcome === "failure") ajoute((e) => lower(e.follows) === lower(player), -3);
+    if (player && o.outcome === "success") ajoute((e) => lower(e.follows) === lower(player), 2);
+    lignes.push(o);
+  }
+  for (const o of Array.isArray(indignes) ? indignes : []) {
+    if (!o) continue;
+    ajoute(() => true, -6);
+  }
+  if (!delta.size) return { assembly: a, rows: [] };
+
+  const electors = a.electors.map((e, i) => {
+    const d = delta.get(i);
+    if (!d) return e;
+    return { ...e, approval: clamp(e.approval + clamp(d, -MAX_APPROVAL_STEP * 1.5, MAX_APPROVAL_STEP * 1.5), -APPROVAL_RANGE, APPROVAL_RANGE) };
+  });
+  const next = { ...a, electors };
+  const rows = [];
+  for (const axis of ["doctrine", "follows"]) {
+    const before = new Map(groupsOn(a, axis).map((g) => [g.name, g.approval]));
+    for (const g of groupsOn(next, axis)) {
+      if (!g.name) continue;
+      const moved = g.approval - (before.get(g.name) ?? 0);
+      if (Math.abs(moved) < 0.5) continue;
+      rows.push({
+        date, axis, group: g.name, seats: g.seats,
+        approval: Math.round(g.approval * 10) / 10, step: Math.round(moved * 10) / 10,
+        reason: moved > 0 ? "approuve ce que vous avez fait ce mois-ci" : "désapprouve ce que vous avez fait ce mois-ci",
+      });
+    }
+  }
+  return { assembly: next, rows, ordres: lignes.length };
+};
