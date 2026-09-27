@@ -494,3 +494,14 @@ test("« écrire aux évêques » est reconnu comme un geste, accent initial com
   const lettre = assessAction(order("Écrire aux évêques allemands pour leur demander de suspendre les conseils synodaux jusqu'à la fin du synode."), ctx);
   assert.ok(!lettre.constraints.some((c) => c.factor === "time" && /2 ans/.test(c.detail)), JSON.stringify(lettre.constraints));
 });
+
+test("le bloc des dubia ne s'oppose pas à un ordre qu'il réclame", () => {
+  const world = normalizeWorldState(applyChurchPreset({}, { date: "2026-09-01" }));
+  const ctx = { playerPolity: HOLY_SEE, economy: world.economies[HOLY_SEE], world, jumpDays: 30 };
+  const rite = assessAction(order("Rétablir la liberté de célébrer la messe selon le rite ancien dans toutes les paroisses."), ctx);
+  const opposition = rite.constraints.find((c) => c.factor === "opposition");
+  assert.ok(!opposition || !/dubia[^;]*contre vous/i.test(opposition.detail), opposition?.detail);
+  const restreindre = assessAction(order("Restreindre la messe selon le rite ancien aux seules paroisses autorisées par Rome."), ctx);
+  const contre = restreindre.constraints.find((c) => c.factor === "opposition");
+  assert.ok(contre && /dubia/i.test(contre.detail), "restreindre le rite ancien les trouve contre soi");
+});
