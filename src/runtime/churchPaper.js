@@ -15,6 +15,9 @@
 // de porter une contrainte ne la fait pas porter. Le moteur l'applique donc
 // lui-même, sur chaque événement neuf, avant qu'il soit enregistré et relu.
 
+import { ledgerContradictions } from "./claimCheck.js";
+import { EUR_USD_2024 } from "./money.js";
+
 const str = (v) => String(v ?? "").trim();
 
 // Ce qui fait qu'une nouvelle regarde l'Église. Large à dessein : on ne retire
@@ -118,4 +121,66 @@ export const trierPourLeJournal = (events) => {
     else retires.push(propre);
   }
   return { gardes, retires };
+};
+
+// ── Les chiffres des comptes ─────────────────────────────────────────────────
+//
+// Relevé en jouant : une édition écrivait « le déficit structurel, évalué à
+// 44,5 millions d'euros par an » sur la même page où les Comptes affichaient
+// −28 M€. Le conseiller avait déjà son contrôle (claimCheck.js) ; l'édition,
+// qui est ce que le joueur lit le plus, n'en avait aucun. Le moteur ne réécrit
+// pas le récit : il imprime à la suite ce que dit le registre, comme il le fait
+// sous une réponse du conseiller.
+
+
+const MONNAIE = ["revenue", "spending", "balance", "treasury", "endowment", "unfundedLiabilities"];
+const NOM_DU_POSTE = {
+  revenue: "recettes annuelles",
+  spending: "dépenses annuelles",
+  balance: "solde de l'année",
+  treasury: "trésorerie",
+  endowment: "patrimoine",
+  unfundedLiabilities: "promesses non financées (retraites)",
+};
+// Au-delà d'un quart d'écart, ce n'est plus un arrondi ni le chiffre d'un
+// autre moment du tour : c'est un autre chiffre.
+const ECART = 0.25;
+
+const enEuros = (eur) => {
+  const a = Math.abs(eur);
+  if (a >= 1e9) return `${(a / 1e9).toFixed(2).replace(".", ",")} Md€`;
+  if (a >= 1e6) return `${(a / 1e6).toFixed(a >= 1e8 ? 0 : 1).replace(".", ",")} M€`;
+  return `${Math.round(a).toLocaleString("fr-FR")} €`;
+};
+
+/** Les indicateurs du moteur (en AS), convertis en euros. */
+export const comptesEnEuros = (indicators, usdPerSY) => {
+  if (!indicators || !(Number(usdPerSY) > 0)) return null;
+  const k = Number(usdPerSY) / EUR_USD_2024;
+  const out = { ...indicators };
+  for (const key of MONNAIE) if (Number.isFinite(Number(out[key]))) out[key] = Number(out[key]) * k;
+  return out;
+};
+
+/** Ce que le registre dit, quand un récit contredit les comptes (ou ""). */
+export const noteDuRegistre = (texte, comptesEur) => {
+  if (!comptesEur) return "";
+  const lignes = [];
+  const vus = new Set();
+  for (const c of ledgerContradictions(texte, comptesEur)) {
+    if (vus.has(c.key)) continue;
+    const actual = Number(c.actual);
+    if (!Number.isFinite(actual)) continue;
+    if (c.kind === "figure") {
+      let dit = Number(c.claimed);
+      if (/dollar|\$|usd/i.test(String(c.after || ""))) dit /= EUR_USD_2024;
+      if (Math.abs(dit - Math.abs(actual)) / Math.max(Math.abs(actual), 1) <= ECART) continue;
+    }
+    vus.add(c.key);
+    const poste = NOM_DU_POSTE[c.key] || c.key;
+    lignes.push(c.key === "balance"
+      ? `${poste} ${actual < 0 ? "en déficit de" : "en excédent de"} ${enEuros(actual)}`
+      : `${poste} : ${enEuros(actual)}`);
+  }
+  return lignes.length ? `Au registre : ${lignes.join(" ; ")}.` : "";
 };

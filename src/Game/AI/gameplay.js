@@ -26,7 +26,7 @@ import { registerRows } from "../../runtime/register.js";
 import { ensureGatheringsFromOrders, holdDueGatherings, realizedMargin, runNationalProgramme, runWorldProgramme } from "../../runtime/gatherings.js";
 import { reconcileBodies } from "../../runtime/bodyCheck.js";
 import { markDeclarationAnswered } from "../../runtime/inauguration.js";
-import { regardeLEglise, sansPrelatsReels } from "../../runtime/churchPaper.js";
+import { comptesEnEuros, noteDuRegistre, regardeLEglise, sansPrelatsReels } from "../../runtime/churchPaper.js";
 import { buildRealityAssessments } from "./promptContext.js";
 import { EUR_USD_2024, HOLY_SEE, transfersForChurchEur } from "../../runtime/churchPreset.js";
 import { applyEconomyChange, daysBetween, describeEconomy, anchorUnitValue, describeSeedForRefinement, ensureEconomyMovesFromOrders, pinStatSheetToEngine, refineSeed, repinCountryStats, stepWorldEconomies } from "../../runtime/economyBridge.js";
@@ -1831,6 +1831,16 @@ const applySimulationResult = async ({
     for (const event of generatedEvents) {
       event.title = sansPrelatsReels(event.title);
       event.description = sansPrelatsReels(event.description);
+    }
+    // Un chiffre des comptes que le récit contredit reçoit, à la suite, ce que
+    // dit le registre (runtime/churchPaper.js noteDuRegistre).
+    const ecoDuPape = normalizeWorldState(baseWorld).economies?.[HOLY_SEE];
+    const comptes = ecoDuPape ? comptesEnEuros(economyIndicators(ecoDuPape), ecoDuPape.usdPerSY) : null;
+    if (comptes) {
+      for (const event of generatedEvents) {
+        const note = noteDuRegistre(`${event.title ?? ""} ${event.description ?? ""}`, comptes);
+        if (note) event.description = `${String(event.description ?? "").trim()} ${note}`.trim();
+      }
     }
     const horsSujet = generatedEvents.filter((event) => !regardeLEglise(event));
     if (horsSujet.length) {
