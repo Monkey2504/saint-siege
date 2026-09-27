@@ -66,10 +66,11 @@ const AU_VOTE = /(fai(re|s|t) voter|mettre au vote|mis au vote|soumettre au vote
 // chantier de six mois, donc « accordé en partie » — pour une lettre.
 // \b ne connaît que l'ASCII : devant « écrire » il ne trouve jamais de
 // frontière, et « écrire aux évêques… » n'était jamais reconnu comme un geste.
-const CONTACT = /(?<![\p{L}\p{N}])(proposer (à|aux|au)|négocier avec|s'asseoir avec|écrire (à|aux|au)|écris (à|aux|au)|envoyer une lettre|une lettre (à|aux|au)|proposer une rencontre|rencontrer|recevoir en audience|audience privée|inviter)(?![\p{L}\p{N}])/iu;
+const CONTACT = /(?<![\p{L}\p{N}])(se rendre (à|au|aux|en)|visite (pastorale|apostolique)|voyage apostolique|pèlerinage (à|au|en)|célébrer (une|la) messe|proposer (à|aux|au)|négocier avec|s'asseoir avec|écrire (à|aux|au)|écris (à|aux|au)|envoyer une lettre|une lettre (à|aux|au)|proposer une rencontre|rencontrer|recevoir en audience|audience privée|inviter)(?![\p{L}\p{N}])/iu;
 const DECIDE = /\b(réform(er|ez|ons)|supprim\w*|abol\w*|cré(er|ez|ons)|fond(er|ez)|nomm(er|ez)|destitu\w*|impos(er|ez)|interdi\w*|ouvr(ir|ez)|ferm(er|ez)|vend(re|ez)|céd(er|ez)|achet\w*|financ(er|ez)|soumett\w*|mettre au vote|fai(re|tes) voter|publi(er|ez)|décrét\w*|promulgu\w*|rédui(re|sez)|augment\w*|lanc(er|ez)|convoqu\w*|sanctionn\w*|limog\w*)\b/i;
 // La même lecture que le moteur quand il applique une économie (AI/gameplay.js).
 const ECONOMIE = /(gel(er)? (des|les|toutes les) embauches|(réduire|réduction|baisser|baisse|diminuer|diminution|comprimer|couper|rogner).{0,40}(masse salariale|dépenses|coûts|budget|effectifs|frais|salaires)|coupe(s)? budgétaire|économies? de|supprimer des postes)/i;
+const PAYE_PAR_UN_AUTRE = /(financ\p{L}*|pay\p{L}*|pris en charge|port\p{L}*) par (la |les |des |une |un |l')?(caritas|dioc[èe]s|conf[ée]rences? [ée]piscopales?|[ée]piscopat|donateurs?|fondations?|m[ée]c[èe]nes?|ordres? religieux|congr[ée]gations?|paroisses?|fid[èe]les|églises? locales?)/iu;
 const CONSULTATION = /(consult(er|ez|ation)|sonder|recueillir l'avis|demander l'avis|demander un rapport|audition)/i;
 // Le groupe du collège dont chaque courant porte la cause.
 const GROUPE_DU_COURANT = [
@@ -261,7 +262,12 @@ export const assessAction = (action, ctx = {}) => {
     // Voter une réforme en décide le principe ; ce qu'elle coûtera se juge quand
     // on l'applique.
     const auVote = AU_VOTE.test(text);
-    if ((has("spending") || has("military") || has("social") || has("monetary")) && revenue > 0 && !collecte && !cession && !economie && !consultation && !auVote) {
+    // Payé par un autre que le Saint-Siège (la Caritas, les diocèses, une
+    // conférence épiscopale, des donateurs) : ce n'est pas le budget du Saint-
+    // Siège qui le porte. Relevé : « centres d'accueil pour migrants, financés
+    // par la Caritas » recevait « payée en entamant le patrimoine ».
+    const payeParUnAutre = PAYE_PAR_UN_AUTRE.test(text);
+    if ((has("spending") || has("military") || has("social") || has("monetary")) && revenue > 0 && !collecte && !cession && !economie && !consultation && !auVote && !payeParUnAutre) {
       const deficitShare = balance < 0 ? -balance / revenue : 0;
       const room = e.financing === "drawdown" ? e.endowment + Math.max(0, e.treasury)
         : e.financing === "print" ? Infinity
