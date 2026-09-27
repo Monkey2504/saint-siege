@@ -1867,7 +1867,7 @@ const applySimulationResult = async ({
       }
     }
     // Un décompte du collège que le moteur ne connaît pas reçoit le vrai.
-    const decomptes = decomptesDuCollege(normalizeWorldState(baseWorld).assembly, baseGame.country);
+    const decomptes = decomptesDuCollege(normalizeWorldState(baseWorld).assembly, baseGame.country, normalizeWorldState(baseWorld).pactes);
     if (decomptes) {
       for (const event of generatedEvents) {
         const note = noteDuCollege(`${event.title ?? ""} ${event.description ?? ""}`, decomptes);
