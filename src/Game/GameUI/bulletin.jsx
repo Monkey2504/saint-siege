@@ -744,7 +744,7 @@ const Press = ({ game, world, actions, focus, onPrinted }) => {
         {to ? `${byHand ? "" : "au plus tard le "}${fmtDate(to)}` : "—"}
         </div>
         <div style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)", marginBottom: "0.7rem" }}>
-        {byHand ? "la date que portera la prochaine feuille" : `fixée par ${auto.reason}${auto.from ? ` — ${auto.from}` : ""} ; plus tôt si l'actualité l'exige`}
+        {byHand ? "la date que portera la prochaine feuille" : `${auto.from ? `fixée par ${auto.reason} — ${auto.from}` : auto.reason} ; plus tôt si l'actualité l'exige`}
         </div>
         <div style={{ marginBottom: "0.8rem" }}>
         <button
@@ -1164,6 +1164,20 @@ const Bulletin = ({ onOpenAdvisor, pressFocus = 0, nav = null }) => {
         // after every edition printed from it.
         return () => { active = false; };
     }, [printed]);
+
+    // Le bureau se relit pendant qu'on y écrit. Relevé en jouant : avec trois
+    // ordres versés, la presse annonçait encore « fixée par rien sur le bureau »
+    // et la date d'une édition sans ordre — le bureau n'était relu qu'au
+    // montage de la page et après chaque édition.
+    useEffect(() => {
+        let active = true;
+        const tick = setInterval(() => {
+            readActionsState({ force: true })
+                .then((next) => { if (active && Array.isArray(next)) setActions((prev) => (JSON.stringify(prev) === JSON.stringify(next) ? prev : next)); })
+                .catch(() => {});
+        }, 3000);
+        return () => { active = false; clearInterval(tick); };
+    }, []);
 
     const player = game?.country || "";
 
