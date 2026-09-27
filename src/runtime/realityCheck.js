@@ -64,7 +64,9 @@ const AU_VOTE = /(fai(re|s|t) voter|mettre au vote|mis au vote|soumettre au vote
 // cardinaux des dubia pour leur proposer une rencontre avant le consistoire »
 // était compté comme un vote du collège (le mot « consistoire ») et comme un
 // chantier de six mois, donc « accordé en partie » — pour une lettre.
-const CONTACT = /\b(écrire (à|aux|au)|écris (à|aux|au)|envoyer une lettre|une lettre (à|aux|au)|proposer une rencontre|rencontrer|recevoir en audience|audience privée|inviter)\b/i;
+// \b ne connaît que l'ASCII : devant « écrire » il ne trouve jamais de
+// frontière, et « écrire aux évêques… » n'était jamais reconnu comme un geste.
+const CONTACT = /(?<![\p{L}\p{N}])(écrire (à|aux|au)|écris (à|aux|au)|envoyer une lettre|une lettre (à|aux|au)|proposer une rencontre|rencontrer|recevoir en audience|audience privée|inviter)(?![\p{L}\p{N}])/iu;
 const DECIDE = /\b(réform\w*|supprim\w*|abol\w*|cré(er|ez|ons)|fond(er|ez)|nomm(er|ez)|destitu\w*|impos(er|ez)|interdi\w*|ouvr(ir|ez)|ferm(er|ez)|vend(re|ez)|céd(er|ez)|achet\w*|financ(er|ez)|soumett\w*|mettre au vote|fai(re|tes) voter|publi(er|ez)|décrét\w*|promulgu\w*|rédui(re|sez)|augment\w*|lanc(er|ez)|convoqu\w*|sanctionn\w*|limog\w*)\b/i;
 /** Le texte ordonne-t-il de vendre un bien inaliénable (chapelle Sixtine…) ? */
 export const atteinteAuPatrimoine = (texte) => {
