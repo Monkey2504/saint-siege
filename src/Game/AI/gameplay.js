@@ -2223,6 +2223,25 @@ const applySimulationResult = async ({
         const compte = salle ? coalition(worldWithImpacts.assembly, { player: nextGame.country, need: salle.majority, sitWith: assis }) : null;
         if (!compte) continue;
         const adopte = o.outcome === "success" && compte.carries;
+        // Le vote adopté est une nouvelle. Relevé en jouant : avec la majorité
+        // acquise, l'édition « convoquait le consistoire pour le 15 février » —
+        // après la date de la feuille — et ne racontait jamais le scrutin. Si
+        // aucun récit ne dit l'adoption, le moteur l'imprime lui-même.
+        if (adopte && !freshEvents.some((e) => /(adopt|approuv|a voté|ont voté|vote favorable|majorité de \d+)/i.test(`${e.title ?? ""} ${e.description ?? ""}`) && /(vote|collège|consistoire|scrutin)/i.test(`${e.title ?? ""} ${e.description ?? ""}`))) {
+          const allies = compte.partners.map((p) => `${avecArticle(p.name)} (${p.seats})`).join(", ");
+          const entry = normalizeEventEntry({
+            date: nextGame.gameDate,
+            kind: "player",
+            importance: "major",
+            source: "engine",
+            notable: true,
+            playerRelated: true,
+            participants: [nextGame.country],
+            title: `Le collège adopte : ${normalizeString(o.title).replace(/^soumettre au vote du collège\s*/i, "").replace(/\.$/, "")}`,
+            description: `Le scrutin s'est tenu au collège : ${compte.held} voix pour, ${compte.need} requises sur ${compte.seats}. Votre courant (${compte.alone})${allies ? ` et vos alliés — ${allies} —` : ""} ont voté ensemble.`,
+          }, battleEvents.length);
+          if (entry) battleEvents.push(entry);
+        }
         worldWithImpacts.record = appendRecord(worldWithImpacts.record, [{
           date: nextGame.gameDate, polity: normalizeString(nextGame.country), kind: "standing",
           what: `${adopte ? "vote adopté" : o.outcome === "failure" ? "vote perdu" : "vote pas encore acquis"} au collège : « ${normalizeString(o.title).slice(0, 70)} » — ${compte.held} voix avec vous, ${compte.need} requises`,
