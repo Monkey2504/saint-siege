@@ -18,7 +18,10 @@ export const VERDICT_RESULT = {
 // and as a count of votes under College. Written in French in the source rather
 // than left to the runtime translator: the translator needs a model, and the
 // player who has no key is exactly the player reading this sheet.
-const VOTE_WORDS = { grant: "accordé", caution: "réservé", alert: "refusé" };
+// Rapport de terrain (nouveau joueur) : « Opposition : accordé » ou « Délai :
+// réservé » ne se lisaient pas — on ne sait pas ce qu'une opposition
+// « accorde ». Chaque ligne dit maintenant ce que la réserve fait à l'ordre.
+const VOTE_WORDS = { grant: "ne gêne pas", caution: "freine", alert: "bloque" };
 
 // Le nom de la réserve, tel que la maquette l'écrit : « Budget », « Collège »,
 // « Légitimité ». La clé reste celle du moteur (realityCheck.js l'écrit, et les

@@ -130,7 +130,7 @@ export const ApercuDuCollege = ({ assembly: brut, player = "" }) => {
         </p>
         <p style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)", lineHeight: 1.5, margin: "0.2rem 0 0" }}>
         Ce que la salle pense de votre gouvernement : <b style={{ color: "var(--oh-grant)" }}>{room.with}</b> favorables ·{" "}
-        <b>{room.undecided}</b> sans avis arrêté ·{" "}
+        <b>{room.undecided}</b> indécis ·{" "}
         <b style={{ color: "var(--oh-caution)" }}>{room.against}</b> hostiles
         </p>
         </section>
