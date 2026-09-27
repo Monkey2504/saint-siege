@@ -432,14 +432,25 @@ export const frontRows = (world, player) => {
 const NOM_DU_CONTINENT = { africa: "Afrique", americas: "Amériques", asia: "Asie", europe: "Europe", oceania: "Océanie" };
 const pct = (v) => `${v > 0 ? "+" : v < 0 ? "−" : ""}${Math.abs(v * 100).toFixed(1).replace(".", ",")} %`;
 
+/**
+ * Les séminaires tels que le moteur les tient : effectif et tendance annuelle
+ * par continent (la même tendance que describeChurchBody donne au modèle).
+ */
+export const seminairesDuMoteur = (churchBody) => {
+  if (!churchBody) return [];
+  const b = normalizeChurchBody(churchBody);
+  return CONTINENTS.map((c) => {
+    const bend = clamp(finite(b.formation[c], 1), 0.2, 3);
+    return { continent: c, nom: NOM_DU_CONTINENT[c], effectif: b.seminarians[c], tendance: finite(SEMINARIANS_TREND[c]) + (bend - 1) * 0.04 };
+  });
+};
+/** Une tendance écrite à la française : « +0,8 % ». */
+export const tendanceEnPourcent = pct;
+
 export const describeChurchBody = (churchBody) => {
   if (!churchBody) return "";
   const b = normalizeChurchBody(churchBody);
-  const lignes = CONTINENTS.map((c) => {
-    const bend = clamp(finite(b.formation[c], 1), 0.2, 3);
-    const tendance = finite(SEMINARIANS_TREND[c]) + (bend - 1) * 0.04;
-    return `${NOM_DU_CONTINENT[c]} ${Math.round(b.seminarians[c]).toLocaleString("fr-FR")} (${pct(tendance)} par an)`;
-  });
+  const lignes = seminairesDuMoteur(churchBody).map((l) => `${l.nom} ${Math.round(l.effectif).toLocaleString("fr-FR")} (${pct(l.tendance)} par an)`);
   const s = b.safeguarding;
   return [
     `[Église — clergé et dossiers, état du moteur]`,

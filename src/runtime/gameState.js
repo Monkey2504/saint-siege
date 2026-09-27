@@ -369,6 +369,9 @@ export const normalizeActionEntry = (entry, index = 0) => {
     // Engagé et encore en train de porter (accordé en partie pour la seule
     // raison du temps) : la date où il aura fini de porter.
     ...(entry.enCours === true && normalizeOptionalString(entry.echeance) ? { enCours: true, echeance: normalizeOptionalString(entry.echeance) } : {}),
+    // Une vente dont le prix est déjà entré en caisse (runtime/cessions.js) :
+    // son échéance ne paie qu'une fois.
+    ...(entry.cessionEncaissee === true ? { cessionEncaissee: true } : {}),
   };
 };
 

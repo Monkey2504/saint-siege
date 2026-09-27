@@ -15,6 +15,7 @@
 // de porter une contrainte ne la fait pas porter. Le moteur l'applique donc
 // lui-même, sur chaque événement neuf, avant qu'il soit enregistré et relu.
 
+import { tendanceEnPourcent } from "./fronts.js";
 import { ledgerContradictions } from "./claimCheck.js";
 import { EUR_USD_2024 } from "./money.js";
 import { coalition, groupsOn, normalizeAssembly, ownBloc, standing } from "./factions.js";
@@ -245,6 +246,37 @@ export const noteDuCollege = (texte, decomptes) => {
     const n = Number(m[1]);
     if (n < 10) continue; // « cinq cardinaux », « trois votants » : pas un décompte de la salle
     if (!decomptes.permis.has(n)) return `Au collège : ${decomptes.resume}.`;
+  }
+  return "";
+};
+
+// ── Les séminaires ──────────────────────────────────────────────────────────
+//
+// Relevé en jouant : « les séminaires d'Europe, en recul de 3,2 % » quand le
+// moteur tenait une autre tendance. Le modèle reçoit les taux du moteur
+// (fronts.describeChurchBody) et la consigne de ne citer qu'eux ; il ne la
+// tient pas toujours. Une tendance que le moteur ne connaît pas reçoit, à la
+// suite, celles du moteur — comme un chiffre des comptes reçoit le registre.
+
+const PARLE_DES_SEMINAIRES = /(?<![\p{L}])(s[ée]minair\p{L}*|vocations?|s[ée]minaristes?)(?![\p{L}])/iu;
+const POURCENT = /(\d+(?:[.,]\d+)?)\s*(?:%|pour\s*cent)/giu;
+// Au-delà de 0,15 point d'écart, ce n'est plus la tendance du moteur.
+const ECART_TENDANCE = 0.0015;
+const TENDANCE = /(recul|baisse|progress|hausse|croiss|diminu|augment|contract|par an|chaque ann[ée]e|annuel)/iu;
+
+/** La note des séminaires, quand un récit cite une tendance que le moteur n'a pas (ou ""). */
+export const noteDesSeminaires = (texte, seminaires) => {
+  const t = String(texte ?? "");
+  if (!Array.isArray(seminaires) || !seminaires.length || !PARLE_DES_SEMINAIRES.test(t)) return "";
+  const connues = seminaires.map((l) => Math.abs(l.tendance));
+  for (const m of t.matchAll(POURCENT)) {
+    // Un pourcentage qui dit une tendance, pas « 43 % des dons » dans la même nouvelle.
+    const autour = t.slice(Math.max(0, m.index - 50), m.index + m[0].length + 20);
+    if (!TENDANCE.test(autour)) continue;
+    const v = Number(m[1].replace(",", ".")) / 100;
+    if (!connues.some((k) => Math.abs(k - v) <= ECART_TENDANCE)) {
+      return `Aux séminaires : ${seminaires.map((l) => `${l.nom} ${tendanceEnPourcent(l.tendance)} par an`).join(", ")}.`;
+    }
   }
   return "";
 };

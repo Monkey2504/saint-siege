@@ -923,7 +923,7 @@ export const describeEconomy = (name, economy, { flows = null, full = true, unit
     const eurPerSY = e.usdPerSY / EUR_PAR_USD_INVERSE;
     const dixMillions = Math.round((10e6 / eurPerSY) * 10) / 10;
     lines.push(`  units: 1 SY ≈ €${Math.round(eurPerSY).toLocaleString("en-US")} (≈ $${Math.round(e.usdPerSY).toLocaleString("en-US")}). Civil spending is ${fmt(e.civilSpending)} SY ≈ €${Math.round((e.civilSpending * eurPerSY) / 1e6)} million a year. `
-      + `Saving €10 million a year is {"shift":{"civilSpending":-${dixMillions}}}; selling an asset worth €10 million is {"shift":{"endowment":-${dixMillions},"treasury":${dixMillions}}} (the patrimony becomes cash in hand); a one-off expense of €10 million is {"shift":{"treasury":-${dixMillions}}}. `
+      + `Saving €10 million a year is {"shift":{"civilSpending":-${dixMillions}}}; selling an asset worth €10 million is {"shift":{"endowment":-${dixMillions},"treasury":${dixMillions}}} (the patrimony becomes cash in hand) — except a sale the PLAYER ordered with its price written in the order: the engine books that one itself, price into cash and asset out of the patrimony, on the turn it concludes, so never emit a shift for it and narrate it concluding only when the order says it is due; a one-off expense of €10 million is {"shift":{"treasury":-${dixMillions}}}. `
       + `ANY event that cuts or adds spending, sells or buys an asset, or raises money MUST carry the matching economy change for ${name} in the same event — a measure narrated with no economy change moves nothing on the ledger, and the player reads a story the accounts deny.`);
   }
   if (!full) return lines.join("\n");

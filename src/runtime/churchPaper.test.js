@@ -75,3 +75,15 @@ test("les alliés invités et les électeurs sans courant sont des décomptes r�
   const d = decomptesDuCollege(w.assembly, HOLY_SEE, [{ courant: "Compagnie de Jésus" }, { courant: "Chemin synodal allemand" }]);
   assert.equal(noteDuCollege("42 voix acquises et 33 voix alliées, soit 75 voix, 6 de moins que les 81 requises ; les 38 électeurs sans étiquette", d), "");
 });
+
+test("une tendance des séminaires que le moteur ne tient pas reçoit les siennes", async () => {
+  const { noteDesSeminaires } = await import("./churchPaper.js");
+  const seminaires = [
+    { nom: "Afrique", tendance: 0.008 },
+    { nom: "Europe", tendance: -0.041 },
+  ];
+  assert.equal(noteDesSeminaires("Les séminaires d'Europe reculent de 4,1 % par an.", seminaires), "");
+  assert.match(noteDesSeminaires("Les séminaires d'Europe, en recul de 3,2 %.", seminaires), /^Aux séminaires : Afrique \+0,8 % par an, Europe −4,1 % par an\.$/);
+  assert.equal(noteDesSeminaires("Les dons représentent 43 % des recettes du Denier.", seminaires), "", "pas de séminaire, pas de note");
+  assert.equal(noteDesSeminaires("Les séminaires d'Afrique accueillent 43 % des séminaristes du monde.", seminaires), "", "une part n'est pas une tendance");
+});

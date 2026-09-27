@@ -466,7 +466,7 @@ export const assessAction = (action, ctx = {}) => {
   }
 
   constraints.sort((a, b) => b.severity - a.severity);
-  return { id: str(action?.id), title: str(action?.title) || str(action?.text).slice(0, 60), domains, verdict: verdictOf(constraints), constraints, lagYears: lag };
+  return { id: str(action?.id), title: str(action?.title) || str(action?.text).slice(0, 60), domains, verdict: verdictOf(constraints), constraints, lagYears: lag, coveredYears: years > 0 ? years : 0 };
 };
 
 export const assessPlannedActions = (actions, ctx = {}) =>
@@ -590,7 +590,9 @@ const enCoursDe = (outcome, a, date) => {
   if (outcome !== "partial" || !a) return {};
   const lourdes = (a.constraints || []).filter((c) => c.severity > 0.1);
   if (!lourdes.length || !lourdes.every((c) => c.factor === "time")) return {};
-  const echeance = echeanceDe(date, a.lagYears);
+  // Le saut qui vient de juger l'ordre en a déjà couvert une part : l'échéance
+  // compte ce qui reste, depuis la date de la feuille.
+  const echeance = echeanceDe(date, Math.max(0, (a.lagYears || 0) - (a.coveredYears || 0)));
   return echeance ? { enCours: true, echeance } : {};
 };
 
