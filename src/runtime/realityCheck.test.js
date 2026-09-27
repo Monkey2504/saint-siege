@@ -527,3 +527,11 @@ test("couper la masse salariale n'est pas une dépense, et réaffirmer la doctri
   const opposition = doctrine.constraints.find((c) => c.factor === "opposition");
   assert.ok(!opposition || !/dubia/i.test(opposition.detail), opposition?.detail);
 });
+
+test("un vote raconté comme une impasse s'affiche « Refusé »", () => {
+  const action = order("Soumettre au vote du collège la restauration de la discipline liturgique dans les diocèses.");
+  const assessments = [{ id: "a1", verdict: "constrained", constraints: [{ factor: "vote", detail: "le collège vote : il en faut 81" }] }];
+  const events = [{ title: "Impasse persistante sur le texte liturgique au sein du Collège des cardinaux", description: "Les consultations en vue de rouvrir le vote sur la discipline liturgique confirment l'impasse : le seuil de 81 voix demeure inatteignable.", playerRelated: false }];
+  const [judged] = applyActionOutcomes([action], [{ actionId: "a1", outcome: "partial" }], assessments, { date: "2026-11-14", events });
+  assert.equal(judged.outcome, "failure");
+});

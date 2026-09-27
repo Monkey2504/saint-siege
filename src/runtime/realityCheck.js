@@ -468,7 +468,9 @@ const sameOrder = (action, actionId) => {
 // racontait, et « Le sort de vos ordres » affichait « Accordé en partie » — le
 // verdict par défaut. On retrouve l'événement de l'ordre par les mots qu'ils
 // partagent, et on lit s'il dit un échec.
-const ECHEC = /(rejet|rejeté|rejetée|échec|échoue|échoué|n'a recueilli que|refus|repouss|avort|enterr|renonc|suspend|ajourn|sans accord|aucun accord)/i;
+// « Impasse », « seuil inatteignable », « faute de majorité » : relevé en
+// jouant, un vote bloqué se raconte aussi ainsi, et restait « accordé en partie ».
+const ECHEC = /(rejet|rejeté|rejetée|échec|échoue|échoué|n'a recueilli que|refus|repouss|avort|enterr|renonc|suspend|ajourn|sans accord|aucun accord|impasse|inatteignable|faute de majorit|sans majorit|pas été atteint|n'est pas atteint|n'étant pas atteint|pas atteint)/i;
 const motsDe = (texte) => new Set(lower(texte).normalize("NFD").replace(/[\u0300-\u036f]/g, "").split(/[^a-z]+/).filter((w) => w.length >= 6));
 const recitDeLOrdre = (action, events) => {
   const cle = motsDe(`${action.title} ${action.text}`);
@@ -489,8 +491,10 @@ const recitDeLOrdre = (action, events) => {
 const recitsDeLOrdre = (action, events) => {
   const cle = motsDe(`${action.title} ${action.text}`);
   if (cle.size < 2) return [];
+  // Un vote se raconte souvent comme une nouvelle du collège, sans être marqué
+  // « lié au joueur » : on lit tous les récits, le seuil de mots communs suffit.
   return (Array.isArray(events) ? events : []).filter((event) => {
-    if (!event || !event.playerRelated) return false;
+    if (!event) return false;
     const mots = motsDe(`${event.title} ${event.description}`);
     let commun = 0;
     for (const w of cle) if (mots.has(w)) commun += 1;
