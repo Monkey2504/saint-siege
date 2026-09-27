@@ -67,3 +67,11 @@ test("un décompte du collège que le moteur ne connaît pas reçoit le vrai", a
   assert.equal(noteDuCollege("le seuil de 81 voix sur 160 électeurs, votre courant en compte 42", d), "");
   assert.equal(noteDuCollege("cinq cardinaux, puis 3 votants", d), "");
 });
+
+test("les alliés invités et les électeurs sans courant sont des décomptes réels", async () => {
+  const { decomptesDuCollege, noteDuCollege } = await import("./churchPaper.js");
+  const { applyChurchPreset, HOLY_SEE } = await import("./churchPreset.js");
+  const w = applyChurchPreset({}, { date: "2026-09-01" });
+  const d = decomptesDuCollege(w.assembly, HOLY_SEE, [{ courant: "Compagnie de Jésus" }, { courant: "Chemin synodal allemand" }]);
+  assert.equal(noteDuCollege("42 voix acquises et 33 voix alliées, soit 75 voix, 6 de moins que les 81 requises ; les 38 électeurs sans étiquette", d), "");
+});
