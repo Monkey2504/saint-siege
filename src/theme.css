@@ -645,3 +645,8 @@ button, input, textarea, select {
     padding-left: 1.6rem;
   }
 }
+
+/* L'élection : une seule colonne de lecture, le formulaire et rien d'autre. */
+@media (min-width: 62rem) {
+  .oh-bulletin-grid-election { grid-template-columns: minmax(0, 46rem); justify-content: center; }
+}
