@@ -359,7 +359,11 @@ const SortDesOrdres = ({ ordres }) => (
     <section>
     <SectionHead aside={`${ordres.length} ${ordres.length === 1 ? "ordre" : "ordres"}`}>Le sort de vos ordres</SectionHead>
     {ordres.map((o) => {
-        const sort = SORT[o.outcome] ?? { mot: "Réglé", couleur: "var(--oh-text-dim)" };
+        // Accordé en partie pour la seule raison du temps : l'ordre est engagé
+        // et continue de porter, ce n'est pas un demi-refus.
+        const sort = o.enCours && o.echeance
+            ? { mot: `Engagé — porte jusqu'au ${new Date(`${o.echeance}T00:00:00Z`).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" })} environ`, couleur: "var(--oh-caution)" }
+            : SORT[o.outcome] ?? { mot: "Réglé", couleur: "var(--oh-text-dim)" };
         return (
             <div key={o.id} style={{ borderBottom: "1px solid var(--oh-line)", padding: "0.6rem 0" }}>
             <div style={{ color: "var(--oh-text-strong)", fontSize: "var(--oh-t-sm)", lineHeight: 1.45 }}>{o.title || o.text}</div>

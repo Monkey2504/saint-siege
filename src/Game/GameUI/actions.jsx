@@ -396,6 +396,15 @@ const ActionsPanel = ({ isOpen, onClose, onOpenAdvisor, embedded = false }) => {
         .filter(({ normalized }) => normalized?.status === "planned"),
                                            [actions],
     );
+    // Les ordres engagés qui portent encore (accordés en partie pour la seule
+    // raison du temps) : sans eux, l'ordre disparaissait du bureau et le joueur
+    // ne savait plus s'il courait toujours.
+    const ordresEngages = React.useMemo(
+        () => actions
+        .map((action, index) => normalizeActionEntry(action, index))
+        .filter((a) => a?.enCours && a.echeance && (!isoDate || a.echeance > isoDate)),
+        [actions, isoDate],
+    );
 
     const handleSubmit = async () => {
         const trimmed = inputValue.trim();
@@ -698,6 +707,19 @@ const ActionsPanel = ({ isOpen, onClose, onOpenAdvisor, embedded = false }) => {
         {submittedActions.map(({ normalized, originalIndex }) => (
             <ActionItem key={normalized.id || originalIndex} action={normalized} onDelete={() => handleDelete(originalIndex)} realityContext={realityContext} />
         ))}
+        {ordresEngages.length > 0 && (
+            <div style={{ borderTop: "1px solid var(--oh-line)", marginTop: "0.4rem", paddingTop: "0.5rem" }}>
+            <p style={{ color: "var(--oh-text-dim)", fontFamily: "var(--oh-font-label)", fontSize: "var(--oh-t-2xs)", fontWeight: 700, letterSpacing: "var(--oh-label-track)", margin: "0 0 0.3rem", textTransform: "var(--oh-label-case)" }}>
+            Engagés, ils portent encore
+            </p>
+            {ordresEngages.map((a) => (
+                <div key={a.id} style={{ fontSize: "var(--oh-t-sm)", lineHeight: 1.45, padding: "0.2rem 0" }}>
+                <span style={{ color: "var(--oh-text-strong)" }}>{a.title || a.text}</span>
+                <span style={{ color: "var(--oh-text-dim)" }}> — jusqu&apos;au {dayjs(a.echeance).format("D MMMM YYYY")} environ ; inutile de le redonner.</span>
+                </div>
+            ))}
+            </div>
+        )}
         </div>
         </div>
         </div>
