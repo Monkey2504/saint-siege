@@ -31,6 +31,8 @@
 //                      colour, and colour may be arbitrary as long as it never
 //                      moves.
 
+import { annualRevenue, annualSpending } from "./economy.js";
+
 const str = (v) => String(v ?? "").trim();
 const lower = (v) => str(v).toLowerCase();
 const finite = (v, d = 0) => { const n = Number(v); return Number.isFinite(n) ? n : d; };
@@ -112,8 +114,14 @@ export const wantOf = (name, { intents = [], economies = {}, player = "" } = {})
 
   const e = economies?.[str(name)];
   if (e) {
-    const revenue = finite(e.transfers) + finite(e.endowment) * finite(e.endowmentYield);
-    const spend = finite(e.civilSpending) + finite(e.militaryUpkeep);
+    // Les recettes d'un État sont d'abord ses impôts. Relevé en jouant : le
+    // calcul ne comptait que les dons et le rendement d'un patrimoine, si bien
+    // que TOUT État qui vit de l'impôt — le Canada, la France — passait pour
+    // « à court d'argent » et ramenait chaque sujet à ce qu'il coûte. Un pape
+    // insultait le Canada ; le Canada lui réclamait une « compensation
+    // financière ». Le calcul du moteur (economy.js) compte l'impôt.
+    const revenue = annualRevenue(e);
+    const spend = annualSpending(e);
     if (spend > revenue * 1.1) return "is short of money and will turn any subject toward what it costs and who pays";
     if (finite(e.unfundedLiabilities) > 0) return "owes more than it has set aside, and is defensive about its accounts";
   }

@@ -629,3 +629,11 @@ test("un ordre accordé en partie pour la seule raison du temps est engagé, ave
   const dit = applyActionOutcomes([order("Vendre l'immeuble de Milan", { id: "m1" })], [{ actionId: "m1", outcome: "partial" }], assessments, { date: "2026-10-01" });
   assert.equal(dit[0].enCours, true);
 });
+
+test("un saut de six mois couvre un ordre de six mois", () => {
+  const world = { economies: {} };
+  const a = assessAction({ id: "v", title: "Vendre trois appartements de l'APSA pour 12 millions d'euros" }, { playerPolity: "Saint-Siège", world, jumpDays: 180 });
+  assert.ok(!a.constraints.some((c) => c.factor === "time"), "180 jours suffisent à un ordre de six mois");
+  const b = assessAction({ id: "v", title: "Vendre trois appartements de l'APSA pour 12 millions d'euros" }, { playerPolity: "Saint-Siège", world, jumpDays: 30 });
+  assert.ok(b.constraints.some((c) => c.factor === "time"));
+});

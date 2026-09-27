@@ -7,9 +7,9 @@ import { VOICE_RULES, describeVoice, voiceFor, wantOf } from "./voices.js";
 const world = () => ({
   player: "Saint-Siège",
   economies: {
-    France: { transfers: 1000, endowment: 0, endowmentYield: 0, civilSpending: 900, militaryUpkeep: 50 },
-    Allemagne: { transfers: 500, endowment: 0, endowmentYield: 0, civilSpending: 900, militaryUpkeep: 200 },
-    Turquie: { transfers: 800, endowment: 0, endowmentYield: 0, civilSpending: 700, militaryUpkeep: 100, unfundedLiabilities: 4000 },
+    France: { taxRate: 0, transfers: 1000, endowment: 0, endowmentYield: 0, civilSpending: 900, militaryUpkeep: 50 },
+    Allemagne: { taxRate: 0, transfers: 500, endowment: 0, endowmentYield: 0, civilSpending: 900, militaryUpkeep: 200 },
+    Turquie: { taxRate: 0, transfers: 1000, endowment: 0, endowmentYield: 0, civilSpending: 700, militaryUpkeep: 100, unfundedLiabilities: 4000 },
   },
   intents: [
     { owner: "France", target: "Saint-Siège", kind: "diplomatic", status: "active", secret: false, summary: "" },
@@ -101,4 +101,9 @@ test("les règles de voix interdisent de chiffrer une politesse", () => {
   assert.match(VOICE_RULES, /not a quota of figures/, "les chiffres bornent, ils n'obligent pas");
   assert.match(VOICE_RULES, /Never price courtesy/, "un bonjour ne se chiffre pas");
   assert.match(VOICE_RULES, /no proposal, do not invent one/, "on n'invente pas la proposition à laquelle réagir");
+});
+
+test("un État qui vit de l'impôt n'est pas « à court d'argent »", () => {
+  const canada = { taxRate: 0.3, transfers: 0, endowment: 0, civilSpending: 1, militaryUpkeep: 0 };
+  assert.doesNotMatch(wantOf("Canada", { economies: { Canada: canada }, player: "Saint-Siège" }), /short of money/);
 });

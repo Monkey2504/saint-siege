@@ -1524,7 +1524,14 @@ export async function buildDiplomaticSystemPrompt(countries, playerCountry, { ch
     // is the closest thing to the reply the model is about to write. Put earlier,
     // the generic courtesy of the base leader template drowned it.
     const voiceBlock = voice ? `\n\n${voice}\n\n${VOICE_RULES}` : "";
-    return `${renderTemplate(promptPack.leader, { ...variables, ...helperValues })}${bodies}${voiceBlock}\n\n${difficultyDirective(gameData?.difficulty)}${lengthOverride}${economyOverride}${historyOverride}${standingOverride}${warOverride}${leaderOverride}${deceptionOverride}`;
+    // On écrit au pape. Relevé en jouant : le pape insultait le Canada, et le
+    // Canada répondait « obligations financières », « coûts budgétaires »,
+    // « compensation financière » — comme si un État et le Saint-Siège se
+    // devaient de l'argent. Entre eux, l'enjeu est ailleurs.
+    const auPape = worldData?.church
+        ? `\n\n[Writing to the Pope — What Is at Stake]\nYou are corresponding with the Holy See. If you are a sovereign state (not a current, order or office inside the Church), there are no subsidies, trade, tariffs, fees or debts between you and the Holy See: nothing is owed in money either way, and you never ask it for payment or compensation. What is at stake between you is standing and conscience: the Catholics of your country and their freedom, the bishops and the nuncio, a concordat, Catholic schools and hospitals, the pope's public words, moral and humanitarian positions, a visit. Answer courtesy, a request or an insult on those grounds — a public protest, a nuncio summoned or recalled, a cooled relationship, a demand for an apology, silence — never with an invoice. A body inside the Church (the Curia, a financial office, a current) may speak of money when its own remit is money, and only then.`
+        : "";
+    return `${renderTemplate(promptPack.leader, { ...variables, ...helperValues })}${bodies}${voiceBlock}\n\n${difficultyDirective(gameData?.difficulty)}${lengthOverride}${economyOverride}${historyOverride}${standingOverride}${warOverride}${leaderOverride}${deceptionOverride}${auPape}`;
 }
 
 let advisorHistory = [];

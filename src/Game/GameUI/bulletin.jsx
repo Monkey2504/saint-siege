@@ -681,6 +681,16 @@ const Press = ({ game, world, actions, focus, onPrinted }) => {
         [world, actions, game?.gameDate],
     );
     const days = byHand ? chosen : auto.days;
+    // Le bureau des ordres juge sur le saut que la presse imprimera. Relevé en
+    // jouant : la date réglée à la main sur six mois, le bureau disait encore
+    // « ce saut en couvre 30 jours » — le saut automatique, pas celui choisi.
+    useEffect(() => {
+        const detail = byHand ? chosen : null;
+        const annonce = (d) => { try { window.__ohSautChoisi = d; window.dispatchEvent(new CustomEvent("oh:saut", { detail: d })); } catch { /* hors navigateur */ } };
+        annonce(detail);
+        // La presse démontée repart sur le saut automatique : le bureau aussi.
+        return () => annonce(null);
+    }, [byHand, chosen]);
     const to = from && from.isValid() ? from.add(days, "day") : null;
 
     const print = async () => {

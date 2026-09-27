@@ -281,15 +281,22 @@ const ActionsPanel = ({ isOpen, onClose, onOpenAdvisor, embedded = false }) => {
     // presse, « Accordé en partie » après, pour le même ordre. Le saut attendu
     // est celui que la presse annonce (runtime/nextEdition.js).
     const [isoDate, setIsoDate] = React.useState("");
+    // Le saut réglé à la main sur la presse (bulletin.jsx, Press), s'il y en a un.
+    const [sautChoisi, setSautChoisi] = React.useState(() => (typeof window !== "undefined" ? window.__ohSautChoisi ?? null : null));
+    React.useEffect(() => {
+        const ecoute = (e) => setSautChoisi(e.detail ?? null);
+        window.addEventListener("oh:saut", ecoute);
+        return () => window.removeEventListener("oh:saut", ecoute);
+    }, []);
     const realityContext = React.useMemo(
         () => {
             if (!realityWorld?.world || !country) return null;
-            const saut = isoDate ? nextEdition(realityWorld.world, actions, { today: isoDate }).days : 0;
+            const saut = sautChoisi != null ? sautChoisi : isoDate ? nextEdition(realityWorld.world, actions, { today: isoDate }).days : 0;
             // Les autres ordres du tour : un pacte proposé à côté d'un vote compte
             // dans ce vote, ici comme au moment du jugement (assessPlannedActions).
             return { playerPolity: country, economy: realityWorld.world.economies?.[country] ?? null, world: realityWorld.world, jumpDays: saut, orders: actions };
         },
-        [realityWorld, country, actions, isoDate],
+        [realityWorld, country, actions, isoDate, sautChoisi],
     );
     // Full display name for the header, never the code.
     const countryDisplayName = useCountryDisplayName(country);

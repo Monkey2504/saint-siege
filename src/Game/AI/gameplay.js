@@ -26,7 +26,7 @@ import { registerRows } from "../../runtime/register.js";
 import { ensureGatheringsFromOrders, holdDueGatherings, realizedMargin, runNationalProgramme, runWorldProgramme } from "../../runtime/gatherings.js";
 import { reconcileBodies } from "../../runtime/bodyCheck.js";
 import { markDeclarationAnswered } from "../../runtime/inauguration.js";
-import { comptesEnEuros, decomptesDuCollege, noteDesSeminaires, noteDuCollege, noteDuRegistre, parleDesComptesDuSaintSiege, regardeLEglise, sansPrelatsReels } from "../../runtime/churchPaper.js";
+import { comptesEnEuros, decomptesDuCollege, noteDesSeminaires, noteDuCollege, noteDuRegistre, parleDesComptesDuSaintSiege, plafondDeLArgent, regardeLEglise, sansPrelatsReels } from "../../runtime/churchPaper.js";
 import { buildRealityAssessments } from "./promptContext.js";
 import { EUR_USD_2024, HOLY_SEE, transfersForChurchEur } from "../../runtime/churchPreset.js";
 import { cessionsAEncaisser, encaisserLesCessions } from "../../runtime/cessions.js";
@@ -1855,6 +1855,15 @@ const applySimulationResult = async ({
     if (horsSujet.length) {
       console.info("[journal] hors sujet, non imprimé :", horsSujet.map((event) => event.title));
       generatedEvents = generatedEvents.filter((event) => regardeLEglise(event));
+    }
+    // L'argent est un front sur six : au plus un tiers de l'édition, les
+    // nouvelles d'argent venues du monde cédant la place en premier.
+    {
+      const { gardes, retires } = plafondDeLArgent(generatedEvents);
+      if (retires.length) {
+        console.info("[journal] trop d'argent, non imprimé :", retires.map((event) => event.title));
+        generatedEvents = gardes;
+      }
     }
     // Un chiffre des comptes du Saint-Siège que le récit contredit reçoit, à la
     // suite, ce que dit le registre (runtime/churchPaper.js noteDuRegistre) —
