@@ -62,7 +62,7 @@ dayjs.extend(advancedFormat);
 const Dateline = ({ children, tone = "alert" }) => (
     <span
     style={{
-        background: tone === "alert" ? "var(--oh-alert)" : "var(--oh-accent)",
+        background: tone === "alert" ? "var(--oh-alert)" : tone === "muted" ? "var(--oh-text-dim)" : "var(--oh-accent)",
         color: "var(--oh-on-accent)",
         display: "inline-block",
         fontFamily: "var(--oh-font-label)",
@@ -191,7 +191,7 @@ const Story = ({ event, lead = false, tone }) =>
     {event.description && (
         <div
         className="timeline-markdown"
-        style={{ color: "var(--oh-text)", fontSize: "var(--oh-t-sm)", lineHeight: 1.5, maxWidth: "46ch" }}
+        style={{ color: "var(--oh-text)", fontSize: "var(--oh-t-sm)", lineHeight: 1.5 }}
         >
         <ReactMarkdown>{event.description}</ReactMarkdown>
         </div>
@@ -1017,6 +1017,10 @@ const Record = ({ record, treasuries, player, usdPerSY }) => {
 // A federation and the bodies inside it, each with its own money: what it
 // holds, what its operations earn, and what it hands its members. The levels
 // are shown by indentation, because a federation is the point.
+// La clé de répartition, dite en français : l'étiquette imprimait la clé du
+// moteur telle quelle (« EQUAL ») au milieu d'une page en français.
+const CLE_DE_REPARTITION = { equal: "à parts égales", need: "selon les besoins", contribution: "selon l'apport" };
+
 const Purses = ({ treasuries, usdPerSY }) => {
     const list = useMemo(() => normalizeTreasuries(treasuries).filter((t) => t.status === "active"), [treasuries]);
     if (!list.length) return null;
@@ -1036,7 +1040,7 @@ const Purses = ({ treasuries, usdPerSY }) => {
             <span style={{ color: "var(--oh-text-strong)", fontFamily: "var(--oh-font-display)", fontSize: depth ? "var(--oh-t-sm)" : "var(--oh-t-md)", fontWeight: 700, letterSpacing: "-0.01em", minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
             {depth ? "└ " : ""}{t.body}
             </span>
-            <span className="oh-label" style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)", flexShrink: 0 }}>{t.key}</span>
+            <span className="oh-label" style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-2xs)", flexShrink: 0 }}>{CLE_DE_REPARTITION[t.key] || t.key}</span>
             </div>
             {/* The income in money, not only as a percentage: a rate applied to
                 a figure the reader has to go and find is not a figure. */}
@@ -1046,7 +1050,7 @@ const Purses = ({ treasuries, usdPerSY }) => {
                 one. A body with no capital simply has no capital. */}
             {t.capital > 0
                 ? <>capital {money(t.capital)} à {Math.round(rateOf(t) * 1000) / 10}%{rateOf(t) > 0 ? `, soit ${money(t.capital * rateOf(t))} par an` : ""}</>
-                : <>sans capital</>} · {money(t.treasury)} in hand · keeps {Math.round(t.retain * 100)}%
+                : <>sans capital</>} · {money(t.treasury)} en caisse · en garde {Math.round(t.retain * 100)} %
             </div>
             {t.earnedMargin > 0 && t.capital > 0 && (
                 <div style={{ color: "var(--oh-text)", fontSize: "var(--oh-t-xs)", lineHeight: 1.5, marginTop: "0.15rem" }}>
@@ -1143,6 +1147,18 @@ const Bulletin = ({ onOpenAdvisor, pressFocus = 0, nav = null }) => {
     // Bumped when the presses have run: the sheet re-reads the new state.
     const [printed, setPrinted] = useState(0);
     const reload = useCallback(() => setPrinted((tick) => tick + 1), []);
+    // Les presses hors de vue : une barre en bas d'écran y ramène, pour que la
+    // fin du tour ne soit jamais à chercher.
+    const presses = useRef(null);
+    const [archivesOuvertes, setArchivesOuvertes] = useState(false);
+    const [pressesVisibles, setPressesVisibles] = useState(true);
+    useEffect(() => {
+        const el = presses.current;
+        if (!el || typeof IntersectionObserver === "undefined") return undefined;
+        const obs = new IntersectionObserver(([entree]) => setPressesVisibles(entree.isIntersecting), { threshold: 0.2 });
+        obs.observe(el);
+        return () => obs.disconnect();
+    });
 
     useEffect(() => {
         let active = true;
@@ -1470,32 +1486,43 @@ const Bulletin = ({ onOpenAdvisor, pressFocus = 0, nav = null }) => {
             <SectionHead aside={`${edition.length} ${edition.length === 1 ? "événement" : "événements"}`}>
             Ce qui est arrivé
             </SectionHead>
-            {edition.map((event, index) => (
-                <Story
-                key={event.id || `${event.date}-${index}`}
-                event={event}
-                lead={index === 0}
-                tone={index % 2 === 0 ? "alert" : "accent"}
-                />
-            ))}
+            {/* Une seule couleur pour le mois : l'alternance rouge / bleu suivait
+                le rang de l'article et ne voulait rien dire, sans légende pour
+                le dire. Les brèves passent en grille : en colonne unique de
+                46 signes, elles laissaient la moitié de la colonne vide. */}
+            {edition.length > 0 && <Story event={edition[0]} lead tone="alert" />}
+            {edition.length > 1 && (
+                <div className="oh-breves">
+                {edition.slice(1).map((event, index) => (
+                    <Story key={event.id || `${event.date}-${index}`} event={event} tone="alert" />
+                ))}
+                </div>
+            )}
             </>
         )}
         {/* The archive, under its own rule and never as a lead: a story the
             reader has already been sold is not news a second time. It is kept
             off the inauguration sheet, where the only thing to do is decide. */}
+        {/* Replié par défaut : relevé en jouant, les dubia de 2023 et l'Opus Dei
+            de 2022 s'imprimaient à la suite du mois, à la même taille, et le
+            joueur ne distinguait plus ce que son tour avait produit du décor. */}
         {!awaitingInauguration && earlier.length > 0 && (
-            <div style={{ marginTop: "1.8rem" }}>
-            <SectionHead aside={`${earlier.length} ${earlier.length === 1 ? "récit" : "récits"}`}>
+            <details className="oh-archives" style={{ marginTop: "1.8rem" }} onToggle={(e) => setArchivesOuvertes(e.currentTarget.open)}>
+            <summary>
+            <SectionHead aside={`${earlier.length} ${earlier.length === 1 ? "récit" : "récits"} · ${archivesOuvertes ? "refermer" : "ouvrir"}`}>
             Précédemment
             </SectionHead>
+            </summary>
+            <div className="oh-breves">
             {earlier.map((event, index) => (
                 <Story
                 key={event.id || `earlier-${event.date}-${index}`}
                 event={event}
-                tone={index % 2 === 0 ? "accent" : "alert"}
+                tone="muted"
                 />
             ))}
             </div>
+            </details>
         )}
         </div>
         )}
@@ -1504,7 +1531,7 @@ const Bulletin = ({ onOpenAdvisor, pressFocus = 0, nav = null }) => {
             maquette journal lui donne sa propre colonne, entre les nouvelles et
             les comptes — c'est la colonne où le joueur agit. */}
         {!awaitingInauguration && (
-        <div style={{ display: "flex", flexDirection: "column", gap: "1.6rem" }}>
+        <div className="oh-colonne-ordres" style={{ display: "flex", flexDirection: "column", gap: "1.6rem" }}>
         {/* The orders desk itself: compose, take a suggestion, read each
             verdict. One component, the same the map's floating panel shows.
             Field report: it used to sit BELOW the presses, so the largest
@@ -1516,6 +1543,13 @@ const Bulletin = ({ onOpenAdvisor, pressFocus = 0, nav = null }) => {
         <section>
         <ActionsPanel embedded isOpen onClose={() => {}} onOpenAdvisor={onOpenAdvisor} />
         </section>
+        {/* Les presses, juste sous le bureau. Relevé en jouant : entre 62 et
+            86 rem, la troisième colonne passait sous les nouvelles, et « Mettre
+            sous presse » tombait à 2 800 px du haut, après tous les récits. On
+            écrit ses ordres, puis on imprime : les deux se suivent. */}
+        <div ref={presses} style={{ scrollMarginTop: "6rem" }}>
+        <Press game={game} world={world} actions={actions} focus={pressFocus} onPrinted={reload} />
+        </div>
         </div>
         )}
 
@@ -1524,8 +1558,6 @@ const Bulletin = ({ onOpenAdvisor, pressFocus = 0, nav = null }) => {
             et « Le collège ». */}
         {!awaitingInauguration && (
         <div style={{ display: "flex", flexDirection: "column", gap: "1.6rem" }}>
-        {/* The presses: how far the next edition runs, and the order to print. */}
-        <Press game={game} world={world} actions={actions} focus={pressFocus} onPrinted={reload} />
 
         {/* What the pontificate has moved, on all six fronts — above the money,
             because it was the money being the only answer that made a player
@@ -1623,10 +1655,28 @@ const Bulletin = ({ onOpenAdvisor, pressFocus = 0, nav = null }) => {
         </div>
         )}
         </div>
+        {!awaitingInauguration && world && !pressesVisibles && (
+            <BarreDesPresses
+            ordres={(Array.isArray(actions) ? actions : []).filter((a) => a && a.status === "planned" && a.kind !== "chat").length}
+            onAller={() => presses.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
+            />
+        )}
         </div>
         </div>
     );
 };
+
+// La barre du bas : combien d'ordres attendent, et le chemin des presses. Elle
+// n'imprime pas elle-même — la date de l'édition se règle là-bas, et un tour
+// ne s'annule qu'une fois — elle y conduit.
+const BarreDesPresses = ({ ordres, onAller }) => (
+    <div className="oh-barre-presses" role="region" aria-label="Fin du tour">
+    <span>
+    {ordres === 0 ? "Aucun ordre au dossier" : `${ordres} ${ordres === 1 ? "ordre" : "ordres"} au dossier`}
+    </span>
+    <button type="button" onClick={onAller}>Mettre sous presse ↓</button>
+    </div>
+);
 
 export { Bulletin, Record };
 export default Bulletin;

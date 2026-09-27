@@ -29,6 +29,18 @@ const MOOD = [
     { at: -Infinity, tone: "var(--oh-alert)", word: "au-delà de la discussion" },
 ];
 const moodOf = (approval) => MOOD.find((m) => approval >= m.at) ?? MOOD[MOOD.length - 1];
+// La teinte d'une marque, par degré et non par seuil. Relevé en jouant : le
+// registre notait +3,6 pt chez les réformateurs, −0,8 chez les centristes, et
+// l'hémicycle restait 160 points gris, faute qu'un seul électeur ait franchi
+// ±20. Dans la bande des indécis, la marque glisse du gris vers le vert quand
+// elle se rapproche de vous, vers l'ocre quand elle s'éloigne.
+const teinteDe = (approval) => {
+    const m = moodOf(approval);
+    if (m.word !== "indécis") return m.tone;
+    const part = Math.round(Math.min(1, Math.abs(approval) / LOYAL_AT) * 70);
+    if (part < 5) return m.tone;
+    return `color-mix(in oklab, ${approval > 0 ? "var(--oh-grant)" : "var(--oh-caution)"} ${part}%, var(--oh-text-dim))`;
+};
 
 // Les clés du moteur restent anglaises : `AXES` vient de runtime/factions.js,
 // les noms de groupes sont ceux du préréglage (churchPreset.js), et les deux
@@ -62,15 +74,21 @@ const seatPositions = (total) => {
         for (let i = 0; i < take; i += 1) {
             const t = take === 1 ? 0.5 : i / (take - 1);
             const angle = Math.PI * (0.05 + t * 0.9);
-            points.push({ x: 100 - Math.cos(angle) * radius, y: 101 - Math.sin(angle) * radius });
+            points.push({ angle, radius, x: 100 - Math.cos(angle) * radius, y: 101 - Math.sin(angle) * radius });
         }
     });
-    return points;
+    // Rangés par angle, de gauche à droite, toutes rangées confondues : un
+    // groupe forme alors un secteur, et non une rangée intérieure pleine.
+    return points.sort((a, b) => a.angle - b.angle || a.radius - b.radius);
 };
 
 const Hemicycle = ({ electors, axis, colours, selected, onSelect, byMood }) => {
     // Sorted by the chosen axis so each group is one wedge, not confetti.
-    const seated = useMemo(() => [...electors].sort((a, b) => String(a[axis]).localeCompare(String(b[axis]))), [electors, axis]);
+    // Par humeur, triés par approbation : la salle se lit de gauche (avec vous)
+    // à droite (contre vous), comme un dégradé et non comme des confettis.
+    const seated = useMemo(() => [...electors].sort((a, b) => (byMood
+        ? b.approval - a.approval
+        : String(a[axis]).localeCompare(String(b[axis])))), [electors, axis, byMood]);
     const points = useMemo(() => seatPositions(seated.length), [seated.length]);
     return (
         <svg viewBox="0 0 200 112" role="img" aria-label={`${seated.length} électeurs par ${(AXE_LABEL[axis] || axis).toLowerCase()}`} style={{ display: "block", width: "100%" }}>
@@ -82,7 +100,7 @@ const Hemicycle = ({ electors, axis, colours, selected, onSelect, byMood }) => {
             return (
                 <circle
                 key={i} cx={p.x} cy={p.y} r={2.2}
-                fill={byMood ? moodOf(e.approval).tone : colours[group]}
+                fill={byMood ? teinteDe(e.approval) : colours[group]}
                 opacity={dim ? 0.2 : 1}
                 stroke={group === selected ? "var(--oh-text-strong)" : "none"} strokeWidth={0.6}
                 style={{ cursor: "pointer" }}
@@ -312,7 +330,9 @@ export const College = ({ nav = null }) => {
         <div>
         <Hemicycle electors={assembly.electors} axis={axis} colours={colours} selected={selected} onSelect={setSelected} byMood={byMood} />
         <p style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)", lineHeight: 1.5, margin: "0.3rem 0 0" }}>
-        Une marque, un électeur. Personne n'appartient à un parti : les mêmes cent soixante personnes se regroupent par doctrine, par région ou par charge, et c'est pourquoi une réforme populaire sur un axe échoue sur un autre.
+        {byMood
+            ? "Une marque, un électeur, rangés du plus proche de vous (à gauche) au plus éloigné. La teinte suit l'approbation : grise à zéro, plus verte à mesure qu'il se rapproche, plus ocre à mesure qu'il s'éloigne ; vert franc au-delà de +20, il est avec vous."
+            : "Une marque, un électeur. Personne n'appartient à un parti : les mêmes cent soixante personnes se regroupent par doctrine, par région ou par charge, et c'est pourquoi une réforme populaire sur un axe échoue sur un autre."}
         </p>
         </div>
 
