@@ -68,6 +68,8 @@ const AU_VOTE = /(fai(re|s|t) voter|mettre au vote|mis au vote|soumettre au vote
 // frontière, et « écrire aux évêques… » n'était jamais reconnu comme un geste.
 const CONTACT = /(?<![\p{L}\p{N}])(écrire (à|aux|au)|écris (à|aux|au)|envoyer une lettre|une lettre (à|aux|au)|proposer une rencontre|rencontrer|recevoir en audience|audience privée|inviter)(?![\p{L}\p{N}])/iu;
 const DECIDE = /\b(réform\w*|supprim\w*|abol\w*|cré(er|ez|ons)|fond(er|ez)|nomm(er|ez)|destitu\w*|impos(er|ez)|interdi\w*|ouvr(ir|ez)|ferm(er|ez)|vend(re|ez)|céd(er|ez)|achet\w*|financ(er|ez)|soumett\w*|mettre au vote|fai(re|tes) voter|publi(er|ez)|décrét\w*|promulgu\w*|rédui(re|sez)|augment\w*|lanc(er|ez)|convoqu\w*|sanctionn\w*|limog\w*)\b/i;
+// La même lecture que le moteur quand il applique une économie (AI/gameplay.js).
+const ECONOMIE = /(gel(er)? (des|les|toutes les) embauches|(réduire|réduction|baisser|baisse|diminuer|diminution|comprimer|couper|rogner).{0,40}(masse salariale|dépenses|coûts|budget|effectifs|frais|salaires)|coupe(s)? budgétaire|économies? de|supprimer des postes)/i;
 // Le groupe du collège dont chaque courant porte la cause.
 const GROUPE_DU_COURANT = [
   [/dubia|traditionali/i, "traditional"],
@@ -237,7 +239,11 @@ export const assessAction = (action, ctx = {}) => {
     // manque déjà de 28 M€ ; toute dépense nouvelle est payée en entamant le
     // patrimoine » — le mot « verser » suffisait à en faire une dépense.
     const cession = ALIENER.test(text) && !INALIENABLE.test(text);
-    if ((has("spending") || has("military") || has("social") || has("monetary")) && revenue > 0 && !collecte && !cession) {
+    // Couper une dépense n'en est pas une. Relevé en jouant : « réduire de 10 %
+    // la masse salariale de la Curie » recevait « toute dépense nouvelle est
+    // payée en entamant le patrimoine ».
+    const economie = ECONOMIE.test(text);
+    if ((has("spending") || has("military") || has("social") || has("monetary")) && revenue > 0 && !collecte && !cession && !economie) {
       const deficitShare = balance < 0 ? -balance / revenue : 0;
       const room = e.financing === "drawdown" ? e.endowment + Math.max(0, e.treasury)
         : e.financing === "print" ? Infinity
@@ -478,6 +484,20 @@ const recitDeLOrdre = (action, events) => {
   return meilleur?.event ?? null;
 };
 
+// Tous les récits qui racontent cet ordre, pas seulement le plus proche : un
+// vote se raconte souvent en deux temps (la transmission, puis la séance).
+const recitsDeLOrdre = (action, events) => {
+  const cle = motsDe(`${action.title} ${action.text}`);
+  if (cle.size < 2) return [];
+  return (Array.isArray(events) ? events : []).filter((event) => {
+    if (!event || !event.playerRelated) return false;
+    const mots = motsDe(`${event.title} ${event.description}`);
+    let commun = 0;
+    for (const w of cle) if (mots.has(w)) commun += 1;
+    return commun >= Math.min(3, cle.size);
+  });
+};
+
 export const applyActionOutcomes = (actions, outcomes, assessments, { defaultStatus = "resolved", date = "", events = [] } = {}) => {
   const list = (Array.isArray(outcomes) ? outcomes : []).map(normalizeActionOutcome).filter(Boolean);
   const verdictById = new Map((Array.isArray(assessments) ? assessments : []).map((a) => [a.id, a]));
@@ -502,10 +522,23 @@ export const applyActionOutcomes = (actions, outcomes, assessments, { defaultSta
       };
     }
     const cap = a ? CAP_BY_VERDICT[a.verdict] : "success";
-    const capped = OUTCOME_RANK[o.outcome] > OUTCOME_RANK[cap] ? cap : o.outcome;
-    const reason = capped !== o.outcome && a?.constraints[0]
-      ? `${a.constraints[0].detail}${o.reason ? ` (le récit : ${o.reason})` : ""}`
-      : o.reason;
+    let capped = OUTCOME_RANK[o.outcome] > OUTCOME_RANK[cap] ? cap : o.outcome;
+    // Un vote que le récit raconte perdu est perdu. Relevé en jouant : « le vote
+    // a été suspendu sans adoption, le seuil de 81 voix n'étant pas atteint »,
+    // et « Le sort de vos ordres » affichait « Accordé en partie » sur la même
+    // page. Limité aux ordres qui passent par un vote, où « suspendu » ou
+    // « rejeté » ne peut vouloir dire qu'une chose.
+    const passeParUnVote = Boolean(a?.constraints?.some((c) => c.factor === "vote"));
+    const recitDuVote = passeParUnVote && capped !== "failure"
+      ? recitsDeLOrdre(action, events).find((e) => ECHEC.test(`${e.title} ${e.description}`)) ?? null
+      : null;
+    const votePerdu = Boolean(recitDuVote);
+    if (votePerdu) capped = "failure";
+    const reason = votePerdu
+      ? `${str(recitDuVote.title)}${a.constraints.find((c) => c.factor === "vote")?.detail ? ` — ${a.constraints.find((c) => c.factor === "vote").detail}` : ""}`
+      : capped !== o.outcome && a?.constraints[0]
+        ? `${a.constraints[0].detail}${o.reason ? ` (le récit : ${o.reason})` : ""}`
+        : o.reason;
     return { ...action, status: STATUS_BY_OUTCOME[capped], outcome: capped, outcomeNote: reason, verdict: a?.verdict ?? "", ...judged };
   });
 };
