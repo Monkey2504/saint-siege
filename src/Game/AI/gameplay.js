@@ -2143,7 +2143,7 @@ const applySimulationResult = async ({
     // somme s'ils sont écrits, sinon 1,5 % de la dépense civile (l'érosion
     // naturelle d'un effectif gelé), réduit de moitié pour un ordre partiel.
     {
-      const COUPE = /(gel(er)? (des|les|toutes les) embauches|réduire (la masse salariale|les dépenses|les coûts|le budget|les effectifs)|coupe(s)? budgétaire|économies? de|baisser les dépenses|supprimer des postes)/i;
+      const COUPE = /(gel(er)? (des|les|toutes les) embauches|(réduire|réduction|baisser|baisse|diminuer|diminution|comprimer|couper|rogner).{0,40}(masse salariale|dépenses|coûts|budget|effectifs|frais|salaires)|coupe(s)? budgétaire|économies? de|supprimer des postes)/i;
       const ecoPape = worldWithImpacts.economies?.[nextGame.country];
       const chiffreParLeRecit = freshEvents.some((e) => (e.impacts?.polityChanges ?? []).some((p) => p?.economy && normalizeString(p.code ?? p.polity ?? p.country ?? p.name) === normalizeString(nextGame.country)));
       if (ecoPape && !chiffreParLeRecit && Number(ecoPape.civilSpending) > 0) {
@@ -2302,7 +2302,7 @@ const applySimulationResult = async ({
     worldWithImpacts.churchBody = body.churchBody;
     if (body.notes.length) {
       worldWithImpacts.record = appendRecord(worldWithImpacts.record, body.notes.map((what) => ({
-        date: nextGame.gameDate, polity: HOLY_SEE, kind: "body", what, source: "orders:fronts",
+        date: nextGame.gameDate, polity: HOLY_SEE, kind: "body", what, amount: 0, unit: "note", source: "orders:fronts",
       })));
     }
 
