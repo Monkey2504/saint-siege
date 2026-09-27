@@ -144,7 +144,7 @@ const NOM_DU_POSTE = {
   balance: "solde de l'année",
   treasury: "trésorerie",
   endowment: "patrimoine",
-  unfundedLiabilities: "promesses non financées (retraites)",
+  unfundedLiabilities: "promesses non financées du Saint-Siège seul (retraites, hors Cité du Vatican et Vicariat)",
 };
 // Au-delà d'un quart d'écart, ce n'est plus un arrondi ni le chiffre d'un
 // autre moment du tour : c'est un autre chiffre.
