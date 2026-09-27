@@ -10,7 +10,7 @@ test("an empty desk carries the world at its own pace", () => {
   const out = nextEdition({}, [], { today: TODAY });
   assert.equal(out.days, SPANS.idle);
   assert.equal(out.date, "2029-03-31");
-  assert.match(out.reason, /rien sur le bureau/);
+  assert.match(out.reason, /aucun ordre sur le bureau/);
 });
 
 test("a letter is answered within the week", () => {
@@ -65,7 +65,7 @@ test("chats and settled orders do not set the pace", () => {
     order("Talk to Germany", { kind: "chat" }),
     order("Write to Berlin.", { status: "resolved" }),
   ], { today: TODAY });
-  assert.match(out.reason, /rien sur le bureau/);
+  assert.match(out.reason, /aucun ordre sur le bureau/);
 });
 
 test("the order that set the pace is named, so the date can be explained", () => {
