@@ -1800,6 +1800,13 @@ const refineEconomySeeds = async () => {
   if (changed) console.info(`[ai] economy seeds refined for ${changed} polit${changed === 1 ? "y" : "ies"}.`);
 };
 
+// Ce que pèse, dans la dépense civile du Saint-Siège, ce qu'un ordre d'économie
+// nomme (bilan consolidé 2024, cœur du Saint-Siège).
+const PART_DE_LA_DEPENSE = [
+  [/masse salariale|salaires?|rémunérations?|effectifs|personnel|embauches|postes/i, 0.36],
+  [/frais (généraux|de fonctionnement)|fonctionnement|dépenses courantes/i, 0.4],
+];
+
 const applySimulationResult = async ({
   baseActions,
   baseChats,
@@ -2183,7 +2190,15 @@ const applySimulationResult = async ({
           const millions = texte.match(/(\d+(?:[.,]\d+)?)\s*millions?/i);
           const usdPerSY = Number(ecoPape.usdPerSY) || 0;
           let coupe = civil * 0.015;
-          if (pct) coupe = civil * Math.min(0.2, Number(pct[1].replace(",", ".")) / 100);
+          // Un pourcentage porte sur ce que l'ordre nomme, pas sur toute la
+          // dépense. Relevé en jouant : « réduire de 10 % la masse salariale de
+          // la Curie » retirait 24 M€ par an — 10 % de TOUTE la dépense civile,
+          // alors que le personnel en est à peine plus du tiers (bilan 2024 :
+          // personnel 33 %, frais généraux 36 % d'une dépense de 527,8 M€).
+          const part = normalizeWorldState(worldWithImpacts).church
+            ? (PART_DE_LA_DEPENSE.find(([re]) => re.test(texte))?.[1] ?? 1)
+            : 1;
+          if (pct) coupe = civil * part * Math.min(0.2, Number(pct[1].replace(",", ".")) / 100);
           else if (millions && usdPerSY > 0) coupe = Math.min(civil * 0.2, (Number(millions[1].replace(",", ".")) * 1e6 * EUR_USD_2024) / usdPerSY);
           coupe *= poids;
           civil = Math.max(0, civil - coupe);
