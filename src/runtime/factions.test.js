@@ -333,3 +333,16 @@ test("le collège réagit à ce que le pape a fait, pas seulement aux chiffres",
   assert.ok(doctrine.reforming > 0);
   assert.ok(r.rows.length > 0, "le registre le dit");
 });
+
+test("un synode sur la place des laïcs ne réjouit pas le bloc des dubia", async () => {
+  const { applyChurchPreset, HOLY_SEE } = await import("./churchPreset.js");
+  const { reactionsAuxOrdres, groupsOn } = await import("./factions.js");
+  const w = applyChurchPreset({}, { date: "2026-09-01" });
+  const r = reactionsAuxOrdres(w.assembly, [{ title: "Convoquer un synode sur la participation des laïcs et des femmes aux décisions", outcome: "partial" }], { player: HOLY_SEE });
+  const doctrine = Object.fromEntries(groupsOn(r.assembly, "doctrine").map((g) => [g.name, g.approval]));
+  const courants = Object.fromEntries(groupsOn(r.assembly, "follows").map((g) => [g.name, g.approval]));
+  assert.ok(doctrine.traditional < 0);
+  assert.ok(doctrine.reforming > 0);
+  const dubia = Object.keys(courants).find((n) => /dubia/i.test(n));
+  assert.ok(dubia && courants[dubia] <= 0, `le bloc des dubia n'approuve pas (${courants[dubia]})`);
+});

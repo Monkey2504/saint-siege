@@ -665,11 +665,18 @@ const SUJETS = [
   [/(libéralis\w*|rétablir|autoriser|étendre).{0,60}(latin|tridentin|rite ancien|usus antiquior)/i, ["traditional"], ["reforming"]],
   [/(diaconat|ordination|prêtrise).{0,40}(femme|féminin)|(femmes?).{0,40}(diaconat|ordination)|bénédiction.{0,30}(couples?|homosexu)|célibat/i, ["reforming"], ["traditional", "africa"]],
   [/(discipline doctrinale|rappeler la doctrine|réaffirmer.{0,30}doctrine|orthodoxie|uniformité doctrinale)/i, ["traditional"], ["reforming"]],
-  [/(synode|synodalit\w*|conférences? épiscopales?|décentralis\w*|collégialit\w*)/i, ["reforming", "bishops"], ["curia"]],
+  // Les traditionnels comptent parmi les opposants à la synodalité : relevé en
+  // jouant, un synode sur la place des laïcs faisait « approuver » le bloc des
+  // dubia (ses évêques y gagnaient) le mois même où l'édition racontait ce bloc
+  // publiant un mémorandum contre le synode.
+  [/(synode|synodalit\w*|conférences? épiscopales?|décentralis\w*|collégialit\w*)/i, ["reforming", "bishops"], ["curia", "traditional"]],
   [/(audit|comptes consolidés|transparence financière|publier les comptes|laïc à la tête|réviseur)/i, ["reforming", "europe"], ["curia", "temporal"]],
   [/(abus|victimes|tribunal pontifical|protection des mineurs)/i, ["reforming", "bishops"], ["curia"]],
   [/(gel des embauches|réduire.{0,20}(dépenses|effectifs|salaires)|coupe budgétaire|licencier)/i, ["temporal"], ["curia"]],
   [/(séminaires?|vocations?|évangélisation|missions?).{0,60}(afrique|asie|sud)/i, ["africa", "asia", "bishops"], []],
+  // Ouvrir des séminaires en Europe plaît à l'Europe et aux évêques ; l'ordre
+  // ne touchait jusqu'ici personne.
+  [/(séminaires?|vocations?).{0,60}europ/i, ["europe", "bishops"], []],
   [/(paix|médiation|réfugiés|migrants|pauvres)/i, ["diplomacy", "orders"], []],
 ];
 
