@@ -36,6 +36,7 @@ import { CONTENU_TOP } from "./chrome.js";
 import { CahierVide, SectionHead, fmtCount, fmtDate, fmtEntier, fmtMoney, fmtSY, moneyOf } from "./journal.jsx";
 import { ligneDeRegistre } from "../../runtime/registerWords.js";
 import { ApercuDuCollege } from "./college.jsx";
+import { parleDArgent } from "../../runtime/churchPaper.js";
 
 // Written as a page, not as a panel dressed up as one. Nothing here inherits the
 // floating-drawer chrome the rest of the interface was built from: no border, no
@@ -1274,8 +1275,16 @@ const Bulletin = ({ onOpenAdvisor, pressFocus = 0, nav = null }) => {
         };
         // Before the first jump nothing has been printed at all: the whole list
         // is archive, and the left column prints the opening situation instead.
+        // La une ne s'ouvre pas sur l'argent quand l'Église a autre chose à
+        // dire. Relevé en jouant : « Point d'étape semestriel sur la gestion du
+        // portefeuille de l'APSA » en manchette, au-dessus d'un synode, d'une
+        // nonciature à Kiev et de nominations d'évêques. L'argent reste dans
+        // l'édition, même quand il rend compte d'un ordre : il n'ouvre plus la une.
+        const duTour = round ? dated.filter(thisTurn) : [];
+        const tete = duTour.findIndex((e) => !parleDArgent(e));
+        if (tete > 0) duTour.unshift(...duTour.splice(tete, 1));
         return {
-            edition: round ? dated.filter(thisTurn) : [],
+            edition: duTour,
             earlier: (round ? dated.filter((event) => !thisTurn(event)) : dated).slice(0, 8),
         };
     }, [events, world]);
