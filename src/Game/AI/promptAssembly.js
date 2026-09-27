@@ -23,6 +23,7 @@ import { MIGRATION_RULES } from "../../runtime/migration.js";
 import { WORLD_REACH_RULES } from "../../runtime/worldReach.js";
 import { LEADERS_RULES } from "../../runtime/succession.js";
 import { REALITY_RULES } from "../../runtime/realityCheck.js";
+import { REGLES_DU_RECIT } from "../../runtime/regleDuRecit.js";
 import { AUTONOMOUS_POWERS_RULES, ECONOMY_RULES_FOR_SIMULATION } from "../../runtime/economyBridge.js";
 import { renderTemplate, resolveHelperValues } from "./promptContext.js";
 
@@ -231,6 +232,10 @@ export const composeTaskSystemPrompt = (taskKey, {
     // The people who actually decide, and what each of them makes of the year.
     const room = normalizeString(variables.assemblySummary);
     if (room) systemPrompt = `${systemPrompt}\n\n${room}`;
+    // Le cabinet et les règles du récit, pour une partie de pape seulement.
+    const cabinet = normalizeString(variables.cabinetSummary);
+    if (cabinet) systemPrompt = `${systemPrompt}\n\n${cabinet}`;
+    if (room) systemPrompt = `${systemPrompt}\n\n${REGLES_DU_RECIT}`;
     const promises = normalizeString(variables.liabilitiesSummary);
     systemPrompt = `${systemPrompt}\n\n${promises || `[Unfunded Promises — engine state]\nNothing is owed that nobody has funded.\n\n${LIABILITY_RULES}`}`;
   }
