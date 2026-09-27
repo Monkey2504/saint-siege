@@ -70,6 +70,7 @@ const CONTACT = /(?<![\p{L}\p{N}])(écrire (à|aux|au)|écris (à|aux|au)|envoye
 const DECIDE = /\b(réform\w*|supprim\w*|abol\w*|cré(er|ez|ons)|fond(er|ez)|nomm(er|ez)|destitu\w*|impos(er|ez)|interdi\w*|ouvr(ir|ez)|ferm(er|ez)|vend(re|ez)|céd(er|ez)|achet\w*|financ(er|ez)|soumett\w*|mettre au vote|fai(re|tes) voter|publi(er|ez)|décrét\w*|promulgu\w*|rédui(re|sez)|augment\w*|lanc(er|ez)|convoqu\w*|sanctionn\w*|limog\w*)\b/i;
 // La même lecture que le moteur quand il applique une économie (AI/gameplay.js).
 const ECONOMIE = /(gel(er)? (des|les|toutes les) embauches|(réduire|réduction|baisser|baisse|diminuer|diminution|comprimer|couper|rogner).{0,40}(masse salariale|dépenses|coûts|budget|effectifs|frais|salaires)|coupe(s)? budgétaire|économies? de|supprimer des postes)/i;
+const CONSULTATION = /(consult(er|ez|ation)|sonder|recueillir l'avis|demander l'avis|demander un rapport|audition)/i;
 // Le groupe du collège dont chaque courant porte la cause.
 const GROUPE_DU_COURANT = [
   [/dubia|traditionali/i, "traditional"],
@@ -243,7 +244,10 @@ export const assessAction = (action, ctx = {}) => {
     // la masse salariale de la Curie » recevait « toute dépense nouvelle est
     // payée en entamant le patrimoine ».
     const economie = ECONOMIE.test(text);
-    if ((has("spending") || has("military") || has("social") || has("monetary")) && revenue > 0 && !collecte && !cession && !economie) {
+    // Consulter ne coûte rien : « consulter les conférences épiscopales sur la
+    // réforme des finances » recevait le même avertissement qu'une dépense.
+    const consultation = CONSULTATION.test(text);
+    if ((has("spending") || has("military") || has("social") || has("monetary")) && revenue > 0 && !collecte && !cession && !economie && !consultation) {
       const deficitShare = balance < 0 ? -balance / revenue : 0;
       const room = e.financing === "drawdown" ? e.endowment + Math.max(0, e.treasury)
         : e.financing === "print" ? Infinity
@@ -386,7 +390,12 @@ export const assessAction = (action, ctx = {}) => {
       "prêter, restaurer, ouvrir davantage, faire payer la visite — pas vendre");
   }
   // --- time ---
-  const lag = Math.max(...domains.map((d) => IMPLEMENTATION_LAG_YEARS[d] ?? 0.5));
+  // Une économie ou une consultation se décide et s'engage en quelques mois :
+  // « geler les embauches à la Curie » recevait les deux ans d'une réforme de
+  // la Curie, parce que le mot « Curie » en faisait une réforme.
+  const lag = ECONOMIE.test(text) || CONSULTATION.test(text)
+    ? 0.5
+    : Math.max(...domains.map((d) => IMPLEMENTATION_LAG_YEARS[d] ?? 0.5));
   if (years > 0 && years < lag) {
     push("time", clamp(0.35 * (1 - years / lag) + 0.15, 0, 0.5),
       `ce genre d'ordre met environ ${delai(lag)} à porter ; ce saut en couvre ${duree(years)}`,

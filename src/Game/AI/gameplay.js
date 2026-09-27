@@ -26,7 +26,7 @@ import { registerRows } from "../../runtime/register.js";
 import { ensureGatheringsFromOrders, holdDueGatherings, realizedMargin, runNationalProgramme, runWorldProgramme } from "../../runtime/gatherings.js";
 import { reconcileBodies } from "../../runtime/bodyCheck.js";
 import { markDeclarationAnswered } from "../../runtime/inauguration.js";
-import { comptesEnEuros, noteDuRegistre, regardeLEglise, sansPrelatsReels } from "../../runtime/churchPaper.js";
+import { comptesEnEuros, noteDuRegistre, parleDesComptesDuSaintSiege, regardeLEglise, sansPrelatsReels } from "../../runtime/churchPaper.js";
 import { buildRealityAssessments } from "./promptContext.js";
 import { EUR_USD_2024, HOLY_SEE, transfersForChurchEur } from "../../runtime/churchPreset.js";
 import { applyEconomyChange, daysBetween, describeEconomy, anchorUnitValue, describeSeedForRefinement, ensureEconomyMovesFromOrders, pinStatSheetToEngine, refineSeed, repinCountryStats, stepWorldEconomies } from "../../runtime/economyBridge.js";
@@ -1839,20 +1839,22 @@ const applySimulationResult = async ({
       event.title = sansPrelatsReels(event.title);
       event.description = sansPrelatsReels(event.description);
     }
-    // Un chiffre des comptes que le récit contredit reçoit, à la suite, ce que
-    // dit le registre (runtime/churchPaper.js noteDuRegistre).
-    const ecoDuPape = normalizeWorldState(baseWorld).economies?.[HOLY_SEE];
-    const comptes = ecoDuPape ? comptesEnEuros(economyIndicators(ecoDuPape), ecoDuPape.usdPerSY) : null;
-    if (comptes) {
-      for (const event of generatedEvents) {
-        const note = noteDuRegistre(`${event.title ?? ""} ${event.description ?? ""}`, comptes);
-        if (note) event.description = `${String(event.description ?? "").trim()} ${note}`.trim();
-      }
-    }
     const horsSujet = generatedEvents.filter((event) => !regardeLEglise(event));
     if (horsSujet.length) {
       console.info("[journal] hors sujet, non imprimé :", horsSujet.map((event) => event.title));
       generatedEvents = generatedEvents.filter((event) => regardeLEglise(event));
+    }
+    // Un chiffre des comptes du Saint-Siège que le récit contredit reçoit, à la
+    // suite, ce que dit le registre (runtime/churchPaper.js noteDuRegistre) —
+    // après le tri, et seulement sous une nouvelle qui parle de son argent.
+    const ecoDuPape = normalizeWorldState(baseWorld).economies?.[HOLY_SEE];
+    const comptes = ecoDuPape ? comptesEnEuros(economyIndicators(ecoDuPape), ecoDuPape.usdPerSY) : null;
+    if (comptes) {
+      for (const event of generatedEvents) {
+        if (!parleDesComptesDuSaintSiege(event)) continue;
+        const note = noteDuRegistre(`${event.title ?? ""} ${event.description ?? ""}`, comptes);
+        if (note) event.description = `${String(event.description ?? "").trim()} ${note}`.trim();
+      }
     }
   }
   // The model is shown the running timeline as context and tends to restate events

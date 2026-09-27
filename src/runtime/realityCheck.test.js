@@ -535,3 +535,13 @@ test("un vote raconté comme une impasse s'affiche « Refusé »", () => {
   const [judged] = applyActionOutcomes([action], [{ actionId: "a1", outcome: "partial" }], assessments, { date: "2026-11-14", events });
   assert.equal(judged.outcome, "failure");
 });
+
+test("geler les embauches et consulter les conférences épiscopales ne prennent pas deux ans et ne coûtent rien", () => {
+  const world = normalizeWorldState(applyChurchPreset({}, { date: "2026-09-01" }));
+  const ctx = { playerPolity: HOLY_SEE, economy: world.economies[HOLY_SEE], world, jumpDays: 30 };
+  for (const texte of ["Geler les embauches à la Curie jusqu'à nouvel ordre.", "Consulter les conférences épiscopales sur la réforme des finances de la Curie avant toute décision."]) {
+    const a = assessAction(order(texte), ctx);
+    assert.ok(!a.constraints.some((c) => c.factor === "budget"), `${texte} : ${JSON.stringify(a.constraints)}`);
+    assert.ok(!a.constraints.some((c) => c.factor === "time" && /2 ans/.test(c.detail)), `${texte} : ${JSON.stringify(a.constraints)}`);
+  }
+});

@@ -233,3 +233,10 @@ test("M13 large log with heavy duplication stays correct", () => {
   for (let i = 0; i < 100; i += 1) log.push(ev({ id: `e${i}`, title: i % 2 === 0 ? "Even" : "Odd" }));
   assert.deepEqual(ids(dedupeEventLog(log)), ["e0", "e1"]);
 });
+
+test("le même article à deux dates dans une même livraison n'est imprimé qu'une fois", async () => {
+  const { dedupeGeneratedEvents } = await import("./eventDedup.js");
+  const a = { date: "2026-09-05", title: "Application partielle du gel des embauches", description: "Le Secrétariat pour l'Économie notifie…" };
+  const b = { ...a, date: "2026-09-15" };
+  assert.equal(dedupeGeneratedEvents([], [a, b]).length, 1);
+});
