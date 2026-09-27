@@ -545,3 +545,11 @@ test("geler les embauches et consulter les conférences épiscopales ne prennent
     assert.ok(!a.constraints.some((c) => c.factor === "time" && /2 ans/.test(c.detail)), `${texte} : ${JSON.stringify(a.constraints)}`);
   }
 });
+
+test("ouvrir des séminaires financés par le Denier n'est pas une collecte", () => {
+  const world = normalizeWorldState(applyChurchPreset({}, { date: "2026-09-01" }));
+  const ctx = { playerPolity: HOLY_SEE, economy: world.economies[HOLY_SEE], world, jumpDays: 30 };
+  const a = assessAction(order("Ouvrir deux séminaires en Afrique de l'Ouest, financés par le Denier de Saint-Pierre."), ctx);
+  assert.notEqual(a.verdict, "feasible", JSON.stringify(a.constraints));
+  assert.ok(a.constraints.some((c) => c.factor === "time"));
+});

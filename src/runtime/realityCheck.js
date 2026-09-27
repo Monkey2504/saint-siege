@@ -84,8 +84,12 @@ export const atteinteAuPatrimoine = (texte) => {
   const bien = t.match(INALIENABLE);
   return bien && ALIENER.test(t) ? bien[0] : "";
 };
-const COLLECTE = /(campagne de (dons|collecte|souscription)|collecte de fonds|lev(ée|er) de fonds|lever des fonds|appel (aux|à des) dons|quête|souscription|denier de saint-pierre|fundrais|donation drive|appeal for donations)/i;
-const DEPENSE_EXPLICITE = /(construire|acheter|dépenser|verser .{0,20}(salaire|prime)|embaucher|subventionner)/i;
+// « Financés par le Denier de Saint-Pierre » nomme une source, pas une
+// collecte : relevé en jouant, « ouvrir deux séminaires en Afrique, financés
+// par le Denier » passait pour une collecte (un mois, pas de budget) et
+// sortait « exécuté en entier ». Le Denier ne compte que s'il est collecté.
+const COLLECTE = /(campagne de (dons|collecte|souscription)|collecte de fonds|lev(ée|er) de fonds|lever des fonds|appel (aux|à des) dons|quête|souscription|(relancer|lancer|appel|collecte|quête).{0,20}denier de saint-pierre|fundrais|donation drive|appeal for donations)/i;
+const DEPENSE_EXPLICITE = /(construire|acheter|dépenser|verser .{0,20}(salaire|prime)|embaucher|subventionner|ouvrir .{0,40}(séminaire|école|hôpital|maison|centre|nonciature)|financ(er|és?|ées?) par)/i;
 const INALIENABLE = /(chapelle sixtine|sixtine|sistine|basilique saint-pierre|saint-pierre de rome|st\.? peter'?s basilica|place saint-pierre|musées du vatican|musees du vatican|vatican museums|bibliothèque (apostolique )?vaticane|archives (apostoliques )?vaticanes|archives apostoliques|pietà|pieta|saint-jean-de-latran|latran)/i;
 
 // ---- what kind of order this is -----------------------------------------------------------
