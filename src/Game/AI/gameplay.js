@@ -2257,9 +2257,13 @@ const applySimulationResult = async ({
       const total = g.parts.reduce((sum, p) => sum + p.step, 0);
       const vues = g.parts.filter((p) => Math.abs(p.step) >= 0.5);
       if (Math.abs(total) < 0.5 && !vues.length) continue;
-      const morceaux = vues.map((p) => (PHRASE[p.kind] ? PHRASE[p.kind](p.step > 0) : p.reason));
       const opposes = vues.some((p) => p.step > 0) && vues.some((p) => p.step < 0);
-      let raison = morceaux.join(opposes ? " mais " : " et ");
+      const bilanEtOrdres = !opposes && vues.some((p) => p.kind === "bilan") && vues.some((p) => p.kind === "ordres");
+      // « approuve le bilan du mois et approuve vos ordres du mois » : un seul verbe.
+      const morceaux = bilanEtOrdres
+        ? [`${vues[0].step > 0 ? "approuve" : "désapprouve"} le bilan et les ordres du mois`, ...vues.filter((p) => !PHRASE[p.kind]).map((p) => p.reason)]
+        : vues.map((p) => (PHRASE[p.kind] ? PHRASE[p.kind](p.step > 0) : p.reason));
+      let raison = morceaux.length ? morceaux.join(opposes ? " mais " : " et ") : `${total > 0 ? "approuve" : "désapprouve"} le mois écoulé`;
       const pluriel = (g.axis === "doctrine" && g.group !== playerName) || !g.group;
       if (pluriel) raison = raison.replace(/\b(dés)?approuve\b/g, (m) => `${m}nt`).replace(/a été retourné\b/g, "ont été retournés");
       const groupe = g.axis === "doctrine" ? electeursDuGroupe(g.group, g.seats) : "";
