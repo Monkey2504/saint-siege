@@ -596,5 +596,5 @@ test("un vote dont la majorité est acquise passe, même si le modèle dit « en
   assert.equal(assessment.verdict, "feasible");
   const [judged] = applyActionOutcomes([action], [{ actionId: "a1", outcome: "partial", reason: "délai de procédure" }], [assessment], { date: "2027-01-15", events: [] });
   assert.equal(judged.outcome, "success");
-  assert.match(judged.outcomeNote, /85 voix avec vous/);
+  assert.match(judged.outcomeNote, /le collège a voté : 85 voix avec vous.*a passé/);
 });

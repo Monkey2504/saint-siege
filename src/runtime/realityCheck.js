@@ -81,6 +81,8 @@ const GROUPE_DU_COURANT = [
 const VOTE_ACQUIS = "le vote est acquis : il se tient ce mois-ci et passe";
 // Ce que le modèle lit en plus : le scrutin a lieu AVANT la fin de la période.
 const VOTE_ACQUIS_CONSIGNE = "racontez le scrutin et son résultat dans cette édition, daté avant la fin de la période ; ne le reportez pas à une session ultérieure";
+// Après le jugement, le sort d'un vote acquis se lit au passé.
+const auPasse = (detail) => (detail ? String(detail).replace("le collège vote :", "le collège a voté :").replace(VOTE_ACQUIS, "le vote s'est tenu et a passé") : "");
 /** L'ordre se décide-t-il au vote du collège ? */
 export const seDecideAuVote = (texte) => AU_VOTE.test(str(texte));
 /** Le texte ordonne-t-il de vendre un bien inaliénable (chapelle Sixtine…) ? */
@@ -573,7 +575,7 @@ export const applyActionOutcomes = (actions, outcomes, assessments, { defaultSta
         outcome,
         outcomeNote: raconteEchec
           ? `${str(recit.title)}${a.constraints[0]?.detail ? ` — ${a.constraints[0].detail}` : ""}`
-          : (a.constraints.find((c) => c.factor === "vote" && String(c.detail).includes(VOTE_ACQUIS))?.detail || a.constraints[0]?.detail || ""),
+          : (auPasse(a.constraints.find((c) => c.factor === "vote" && String(c.detail).includes(VOTE_ACQUIS))?.detail) || a.constraints[0]?.detail || ""),
         verdict: a.verdict,
         ...judged,
       };
@@ -596,8 +598,8 @@ export const applyActionOutcomes = (actions, outcomes, assessments, { defaultSta
       : null;
     const votePerdu = Boolean(recitDuVote);
     if (votePerdu) capped = "failure";
-    const reason = force
-      ? a.constraints.find((c) => c.factor === "vote").detail
+    const reason = force || voteAcquis
+      ? auPasse(a.constraints.find((c) => c.factor === "vote").detail)
       : votePerdu
       ? `${str(recitDuVote.title)}${a.constraints.find((c) => c.factor === "vote")?.detail ? ` — ${a.constraints.find((c) => c.factor === "vote").detail}` : ""}`
       : capped !== o.outcome && a?.constraints[0]
