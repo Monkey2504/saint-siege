@@ -122,7 +122,12 @@ export const wantOf = (name, { intents = [], economies = {}, player = "" } = {})
     // financière ». Le calcul du moteur (economy.js) compte l'impôt.
     const revenue = annualRevenue(e);
     const spend = annualSpending(e);
-    if (spend > revenue * 1.1) return "is short of money and will turn any subject toward what it costs and who pays";
+    // Un déficit ordinaire n'est pas une obsession. Relevé en jouant : le
+    // Canada du moteur dépense 11 % de plus qu'il ne perçoit — le lot de la
+    // plupart des États modernes — et chaque lettre au pape tournait à l'argent.
+    // Il faut une vraie impasse, près d'un tiers de trou, pour que tout sujet y
+    // ramène.
+    if (spend > revenue * 1.3) return "is short of money and will turn any subject toward what it costs and who pays";
     if (finite(e.unfundedLiabilities) > 0) return "owes more than it has set aside, and is defensive about its accounts";
   }
   return "wants standing more than anything material: to be consulted, named, and treated as an equal";

@@ -107,3 +107,8 @@ test("un État qui vit de l'impôt n'est pas « à court d'argent »", () => {
   const canada = { taxRate: 0.3, transfers: 0, endowment: 0, civilSpending: 1, militaryUpkeep: 0 };
   assert.doesNotMatch(wantOf("Canada", { economies: { Canada: canada }, player: "Saint-Siège" }), /short of money/);
 });
+
+test("un déficit ordinaire ne fait pas un correspondant obsédé par l'argent", () => {
+  const e = { taxRate: 0, transfers: 1000, civilSpending: 850, militaryUpkeep: 0 };
+  assert.doesNotMatch(wantOf("Canada", { economies: { Canada: e }, player: "Saint-Siège" }), /short of money/);
+});
