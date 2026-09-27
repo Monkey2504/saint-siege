@@ -471,3 +471,12 @@ test("quand le récit raconte l'échec d'un ordre, le verdict affiché le dit", 
   const [sansRecit] = applyActionOutcomes(actions, [], assessments, { events: [] });
   assert.equal(sansRecit.outcome, "partial");
 });
+
+test("vendre un immeuble fait rentrer de l'argent : le déficit ne lui est pas opposé comme à une dépense", () => {
+  const weak = normalizeEconomy({ ...solid(), civilSpending: 1e12 });
+  const ctx = { playerPolity: "Ruritania", economy: weak, world: {}, jumpDays: 30 };
+  const vente = assessAction(order("Vendre l'immeuble de Sloane Avenue à Londres et verser le produit au fonds de pension."), ctx);
+  assert.ok(!vente.constraints.some((c) => c.factor === "budget"));
+  const depense = assessAction(order("Build a national rail network"), ctx);
+  assert.ok(depense.constraints.some((c) => c.factor === "budget"));
+});

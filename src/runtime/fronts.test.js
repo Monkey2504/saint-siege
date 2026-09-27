@@ -168,3 +168,23 @@ test("a fresh Holy See game opens with all six fronts held, not with four blanks
   assert.ok(held.some((r) => r.key === "vocations"), "the clergy is counted");
   assert.ok(held.some((r) => r.key === "safeguarding"), "the files exist");
 });
+
+test("synodalité : le front se mesure à partir des ordres, et une lettre ne compte pas", () => {
+  const orders = [
+    order("Soumettre au vote du collège la réforme du fonds de pension."),
+    order("Supprimer par motu proprio la commission des biens culturels."),
+    order("Écrire aux cardinaux des dubia pour leur proposer une rencontre."),
+  ];
+  const { churchBody } = ensureBodyFromOrders({}, orders, { years: 1 / 12 });
+  assert.equal(churchBody.governance.voted, 1);
+  assert.equal(churchBody.governance.decreed, 1);
+  const row = frontRows({ churchBody }, "Saint-Siège").find((r) => r.key === "governance");
+  assert.equal(Math.round(row.value), 50);
+  assert.ok(row.hint);
+});
+
+test("synodalité : sans aucune décision, le front le dit en clair", () => {
+  const row = frontRows({ churchBody: {} }, "Saint-Siège").find((r) => r.key === "governance");
+  assert.equal(row.value, null);
+  assert.equal(row.empty, "aucune décision encore");
+});

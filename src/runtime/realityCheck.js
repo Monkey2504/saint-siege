@@ -215,7 +215,13 @@ export const assessAction = (action, ctx = {}) => {
     // une dépense — « toute dépense nouvelle est payée en entamant le
     // patrimoine » — parce que « pension » et « fonds » la classaient ainsi.
     const collecte = estCollecte;
-    if ((has("spending") || has("military") || has("social") || has("monetary")) && revenue > 0 && !collecte) {
+    // Vendre un bien (qui n'est pas inaliénable) fait rentrer de l'argent : ce
+    // n'est pas une dépense. Rapport de terrain : « vendre l'immeuble de Sloane
+    // Avenue et verser le produit au fonds de pension » recevait « le budget
+    // manque déjà de 28 M€ ; toute dépense nouvelle est payée en entamant le
+    // patrimoine » — le mot « verser » suffisait à en faire une dépense.
+    const cession = ALIENER.test(text) && !INALIENABLE.test(text);
+    if ((has("spending") || has("military") || has("social") || has("monetary")) && revenue > 0 && !collecte && !cession) {
       const deficitShare = balance < 0 ? -balance / revenue : 0;
       const room = e.financing === "drawdown" ? e.endowment + Math.max(0, e.treasury)
         : e.financing === "print" ? Infinity
@@ -323,7 +329,7 @@ export const assessAction = (action, ctx = {}) => {
     const strongest = relevant.reduce((m, it) => Math.max(m, it.stage), 0);
     // One early scheme is a warning, not a wall; several far along are a wall.
     push("opposition", clamp(0.15 + 0.08 * relevant.length + 0.25 * (strongest / 100) - 0.05 * Math.min(3, supportive.length), 0.05, 0.7),
-      `${relevant.length} puissance${relevant.length > 1 ? "s ont" : " a"} un chantier sur ce terrain : ${relevant.map((it) => `${nomLisible(it.owner)} (${it.secret ? "en secret, " : ""}${it.stance === "hostile" ? "contre vous" : "sur sa propre ligne"}, ${it.stage} % du chemin)`).join(" ; ")}${supportive.length ? ` ; travaillent pour vous : ${supportive.map((it) => nomLisible(it.owner)).join(", ")}` : ""}`,
+      `${relevant.length} puissance${relevant.length > 1 ? "s ont" : " a"} un chantier sur ce terrain : ${relevant.map((it) => `${nomLisible(it.owner)} (${it.secret ? "manœuvre discrète repérée par vos informateurs, " : ""}${it.stance === "hostile" ? "contre vous" : "sur sa propre ligne"}, ${it.stage} % du chemin)`).join(" ; ")}${supportive.length ? ` ; travaillent pour vous : ${supportive.map((it) => nomLisible(it.owner)).join(", ")}` : ""}`,
       "agir sur elles avant qu'elles n'agissent sur vous — les exposer, les acheter, les diviser ; s'appuyer sur celles qui vous suivent");
   }
   // --- l'inaliénable ---
