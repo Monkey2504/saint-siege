@@ -506,6 +506,18 @@ test("le bloc des dubia ne s'oppose pas à un ordre qu'il réclame", () => {
   assert.ok(contre && /dubia/i.test(contre.detail), "restreindre le rite ancien les trouve contre soi");
 });
 
+test("un vote que le récit raconte perdu s'affiche « Refusé », même si le modèle a dit « en partie »", () => {
+  const action = order("Soumettre au vote du collège un motu proprio réaffirmant la doctrine sur le mariage.");
+  const assessments = [{ id: "a1", verdict: "constrained", constraints: [{ factor: "vote", detail: "le collège vote : il en faut 81, votre courant en compte 42" }] }];
+  const events = [
+    { title: "Transmission du projet de motu proprio sur le mariage au Collège", description: "Le Dicastère transmet au collège les éléments du motu proprio réaffirmant la doctrine.", playerRelated: true },
+    { title: "Suspension du vote sur le mariage au Collège faute de majorité", description: "Le texte réaffirmant la doctrine du mariage n'a pas atteint 81 voix au collège ; le vote a été suspendu sans adoption.", playerRelated: true },
+  ];
+  const [judged] = applyActionOutcomes([action], [{ actionId: "a1", outcome: "partial", reason: "vote en cours" }], assessments, { date: "2026-10-15", events });
+  assert.equal(judged.outcome, "failure");
+  assert.match(judged.outcomeNote, /Suspension du vote/);
+});
+
 test("couper la masse salariale n'est pas une dépense, et réaffirmer la doctrine ne met pas les dubia contre soi", () => {
   const world = normalizeWorldState(applyChurchPreset({}, { date: "2026-09-01" }));
   const ctx = { playerPolity: HOLY_SEE, economy: world.economies[HOLY_SEE], world, jumpDays: 30 };

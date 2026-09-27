@@ -484,6 +484,20 @@ const recitDeLOrdre = (action, events) => {
   return meilleur?.event ?? null;
 };
 
+// Tous les récits qui racontent cet ordre, pas seulement le plus proche : un
+// vote se raconte souvent en deux temps (la transmission, puis la séance).
+const recitsDeLOrdre = (action, events) => {
+  const cle = motsDe(`${action.title} ${action.text}`);
+  if (cle.size < 2) return [];
+  return (Array.isArray(events) ? events : []).filter((event) => {
+    if (!event || !event.playerRelated) return false;
+    const mots = motsDe(`${event.title} ${event.description}`);
+    let commun = 0;
+    for (const w of cle) if (mots.has(w)) commun += 1;
+    return commun >= Math.min(3, cle.size);
+  });
+};
+
 export const applyActionOutcomes = (actions, outcomes, assessments, { defaultStatus = "resolved", date = "", events = [] } = {}) => {
   const list = (Array.isArray(outcomes) ? outcomes : []).map(normalizeActionOutcome).filter(Boolean);
   const verdictById = new Map((Array.isArray(assessments) ? assessments : []).map((a) => [a.id, a]));
@@ -508,10 +522,23 @@ export const applyActionOutcomes = (actions, outcomes, assessments, { defaultSta
       };
     }
     const cap = a ? CAP_BY_VERDICT[a.verdict] : "success";
-    const capped = OUTCOME_RANK[o.outcome] > OUTCOME_RANK[cap] ? cap : o.outcome;
-    const reason = capped !== o.outcome && a?.constraints[0]
-      ? `${a.constraints[0].detail}${o.reason ? ` (le récit : ${o.reason})` : ""}`
-      : o.reason;
+    let capped = OUTCOME_RANK[o.outcome] > OUTCOME_RANK[cap] ? cap : o.outcome;
+    // Un vote que le récit raconte perdu est perdu. Relevé en jouant : « le vote
+    // a été suspendu sans adoption, le seuil de 81 voix n'étant pas atteint »,
+    // et « Le sort de vos ordres » affichait « Accordé en partie » sur la même
+    // page. Limité aux ordres qui passent par un vote, où « suspendu » ou
+    // « rejeté » ne peut vouloir dire qu'une chose.
+    const passeParUnVote = Boolean(a?.constraints?.some((c) => c.factor === "vote"));
+    const recitDuVote = passeParUnVote && capped !== "failure"
+      ? recitsDeLOrdre(action, events).find((e) => ECHEC.test(`${e.title} ${e.description}`)) ?? null
+      : null;
+    const votePerdu = Boolean(recitDuVote);
+    if (votePerdu) capped = "failure";
+    const reason = votePerdu
+      ? `${str(recitDuVote.title)}${a.constraints.find((c) => c.factor === "vote")?.detail ? ` — ${a.constraints.find((c) => c.factor === "vote").detail}` : ""}`
+      : capped !== o.outcome && a?.constraints[0]
+        ? `${a.constraints[0].detail}${o.reason ? ` (le récit : ${o.reason})` : ""}`
+        : o.reason;
     return { ...action, status: STATUS_BY_OUTCOME[capped], outcome: capped, outcomeNote: reason, verdict: a?.verdict ?? "", ...judged };
   });
 };
