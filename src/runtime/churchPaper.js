@@ -17,7 +17,7 @@
 
 import { ledgerContradictions } from "./claimCheck.js";
 import { EUR_USD_2024 } from "./money.js";
-import { groupsOn, normalizeAssembly, ownBloc, standing } from "./factions.js";
+import { coalition, groupsOn, normalizeAssembly, ownBloc, standing } from "./factions.js";
 
 const str = (v) => String(v ?? "").trim();
 
@@ -210,7 +210,7 @@ export const parleDesComptesDuSaintSiege = (event) => Boolean(event && (event.pl
 const DECOMPTE = /(?<![\p{L}\p{N}])(\d{1,3})\s+(?:voix|électeurs|electeurs|cardinaux|indécis|opposants?|oppositions?|favorables|hostiles|suffrages|votants?|abstentions?)(?![\p{L}])/giu;
 
 /** Les nombres qu'un récit peut écrire sur le collège, et le résumé à imprimer. */
-export const decomptesDuCollege = (assembly, player) => {
+export const decomptesDuCollege = (assembly, player, pactes = []) => {
   const a = normalizeAssembly(assembly);
   if (!a) return null;
   const s = standing(a);
@@ -225,7 +225,14 @@ export const decomptesDuCollege = (assembly, player) => {
   }
   // Une coalition du courant du pape avec un autre courant est un décompte réel.
   for (const n of courants) permis.add(mien + n);
-  const resume = `${a.seats} électeurs ; votre courant vote avec vous (${mien} voix), il en faut ${s.majority} ; opinion de la salle : ${s.with} favorables, ${s.undecided} indécis, ${s.against} hostiles`;
+  // Et les pactes conclus : leur total est le décompte des votes du pape.
+  const allies = (Array.isArray(pactes) ? pactes : []).map((p) => p?.courant).filter(Boolean);
+  const table = allies.length ? coalition(a, { player, need: s.majority, sitWith: allies }) : null;
+  if (table) { permis.add(table.held); permis.add(a.seats - table.held); }
+  const avec = table && table.partners.length
+    ? `${table.held} voix votent avec vous (votre courant ${mien}, ${table.partners.map((p) => `${p.name} ${p.seats}`).join(", ")})`
+    : `votre courant vote avec vous (${mien} voix)`;
+  const resume = `${a.seats} électeurs ; ${avec}, il en faut ${s.majority} ; opinion de la salle : ${s.with} favorables, ${s.undecided} indécis, ${s.against} hostiles`;
   return { permis, resume };
 };
 
