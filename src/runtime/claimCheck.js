@@ -71,7 +71,7 @@ const fmt = (n) => (Math.abs(n) >= 1e6 ? `${(n / 1e6).toFixed(2)} million` : Mat
  * output. Returns one line per contradicted aggregate, plus the sign check that
  * catches "the deficit is fully absorbed" when the engine still shows one.
  */
-export const checkLedgerClaims = (text, indicators) => {
+export const ledgerContradictions = (text, indicators) => {
   const body = str(text);
   const i = indicators && typeof indicators === "object" ? indicators : null;
   if (!body || !i) return [];
@@ -85,18 +85,18 @@ export const checkLedgerClaims = (text, indicators) => {
   // The claim is usually made in words, and the words are rarely adjacent:
   // "le déficit initial de -18 641 SY/an est intégralement résorbé".
   if (balance != null && balance < 0 && /\b(exc[ée]dent|surplus|solde (?:budg[ée]taire )?(?:net )?positif|repass[ée]e? en (?:solde )?positif|back in surplus)\b/i.test(body)) {
-    out.push(`It says the deficit is closed. The engine shows a deficit of ${fmt(Math.abs(balance))} SY a year, still eating the patrimony.`);
+    out.push({ kind: "sign", key: "balance", label: "the yearly balance", claimed: null, actual: balance });
     said.add("balance");
   }
   // The same claim made as a verb about the deficit, with anything in between.
   if (balance != null && balance < 0 && !said.has("balance")
     && /\bd[ée]ficit\b[^.!?]{0,60}\b(r[ée]sorb\w*|combl\w*|effac\w*|[ée]limin\w*|annul\w*)\b/i.test(body)) {
-    out.push(`It says the deficit is closed. The engine shows a deficit of ${fmt(Math.abs(balance))} SY a year, still eating the patrimony.`);
+    out.push({ kind: "sign", key: "balance", label: "the yearly balance", claimed: null, actual: balance });
     said.add("balance");
   }
   if (balance != null && balance < 0 && !said.has("balance")
     && /\bdeficit\b[^.!?]{0,60}\b(closed|absorbed|resolved|erased|eliminated|wiped)\b/i.test(body)) {
-    out.push(`It says the deficit is closed. The engine shows a deficit of ${fmt(Math.abs(balance))} SY a year, still eating the patrimony.`);
+    out.push({ kind: "sign", key: "balance", label: "the yearly balance", claimed: null, actual: balance });
     said.add("balance");
   }
 
@@ -120,11 +120,20 @@ export const checkLedgerClaims = (text, indicators) => {
     // euros of yield is not a wrong claim about 353,907 SY of spending.
     const ratio = claim.value / scale;
     if (ratio < 0.05 || ratio > 20) continue;
-    out.push(`It gives ${hit.label} as ${fmt(claim.value)}. The engine holds ${fmt(actual)} SY.`);
+    out.push({ kind: "figure", key: hit.key, label: hit.label, claimed: claim.value, actual, after: claim.after });
     said.add(hit.key);
   }
   return out;
 };
+
+/**
+ * Ce qu'une réponse contredit dans les comptes, en phrases (anglais, pour le
+ * conseiller et les invites). Les mêmes contradictions que
+ * ledgerContradictions, qui les rend structurées pour qui veut les corriger.
+ */
+export const checkLedgerClaims = (text, indicators) => ledgerContradictions(text, indicators).map((c) => (c.kind === "sign"
+  ? `It says the deficit is closed. The engine shows a deficit of ${fmt(Math.abs(c.actual))} SY a year, still eating the patrimony.`
+  : `It gives ${c.label} as ${fmt(c.claimed)}. The engine holds ${fmt(c.actual)} SY.`));
 
 /** The correction shown under a reply that contradicted the accounts. */
 export const describeLedgerCorrections = (lines) => (Array.isArray(lines) && lines.length
