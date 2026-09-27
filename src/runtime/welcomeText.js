@@ -11,7 +11,7 @@
 // the translator, as it should.
 
 const EN = {
-  eyebrow: "Open Historia",
+  eyebrow: "Saint-Siège",
   title: "Become the new pope",
   lead: "No army. No territory to conquer. Half a square kilometre, a billion and a half baptised, a Curia that will outlive you, and accounts that do not lie.",
   begin: "Begin",
@@ -22,7 +22,7 @@ const EN = {
 const TEXT = Object.freeze({
   en: EN,
   fr: {
-    eyebrow: "Open Historia",
+    eyebrow: "Saint-Siège",
     title: "Devenez le nouveau pape",
     lead: "Pas d'armée. Pas de territoire à conquérir. Un demi-kilomètre carré, un milliard et demi de baptisés, une Curie qui vous survivra, et des comptes qui ne mentent pas.",
     begin: "Commencer",
@@ -30,7 +30,7 @@ const TEXT = Object.freeze({
     credit: "Photographie",
   },
   es: {
-    eyebrow: "Open Historia",
+    eyebrow: "Saint-Siège",
     title: "Conviértase en el nuevo papa",
     lead: "Sin ejército. Sin territorio que conquistar. Medio kilómetro cuadrado, mil quinientos millones de bautizados, una Curia que le sobrevivirá y unas cuentas que no mienten.",
     begin: "Comenzar",
@@ -38,7 +38,7 @@ const TEXT = Object.freeze({
     credit: "Fotografía",
   },
   it: {
-    eyebrow: "Open Historia",
+    eyebrow: "Saint-Siège",
     title: "Diventa il nuovo papa",
     lead: "Nessun esercito. Nessun territorio da conquistare. Mezzo chilometro quadrato, un miliardo e mezzo di battezzati, una Curia che ti sopravvivrà e conti che non mentono.",
     begin: "Inizia",
@@ -46,7 +46,7 @@ const TEXT = Object.freeze({
     credit: "Fotografia",
   },
   de: {
-    eyebrow: "Open Historia",
+    eyebrow: "Saint-Siège",
     title: "Werden Sie der neue Papst",
     lead: "Keine Armee. Kein Gebiet zu erobern. Ein halber Quadratkilometer, anderthalb Milliarden Getaufte, eine Kurie, die Sie überleben wird, und Zahlen, die nicht lügen.",
     begin: "Beginnen",
@@ -54,7 +54,7 @@ const TEXT = Object.freeze({
     credit: "Fotografie",
   },
   pt: {
-    eyebrow: "Open Historia",
+    eyebrow: "Saint-Siège",
     title: "Torne-se o novo papa",
     lead: "Sem exército. Sem território a conquistar. Meio quilómetro quadrado, mil e quinhentos milhões de baptizados, uma Cúria que lhe sobreviverá e contas que não mentem.",
     begin: "Começar",

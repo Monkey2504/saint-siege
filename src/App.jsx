@@ -218,18 +218,20 @@ function GameApp() {
       />
     )}
     {!isReady && <StartupScreen {...startupOverlayState} />}
-    {/* Asked once, at the front door, and never again. A player with no key can
-        install, wait for the map, start a pontificate and play a whole turn
-        before anything tells them the world cannot think — and then they
-        conclude the game is broken rather than unconfigured. */}
-    {isReady && needsKey && <FirstRunKey onDone={() => setNeedsKey(false)} />}
-    {/* The front door, over everything, until the player opens it. A library of
-        saved games behind Games / Scenarios / Community tabs is what a returning
-        author wants; somebody who has never played this kind of game needs to be
-        told what it is first. */}
-    {isReady && !needsKey && !entered && (
+    {/* The front door, over everything until the player opens it, and the FIRST
+        thing anyone sees. A library of saved games behind Games / Scenarios /
+        Community tabs is what a returning author wants; somebody who has never
+        played this kind of game needs to be told what it is first. */}
+    {isReady && !entered && (
       <Welcome hasSave={Boolean(activeGameId)} onBegin={() => setEntered(true)} />
     )}
+    {/* Asked once, just behind the door, and never again. A player with no key
+        can wait for the map, start a pontificate and play a whole turn before
+        anything tells them the world cannot think — and then they conclude the
+        game is broken rather than unconfigured. Behind the door and not in
+        front of it: nobody is asked for an API key before being told what the
+        game is. */}
+    {isReady && entered && needsKey && <FirstRunKey onDone={() => setNeedsKey(false)} />}
     </>
   );
 }

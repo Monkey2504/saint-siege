@@ -104,8 +104,10 @@ export const openLibraryTab = (tab) => {
 // Whether the main menu is showing. Lives at module scope because the whole UI
 // tree (this component included) remounts whenever the active game changes —
 // per-component state would reset to "open" mid game-start and the menu would
-// pop back over the freshly activated game. The app boots into the menu.
-let menuOpenDefault = true;
+// pop back over the freshly activated game. The app boots into the GAME, not
+// the menu: somebody who has never played must land on the edition, not on a
+// list of saves. The menu stays one click away, behind its own button.
+let menuOpenDefault = false;
 // For background work that should not run for a game the player hasn't
 // actually entered (e.g. pre-game history generation while browsing the menu).
 export const isMainMenuOpen = () => menuOpenDefault;
