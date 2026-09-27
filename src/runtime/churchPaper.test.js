@@ -57,3 +57,13 @@ test("« annoncée » n'est pas un nonce, et le budget de Moscou n'est pas véri
   assert.equal(parleDesComptesDuSaintSiege(moscou), false);
   assert.equal(parleDesComptesDuSaintSiege({ title: "Point sur le fonds de pension de la Curie", description: "", playerRelated: false }), true);
 });
+
+test("un décompte du collège que le moteur ne connaît pas reçoit le vrai", async () => {
+  const { decomptesDuCollege, noteDuCollege } = await import("./churchPaper.js");
+  const { applyChurchPreset, HOLY_SEE } = await import("./churchPreset.js");
+  const w = applyChurchPreset({}, { date: "2026-09-01" });
+  const d = decomptesDuCollege(w.assembly, HOLY_SEE);
+  assert.match(noteDuCollege("42 voix acquises à votre courant, 15 oppositions déclarées et 103 électeurs indécis", d), /^Au collège : 160 électeurs ; votre courant vote avec vous \(42 voix\), il en faut 81/);
+  assert.equal(noteDuCollege("le seuil de 81 voix sur 160 électeurs, votre courant en compte 42", d), "");
+  assert.equal(noteDuCollege("cinq cardinaux, puis 3 votants", d), "");
+});

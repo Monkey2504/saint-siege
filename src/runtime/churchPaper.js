@@ -17,6 +17,7 @@
 
 import { ledgerContradictions } from "./claimCheck.js";
 import { EUR_USD_2024 } from "./money.js";
+import { groupsOn, normalizeAssembly, ownBloc, standing } from "./factions.js";
 
 const str = (v) => String(v ?? "").trim();
 
@@ -195,3 +196,46 @@ const COMPTES_DU_SAINT_SIEGE = /(?<![\p{L}])(saint-si[èe]ge|vatican|curie|apsa|
 /** La nouvelle parle-t-elle de l'argent du Saint-Siège lui-même ? */
 export const parleDesComptesDuSaintSiege = (event) => Boolean(event && (event.playerRelated
   || COMPTES_DU_SAINT_SIEGE.test(`${str(event.title)} ${str(event.description)}`)));
+
+// ── Les décomptes du collège ────────────────────────────────────────────────
+//
+// Relevé en jouant : « 42 voix acquises à votre courant, 15 oppositions
+// déclarées du bloc traditionaliste, et 103 électeurs indécis » sur une page où
+// le collège affichait 0 favorables, 160 indécis, 0 hostiles. Le modèle a la
+// consigne de n'imprimer que les décomptes du moteur ; il ne la tient pas
+// toujours. Un décompte que le moteur ne connaît pas reçoit, à la suite, le
+// décompte du collège — comme un chiffre des comptes reçoit celui du registre.
+
+
+const DECOMPTE = /(?<![\p{L}\p{N}])(\d{1,3})\s+(?:voix|électeurs|electeurs|cardinaux|indécis|opposants?|oppositions?|favorables|hostiles|suffrages|votants?|abstentions?)(?![\p{L}])/giu;
+
+/** Les nombres qu'un récit peut écrire sur le collège, et le résumé à imprimer. */
+export const decomptesDuCollege = (assembly, player) => {
+  const a = normalizeAssembly(assembly);
+  if (!a) return null;
+  const s = standing(a);
+  const mien = ownBloc(a, player).seats;
+  const permis = new Set([a.seats, s.majority, s.with, s.undecided, s.against, mien, Math.max(0, s.majority - mien)]);
+  const courants = [];
+  for (const axis of ["doctrine", "region", "role", "follows"]) {
+    for (const g of groupsOn(a, axis)) {
+      permis.add(g.seats);
+      if (axis === "follows" && g.name && g.name !== player) courants.push(g.seats);
+    }
+  }
+  // Une coalition du courant du pape avec un autre courant est un décompte réel.
+  for (const n of courants) permis.add(mien + n);
+  const resume = `${a.seats} électeurs ; votre courant vote avec vous (${mien} voix), il en faut ${s.majority} ; opinion de la salle : ${s.with} favorables, ${s.undecided} indécis, ${s.against} hostiles`;
+  return { permis, resume };
+};
+
+/** Le décompte du collège, quand un récit en écrit un autre (ou ""). */
+export const noteDuCollege = (texte, decomptes) => {
+  if (!decomptes) return "";
+  for (const m of String(texte ?? "").matchAll(DECOMPTE)) {
+    const n = Number(m[1]);
+    if (n < 10) continue; // « cinq cardinaux », « trois votants » : pas un décompte de la salle
+    if (!decomptes.permis.has(n)) return `Au collège : ${decomptes.resume}.`;
+  }
+  return "";
+};
