@@ -352,7 +352,7 @@ export const assessAction = (action, ctx = {}) => {
     if (pacte && pacte.carries) {
       push("vote", 0.05,
         `le collège vote : ${pacte.held} voix avec vous (votre courant ${pacte.alone}${pacte.partners.length ? `, ${pacte.partners.map((p) => `${p.name} ${p.seats}`).join(", ")}` : ""}), il en faut ${salle.majority} — ${VOTE_ACQUIS}`,
-        VOTE_ACQUIS_CONSIGNE);
+        "");
     }
     if (pacte && !pacte.carries) {
       const courants = groupsOn(assembly, "follows").filter((g) => g.name && lower(g.name) !== lower(player))
@@ -467,7 +467,9 @@ export const describeRealityCheck = (assessments) => {
   if (!list.length) return "";
   return list.map((a) => {
     const head = `- "${a.title}" → ${a.verdict.toUpperCase()}${a.constraints.length ? "" : " (no binding constraint found; second-order costs still apply)"}`;
-    const body = a.constraints.map((c) => `    · ${c.factor} [${c.severity}]: ${c.detail}${c.remedy ? ` — what would change it: ${c.remedy}` : ""}`).join("\n");
+    // La consigne d'un vote acquis est pour le modèle seul : affichée au joueur
+    // sous le verdict, elle se lisait comme une instruction qui lui était faite.
+    const body = a.constraints.map((c) => `    · ${c.factor} [${c.severity}]: ${c.detail}${String(c.detail).includes(VOTE_ACQUIS) ? ` — ${VOTE_ACQUIS_CONSIGNE}` : ""}${c.remedy ? ` — what would change it: ${c.remedy}` : ""}`).join("\n");
     return body ? `${head}\n${body}` : head;
   }).join("\n");
 };
