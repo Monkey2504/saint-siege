@@ -200,3 +200,11 @@ test("paix : un chantier hostile compte par sa posture, pas seulement par son ge
   };
   assert.equal(frontFigures(world, "Saint-Siege").peace, 2);
 });
+
+test("le modèle lit les séminaristes et les dossiers avec leur tendance", async () => {
+  const { describeChurchBody } = await import("./fronts.js");
+  const texte = describeChurchBody({});
+  assert.match(texte, /Afrique 34\s541 \(\+0,8 % par an\)/u);
+  assert.match(texte, /Asie 30\s924 \(−1,1 % par an\)/u);
+  assert.match(texte, /1\s400 ouverts/u);
+});

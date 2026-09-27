@@ -422,3 +422,29 @@ export const frontRows = (world, player) => {
     return { key, label, unit, hint, empty, value, from, delta, direction, good };
   });
 };
+
+// ── Ce que le modèle lit du corps de l'Église ────────────────────────────────
+//
+// Relevé en jouant : une édition annonçait « +4 % de séminaristes en Afrique
+// et en Asie » quand le moteur faisait croître l'Afrique de 0,8 % et reculer
+// l'Asie de 1,1 % par an. Le modèle n'avait aucun de ces chiffres : il les
+// inventait. Il les a maintenant, avec les dossiers d'abus.
+const NOM_DU_CONTINENT = { africa: "Afrique", americas: "Amériques", asia: "Asie", europe: "Europe", oceania: "Océanie" };
+const pct = (v) => `${v > 0 ? "+" : v < 0 ? "−" : ""}${Math.abs(v * 100).toFixed(1).replace(".", ",")} %`;
+
+export const describeChurchBody = (churchBody) => {
+  if (!churchBody) return "";
+  const b = normalizeChurchBody(churchBody);
+  const lignes = CONTINENTS.map((c) => {
+    const bend = clamp(finite(b.formation[c], 1), 0.2, 3);
+    const tendance = finite(SEMINARIANS_TREND[c]) + (bend - 1) * 0.04;
+    return `${NOM_DU_CONTINENT[c]} ${Math.round(b.seminarians[c]).toLocaleString("fr-FR")} (${pct(tendance)} par an)`;
+  });
+  const s = b.safeguarding;
+  return [
+    `[Église — clergé et dossiers, état du moteur]`,
+    `Prêtres : ${Math.round(totalOf(b.priests)).toLocaleString("fr-FR")}. Séminaristes : ${Math.round(totalOf(b.seminarians)).toLocaleString("fr-FR")} — ${lignes.join(" ; ")}.`,
+    `Dossiers d'abus : ${Math.round(s.open).toLocaleString("fr-FR")} ouverts, ${Math.round(s.judged).toLocaleString("fr-FR")} jugés depuis l'élection, rythme ${s.pace.toFixed(1).replace(".", ",")} fois celui hérité ; ${CASES_PER_YEAR} nouveaux dossiers arrivent chaque année.`,
+    "Ces chiffres sont ceux que l'édition cite sur les vocations et les abus : une tendance s'écrit avec le taux ci-dessus, jamais avec un autre.",
+  ].join("\n");
+};
