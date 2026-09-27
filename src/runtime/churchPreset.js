@@ -394,6 +394,16 @@ export const holySeeEconomy = () => {
   });
 };
 
+// Ce qui est déjà arrivé et que le récit contredisait en jouant : il envoyait
+// « le nonce apostolique à Pékin » négocier, et mettait en vente l'immeuble de
+// Londres, vendu depuis 2022. Envoyé à chaque invite (promptContext.js), y
+// compris aux parties commencées avant l'ajout de ces faits.
+export const FAITS_ETABLIS = Object.freeze([
+"2022-07: L'immeuble du 60 Sloane Avenue à Londres est vendu (environ 186 millions de livres) ; la perte pour le Saint-Siège est estimée à quelque 140 millions d'euros. Il n'appartient plus au Saint-Siège.",
+    "2023-12-16: Le tribunal du Vatican condamne le cardinal Angelo Becciu à cinq ans et demi de prison dans l'affaire de Londres ; l'appel est en cours.",
+    "Le Saint-Siège n'a pas de relations diplomatiques avec la République populaire de Chine et n'a aucune nonciature à Pékin ; il entretient une représentation à Taipei. Il traite avec Pékin par l'accord provisoire de 2018 sur la nomination des évêques, renouvelé en 2020, 2022 puis pour quatre ans en octobre 2024.",
+]);
+
 // ---- la situation d'ouverture ----------------------------------------------------------------
 
 export const situationOuverture = ({ seats = 160, mine = 42, majority = 81 } = {}) => [
@@ -485,6 +495,7 @@ export const applyChurchPreset = (world, { date = "", availableCountries = [] } 
     "2022-03-19: La constitution apostolique Praedicate Evangelium réorganise la Curie romaine en seize dicastères.",
     "2023-10: Cinq cardinaux publient des dubia contre le pape.",
     "2024-11-19: Le fonds de pension du Vatican est déclaré en grave déséquilibre prospectif.",
+    ...FAITS_ETABLIS,
   ])];
 
   // The faithful, live: real end-2023 baseline, stepped every jump from real

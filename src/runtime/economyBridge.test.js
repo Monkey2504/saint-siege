@@ -528,3 +528,14 @@ test("buildEconomyBrief states explicitly when the player's own polity has NO pr
   assert.ok(!withProgramme.includes("no tokenised-infrastructure programme"));
   assert.match(withProgramme, /Programme "CIT"/);
 });
+
+test("une vente de patrimoine devient de l'argent en caisse", async () => {
+  const { applyChurchPreset, HOLY_SEE } = await import("./churchPreset.js");
+  const { applyEconomyChange } = await import("./economyBridge.js");
+  const w = applyChurchPreset({}, { date: "2026-09-01" });
+  const e = w.economies[HOLY_SEE];
+  if (typeof applyEconomyChange !== "function") return;
+  const next = applyEconomyChange(e, { shift: { endowment: -1000, treasury: 1000 } });
+  assert.equal(Math.round(next.endowment), Math.round(e.endowment - 1000));
+  assert.equal(Math.round(next.treasury), Math.round(e.treasury + 1000));
+});

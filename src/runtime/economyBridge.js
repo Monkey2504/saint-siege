@@ -15,6 +15,10 @@ import {
 } from "./economy.js";
 import { applyProgramDelta, describeProgram, normalizeProgram, stepProgram } from "./projectFinance.js";
 import { isMember } from "./organizations.js";
+import { EUR_USD_2024 } from "./money.js";
+
+// Des dollars du moteur aux euros du joueur (runtime/money.js).
+const EUR_PAR_USD_INVERSE = EUR_USD_2024;
 
 const clamp = (value, lo, hi) => Math.max(lo, Math.min(hi, value));
 const finite = (value, fallback = 0) => {
@@ -166,6 +170,10 @@ export const applyEconomyChange = (previous, change) => {
   for (const field of ECONOMY_SHIFTABLE_STOCKS) {
     if (Number.isFinite(Number(shift[field]))) next[field] = Math.max(0, finite(next[field]) + finite(shift[field]));
   }
+  // L'argent en caisse : une vente de patrimoine le remplit, une dépense
+  // exceptionnelle le vide. Signé et non borné à zéro — sous l'austérité, une
+  // caisse négative est un arriéré, que le moteur sait déjà lire.
+  if (Number.isFinite(Number(shift.treasury))) next.treasury = finite(next.treasury) + finite(shift.treasury);
   if (Number.isFinite(Number(shift.populationShare))) {
     const share = clamp(finite(shift.populationShare), -POPULATION_SHIFT_CAP, POPULATION_SHIFT_CAP);
     next.population = Math.max(1, next.population * (1 + share));
@@ -905,6 +913,18 @@ export const describeEconomy = (name, economy, { flows = null, full = true, unit
     lines.push(`  patrimony: ${fmt(i.endowment)} SY${e.usdPerSY > 0 ? ` ≈ ${money(i.endowment * e.usdPerSY, "en")}` : ""} yielding ${pct(i.endowmentYield)}`
       + `${i.unfundedLiabilities > 0 ? `; unfunded promises (pensions, arrears) ${fmt(i.unfundedLiabilities)} SY${e.usdPerSY > 0 ? ` ≈ ${money(i.unfundedLiabilities * e.usdPerSY, "en")}` : ""}; net ${fmt(i.netPatrimony)}` : ""}`
       + `${i.financing === "drawdown" ? `; deficits are paid by eating the patrimony${i.yearsOfPatrimonyLeft != null ? ` — gone in about ${i.yearsOfPatrimonyLeft} years at this deficit` : ""}` : ""}.`);
+  }
+  // Le taux, écrit. Le modèle racontait « gel des embauches à la Curie » ou
+  // « vente de l'immeuble de Londres » sans aucun changement d'économie : il ne
+  // savait pas combien d'années-subsistance font dix millions d'euros, et le
+  // registre — « les comptes ne mentent pas » — ne portait aucune ligne. Un
+  // exemple chiffré dans l'unité du joueur suffit à fermer l'écart.
+  if (e.usdPerSY > 0) {
+    const eurPerSY = e.usdPerSY / EUR_PAR_USD_INVERSE;
+    const dixMillions = Math.round((10e6 / eurPerSY) * 10) / 10;
+    lines.push(`  units: 1 SY ≈ €${Math.round(eurPerSY).toLocaleString("en-US")} (≈ $${Math.round(e.usdPerSY).toLocaleString("en-US")}). Civil spending is ${fmt(e.civilSpending)} SY ≈ €${Math.round((e.civilSpending * eurPerSY) / 1e6)} million a year. `
+      + `Saving €10 million a year is {"shift":{"civilSpending":-${dixMillions}}}; selling an asset worth €10 million is {"shift":{"endowment":-${dixMillions},"treasury":${dixMillions}}} (the patrimony becomes cash in hand); a one-off expense of €10 million is {"shift":{"treasury":-${dixMillions}}}. `
+      + `ANY event that cuts or adds spending, sells or buys an asset, or raises money MUST carry the matching economy change for ${name} in the same event — a measure narrated with no economy change moves nothing on the ledger, and the player reads a story the accounts deny.`);
   }
   if (!full) return lines.join("\n");
   lines.push(`  capacities: technology ${Math.round(e.technology)}, administrative reach ${Math.round(e.administrativeReach)}, monetization ${Math.round(e.monetization)}, `
