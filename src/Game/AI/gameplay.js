@@ -2232,18 +2232,46 @@ const applySimulationResult = async ({
     // votre façon de gouverner +0 pt », sur une page qui promet qu'une ligne ne
     // paraît que si quelque chose a bougé. Et il faut dire QUI approuve.
     const playerName = normalizeString(nextGame.country);
+    // Une ligne par groupe et par tour, pas une par mécanisme. Relevé en jouant :
+    // « Chemin synodal allemand désapprouve ce que vous avez fait −2,3 pt » et
+    // « Chemin synodal allemand approuve votre façon de gouverner +6,9 pt » le
+    // même jour, et vingt-quatre lignes d'opinion qui chassaient les comptes du
+    // registre. On additionne, on dit les deux raisons quand elles s'opposent,
+    // et on ne garde que les courants, les grandes familles doctrinales et la
+    // salle entière (les régions et les rôles restent au cahier du Collège).
+    const parGroupe = new Map();
     for (const row of [...judged.rows, ...blundered.rows, ...preached.rows]) {
-      if (Math.abs(Number(row.step) || 0) < 0.5) continue;
-      const groupe = row.axis && row.axis !== "follows" ? electeursDuGroupe(row.group, row.seats) : "";
-      const qui = row.group === playerName ? `votre courant (${row.seats} électeurs)` : groupe || `${nomDeGroupe(row.group)} (${row.seats} électeurs)`;
+      if (row.axis && row.axis !== "follows" && row.axis !== "doctrine") continue;
+      const cle = `${row.axis || ""}|${row.group}`;
+      const g = parGroupe.get(cle) ?? { axis: row.axis || "", group: row.group, seats: row.seats, parts: [] };
+      const reason = String(row.reason || "");
+      const kind = /façon de gouverner/.test(reason) ? "bilan" : /ce que vous avez fait/.test(reason) ? "ordres" : "autre";
+      g.parts.push({ kind, step: Number(row.step) || 0, reason });
+      parGroupe.set(cle, g);
+    }
+    const PHRASE = {
+      bilan: (up) => `${up ? "approuve" : "désapprouve"} le bilan du mois`,
+      ordres: (up) => `${up ? "approuve" : "désapprouve"} vos ordres du mois`,
+    };
+    for (const g of parGroupe.values()) {
+      const total = g.parts.reduce((sum, p) => sum + p.step, 0);
+      const vues = g.parts.filter((p) => Math.abs(p.step) >= 0.5);
+      if (Math.abs(total) < 0.5 && !vues.length) continue;
+      const morceaux = vues.map((p) => (PHRASE[p.kind] ? PHRASE[p.kind](p.step > 0) : p.reason));
+      const opposes = vues.some((p) => p.step > 0) && vues.some((p) => p.step < 0);
+      let raison = morceaux.join(opposes ? " mais " : " et ");
+      const pluriel = (g.axis === "doctrine" && g.group !== playerName) || !g.group;
+      if (pluriel) raison = raison.replace(/\b(dés)?approuve\b/g, (m) => `${m}nt`).replace(/a été retourné\b/g, "ont été retournés");
+      const groupe = g.axis === "doctrine" ? electeursDuGroupe(g.group, g.seats) : "";
+      const qui = g.group === playerName ? `votre courant (${g.seats} électeurs)`
+        : !g.group ? `${g.seats} électeurs sans courant`
+          : groupe || `${nomDeGroupe(g.group)} (${g.seats} électeurs)`;
       // Rangée au nom du pape : c'est son registre, et le groupe est nommé dans
       // la ligne. Rangée au nom du groupe, elle était filtrée hors de la page.
       worldWithImpacts.record = appendRecord(worldWithImpacts.record, [{
-        date: nextGame.gameDate, polity: playerName || row.group, kind: "standing",
-        // « Traditionnels (37 électeurs) approuve » : les groupes du collège
-        // (doctrine, région, rôle) sont des pluriels, les courants des singuliers.
-        what: `${qui} ${groupe && row.group !== playerName ? String(row.reason).replace(/^(dés)?approuve\b/, (m) => `${m}nt`) : row.reason}`, amount: row.step, unit: "pt",
-        source: `assembly:${row.axis || "all"}:${row.seats} electors`,
+        date: nextGame.gameDate, polity: playerName || g.group, kind: "standing",
+        what: `${qui} ${raison}`, amount: Math.round(total * 10) / 10, unit: "pt",
+        source: `assembly:${g.axis || "all"}:${g.seats} electors`,
       }]);
     }
     const room = standing(worldWithImpacts.assembly);
