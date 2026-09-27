@@ -1524,7 +1524,7 @@ const Bulletin = ({ onOpenAdvisor, pressFocus = 0, nav = null }) => {
 
         {/* La salle qui décide, en bas de colonne droite : la maquette la met
             là, sous le registre. C'est le même hémicycle que le cahier. */}
-        <ApercuDuCollege assembly={world?.assembly} player={player} />
+        <ApercuDuCollege assembly={world?.assembly} player={player} pactes={world?.pactes} />
 
         {indicators && (
             <section>

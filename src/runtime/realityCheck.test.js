@@ -553,3 +553,21 @@ test("ouvrir des séminaires financés par le Denier n'est pas une collecte", ()
   assert.notEqual(a.verdict, "feasible", JSON.stringify(a.constraints));
   assert.ok(a.constraints.some((c) => c.factor === "time"));
 });
+
+test("s'asseoir avec un courant compte dans le vote : un pacte proposé le même tour, ou déjà accordé", async () => {
+  const world = normalizeWorldState(applyChurchPreset({}, { date: "2026-09-01" }));
+  const vote = order("Soumettre au vote du collège la réforme du fonds de pension de la Curie.", { id: "v" });
+  const pacte = order("Proposer à la Compagnie de Jésus de voter avec nous la réforme du fonds de pension.", { id: "p" });
+  const [seul] = assessPlannedActions([vote], { playerPolity: HOLY_SEE, economy: world.economies[HOLY_SEE], world, jumpDays: 30 });
+  assert.match(seul.constraints.find((c) => c.factor === "vote").detail, /il en manque 39/);
+  const avec = assessPlannedActions([vote, pacte], { playerPolity: HOLY_SEE, economy: world.economies[HOLY_SEE], world, jumpDays: 30 });
+  const detail = avec[0].constraints.find((c) => c.factor === "vote").detail;
+  assert.match(detail, /vos alliés en apportent 26 \(Compagnie de Jésus 26\)/);
+  assert.match(detail, /il en manque 13/);
+  // Un pacte accordé tient pour les votes suivants.
+  const plusTard = assessAction(vote, { playerPolity: HOLY_SEE, economy: world.economies[HOLY_SEE], world: { ...world, pactes: [{ courant: "Compagnie de Jésus" }, { courant: "Vieille garde de la Secrétairerie d'État" }] }, jumpDays: 30 });
+  assert.ok(!plusTard.constraints.some((c) => c.factor === "vote"), "42 + 26 + 17 = 85 : le vote passe");
+  // Proposer un pacte est un geste, pas un chantier de deux ans.
+  const [geste] = assessPlannedActions([pacte], { playerPolity: HOLY_SEE, economy: world.economies[HOLY_SEE], world, jumpDays: 30 });
+  assert.ok(!geste.constraints.some((c) => c.factor === "time" && /2 ans/.test(c.detail)), JSON.stringify(geste.constraints));
+});

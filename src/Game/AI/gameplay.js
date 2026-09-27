@@ -18,7 +18,7 @@ import { ensureDrivesFromOrders, pruneDormantDrives, reconcileNarration } from "
 import { appendRecord } from "../../runtime/record.js";
 import { ensureTreasuryMovesFromOrders, stepTreasuries } from "../../runtime/treasuries.js";
 import { ensureLiabilityMovesFromOrders } from "../../runtime/liabilities.js";
-import { applySpeech, driftFromBlunders, electeursDuGroupe, judgeGovernance, nomDeGroupe, persuadeNeighbours, reactionsAuxOrdres, speechFromOrder, standing } from "../../runtime/factions.js";
+import { applySpeech, coalition, courantsSollicites, driftFromBlunders, electeursDuGroupe, judgeGovernance, nomDeGroupe, persuadeNeighbours, reactionsAuxOrdres, speechFromOrder, standing } from "../../runtime/factions.js";
 import { checkLedgerClaims } from "../../runtime/claimCheck.js";
 import { naturalizeContacts } from "../../runtime/naturalize.js";
 import { economyIndicators } from "../../runtime/economy.js";
@@ -2183,6 +2183,26 @@ const applySimulationResult = async ({
     });
     worldWithImpacts.assembly = reagi.assembly;
     preached.rows.push(...reagi.rows);
+    // Les pactes accordés tiennent pour les votes suivants (runtime/factions.js,
+    // courantsSollicites ; realityCheck les assoit à la table). Un courant tourné
+    // contre le pape refuse de s'asseoir, et rien n'est conclu.
+    {
+      const accordes = jugesCeTour.filter((o) => o.outcome === "success" || o.outcome === "partial");
+      const proposes = courantsSollicites(accordes, worldWithImpacts.assembly, nextGame.country);
+      if (proposes.length) {
+        const table = coalition(worldWithImpacts.assembly, { player: nextGame.country, need: 0, sitWith: proposes });
+        const deja = new Set((Array.isArray(worldWithImpacts.pactes) ? worldWithImpacts.pactes : []).map((p) => p?.courant));
+        const nouveaux = (table?.partners ?? []).filter((p) => !deja.has(p.name));
+        if (nouveaux.length) {
+          worldWithImpacts.pactes = [...(Array.isArray(worldWithImpacts.pactes) ? worldWithImpacts.pactes : []), ...nouveaux.map((p) => ({ courant: p.name, depuis: nextGame.gameDate }))];
+          worldWithImpacts.record = appendRecord(worldWithImpacts.record, nouveaux.map((p) => ({
+            date: nextGame.gameDate, polity: normalizeString(nextGame.country), kind: "standing",
+            what: `pacte conclu avec ${p.name} : ses ${p.seats} électeurs votent désormais avec vous`, amount: p.seats, unit: "voix", source: "assembly:pacte",
+          })));
+        }
+        for (const r of table?.refused ?? []) console.warn(`[assembly] ${r.name} refuse de s'asseoir : ${r.why}`);
+      }
+    }
     // Une économie ordonnée se lit au registre même quand le récit oublie de la
     // chiffrer. Relevé en jouant : « gel des embauches à la Curie pour réduire
     // la masse salariale », exécuté dans l'édition par le préfet de l'Économie,
