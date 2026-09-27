@@ -249,7 +249,7 @@ const CeQueCelaChange = ({ reactions, declaration }) => {
     Votre programme est versé à l&apos;édition. {reactions.length === 1 ? "Le seul acteur" : `Les ${reactions.length} acteurs`} de
     ce monde — courants du collège et institutions de l&apos;Église — {reactions.length === 1 ? "le lit" : "le lisent"} tel que vous
     l&apos;avez écrit, et {reactions.length === 1 ? "juge" : "jugent"} sur la phrase : aucun n&apos;est pour ou
-    contre vous d&apos;avance. Ce qu&apos;elles en font paraît dans la prochaine édition — une déclaration,
+    contre vous d&apos;avance. Ce qu&apos;ils en font paraît dans la prochaine édition — une déclaration,
     un geste, une fuite, un serrage de rangs, un silence.
     </p>
     {nommes.length > 0 ? (

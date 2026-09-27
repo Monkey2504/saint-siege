@@ -188,3 +188,15 @@ test("synodalité : sans aucune décision, le front le dit en clair", () => {
   assert.equal(row.value, null);
   assert.equal(row.empty, "aucune décision encore");
 });
+
+test("paix : un chantier hostile compte par sa posture, pas seulement par son genre", () => {
+  const world = {
+    intents: [
+      { owner: "Bloc des dubia", target: "Saint-Siege", kind: "political", stance: "hostile", status: "active" },
+      { owner: "Vieille garde", target: "Saint-Siege", kind: "espionage", stance: "hostile", status: "active" },
+      { owner: "Jésuites", target: "Saint-Siege", kind: "political", stance: "supportive", status: "active" },
+      { owner: "Opus", target: "Saint-Siege", kind: "diplomatic", stance: "hostile", status: "abandoned" },
+    ],
+  };
+  assert.equal(frontFigures(world, "Saint-Siege").peace, 2);
+});

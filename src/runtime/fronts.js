@@ -327,7 +327,7 @@ export const FRONTS = Object.freeze([
   { key: "safeguarding", label: "Abus : dossiers jugés", unit: "share", hint: "part des dossiers traités depuis l'élection" },
   { key: "governance", label: "Synodalité et gouvernement", unit: "share", hint: "part de vos décisions passées par un vote ou une consultation", empty: "aucune décision encore" },
   { key: "vocations", label: "Vocations", unit: "count", hint: "séminaristes en formation dans le monde" },
-  { key: "peace", label: "Diplomatie et paix", unit: "count", hint: "puissances qui agissent contre vous — moins, c'est mieux" },
+  { key: "peace", label: "Diplomatie et paix", unit: "count", hint: "puissances qui manœuvrent contre vous — moins, c'est mieux" },
   { key: "finances", label: "Finances", unit: "money", hint: "solde prévu sur l'année" },
 ]);
 
@@ -373,9 +373,16 @@ export const frontFigures = (world, player) => {
     const target = str(intent?.target).toLowerCase();
     const owner = str(intent?.owner).toLowerCase();
     const kind = str(intent?.kind ?? intent?.type).toLowerCase();
+    // Rapport de terrain : le front affichait 0 alors que quatre chantiers
+    // hostiles tournaient dès le premier jour. Les chantiers du moteur portent
+    // leur hostilité dans `stance`, leur genre (political, espionage…) dans
+    // `kind` : ne lire que `kind` les rendait tous invisibles. Un chantier
+    // terminé ou abandonné ne compte plus.
+    const status = str(intent?.status).toLowerCase();
+    if (status && status !== "active") return false;
     return target === str(player).toLowerCase()
       && owner !== str(player).toLowerCase()
-      && /hostil|pressure|undermine|oppose|block|discredit/.test(kind);
+      && (str(intent?.stance).toLowerCase() === "hostile" || /hostil|pressure|undermine|oppose|block|discredit/.test(kind));
   }).length;
 
   return {
