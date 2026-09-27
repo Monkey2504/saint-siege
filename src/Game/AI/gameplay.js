@@ -26,7 +26,7 @@ import { registerRows } from "../../runtime/register.js";
 import { ensureGatheringsFromOrders, holdDueGatherings, realizedMargin, runNationalProgramme, runWorldProgramme } from "../../runtime/gatherings.js";
 import { reconcileBodies } from "../../runtime/bodyCheck.js";
 import { markDeclarationAnswered } from "../../runtime/inauguration.js";
-import { comptesEnEuros, noteDuRegistre, parleDesComptesDuSaintSiege, regardeLEglise, sansPrelatsReels } from "../../runtime/churchPaper.js";
+import { comptesEnEuros, decomptesDuCollege, noteDuCollege, noteDuRegistre, parleDesComptesDuSaintSiege, regardeLEglise, sansPrelatsReels } from "../../runtime/churchPaper.js";
 import { buildRealityAssessments } from "./promptContext.js";
 import { EUR_USD_2024, HOLY_SEE, transfersForChurchEur } from "../../runtime/churchPreset.js";
 import { applyEconomyChange, daysBetween, describeEconomy, anchorUnitValue, describeSeedForRefinement, ensureEconomyMovesFromOrders, pinStatSheetToEngine, refineSeed, repinCountryStats, stepWorldEconomies } from "../../runtime/economyBridge.js";
@@ -1856,6 +1856,14 @@ const applySimulationResult = async ({
         if (note) event.description = `${String(event.description ?? "").trim()} ${note}`.trim();
       }
     }
+    // Un décompte du collège que le moteur ne connaît pas reçoit le vrai.
+    const decomptes = decomptesDuCollege(normalizeWorldState(baseWorld).assembly, baseGame.country);
+    if (decomptes) {
+      for (const event of generatedEvents) {
+        const note = noteDuCollege(`${event.title ?? ""} ${event.description ?? ""}`, decomptes);
+        if (note) event.description = `${String(event.description ?? "").trim()} ${note}`.trim();
+      }
+    }
   }
   // The model is shown the running timeline as context and tends to restate events
   // it already reported; each restatement gets a fresh random id, so only a
@@ -1875,9 +1883,15 @@ const applySimulationResult = async ({
   // the deciding constraint kept on the entry so next turn's history says why.
   const realityAssessments = buildRealityAssessments({ game: baseGame, world: baseWorld, actions: baseActions }, { jumpDays: daysBetween(baseGame.gameDate, nextGame.gameDate) });
   const narratedOutcomes = freshEvents.flatMap((event) => (Array.isArray(event.impacts?.actionOutcomes) ? event.impacts.actionOutcomes : []));
-  const nextActions = result.clearActions
+  const nextActionsBruts = result.clearActions
     ? applyActionOutcomes(normalizeActions(baseActions), narratedOutcomes, realityAssessments, { defaultStatus: "resolved", date: nextGame.gameDate, events: freshEvents })
     : normalizeActions(baseActions);
+  // La note du sort d'un ordre est écrite par le modèle : les vrais prélats y
+  // deviennent leur rôle, comme dans l'édition (« Le cardinal Burke a accepté
+  // l'invitation » sous un récit qui disait « un cardinal du bloc des dubia »).
+  const nextActions = normalizeWorldState(baseWorld).church
+    ? nextActionsBruts.map((a) => (a?.outcomeNote ? { ...a, outcomeNote: sansPrelatsReels(a.outcomeNote) } : a))
+    : nextActionsBruts;
 
   // The verdict binds the impacts (realityCheck.bindImpactsToVerdicts): an
   // event executing a BLOCKED order loses its region transfers and unit ops
