@@ -243,9 +243,12 @@ const CeQueCelaChange = ({ reactions, declaration }) => {
     return (
     <>
     <p style={{ margin: "0 0 0.5rem" }}>
-    Votre programme est versé à l&apos;édition. {reactions.length === 1 ? "La puissance" : `Les ${reactions.length} puissances`} qui
-    {reactions.length === 1 ? " se tient" : " se tiennent"} dans ce monde {reactions.length === 1 ? "le lit" : "le lisent"} tel que vous
-    l&apos;avez écrit, et {reactions.length === 1 ? "juge" : "jugent"} sur la phrase : aucune n&apos;est pour ou
+    {/* Rapport de terrain : « les 11 puissances » tombait juste après une
+        présentation qui parlait de six courants plus le vôtre. On dit qui : les
+        courants du collège ET les institutions (Curie, dicastères…). */}
+    Votre programme est versé à l&apos;édition. {reactions.length === 1 ? "Le seul acteur" : `Les ${reactions.length} acteurs`} de
+    ce monde — courants du collège et institutions de l&apos;Église — {reactions.length === 1 ? "le lit" : "le lisent"} tel que vous
+    l&apos;avez écrit, et {reactions.length === 1 ? "juge" : "jugent"} sur la phrase : aucun n&apos;est pour ou
     contre vous d&apos;avance. Ce qu&apos;elles en font paraît dans la prochaine édition — une déclaration,
     un geste, une fuite, un serrage de rangs, un silence.
     </p>
@@ -370,13 +373,34 @@ const SortDesOrdres = ({ ordres }) => (
     </section>
 );
 
+// Le brouillon de l'élection survit à un rechargement. Rapport de terrain : le
+// bandeau « Une nouvelle version du jeu est prête » recharge la page, et le nom,
+// les trois conseillers et la déclaration déjà saisis disparaissaient.
+const BROUILLON_ELECTION = "oh:brouillon-election";
+const lireBrouillon = () => {
+    try {
+        const b = JSON.parse(sessionStorage.getItem(BROUILLON_ELECTION) || "null");
+        return b && typeof b === "object" ? b : {};
+    } catch {
+        return {};
+    }
+};
+
 const Inauguration = ({ world, player, onDone }) => {
     const racine = useRef(null);
-    const [name, setName] = useState("");
-    const [declaration, setDeclaration] = useState("");
-    const [seated, setSeated] = useState([]);
+    const [brouillon] = useState(lireBrouillon);
+    const [name, setName] = useState(typeof brouillon.name === "string" ? brouillon.name : "");
+    const [declaration, setDeclaration] = useState(typeof brouillon.declaration === "string" ? brouillon.declaration : "");
+    const [seated, setSeated] = useState(Array.isArray(brouillon.seated) ? brouillon.seated.slice(0, SEATS) : []);
     const [error, setError] = useState("");
     const [busy, setBusy] = useState(false);
+    useEffect(() => {
+        try {
+            sessionStorage.setItem(BROUILLON_ELECTION, JSON.stringify({ name, declaration, seated }));
+        } catch {
+            // Stockage indisponible : le brouillon ne survivra pas, rien de plus.
+        }
+    }, [name, declaration, seated]);
 
     // Three of twenty, each with a gift and a flaw the engine actually reads
     // (runtime/advisors.js). Asked here rather than in a settings panel because
@@ -401,6 +425,7 @@ const Inauguration = ({ world, player, onDone }) => {
             const next = seatCabinet(inaugurate(world, { name, declaration }), seated, { date: world?.asOf || "" });
             const defileur = defileurDe(racine.current);
             await writeWorldState(next);
+            try { sessionStorage.removeItem(BROUILLON_ELECTION); } catch { /* rien à effacer */ }
             remonterALaUne(defileur);
             onDone(next);
         } catch (failure) {
@@ -557,10 +582,13 @@ const Front = ({ row, usdPerSY }) => {
     return (
         <div style={{ borderTop: "1px solid var(--oh-line)", padding: "0.55rem 0 0.6rem" }}>
         <div style={{ alignItems: "baseline", display: "flex", gap: "0.5rem", justifyContent: "space-between" }}>
-        <span style={{ color: "var(--oh-text)", fontSize: "var(--oh-t-xs)" }}>{row.label}</span>
+        <span style={{ color: "var(--oh-text)", fontSize: "var(--oh-t-xs)" }}>
+        {row.label}
+        {row.hint && <span style={{ color: "var(--oh-text-dim)", display: "block", fontSize: "var(--oh-t-2xs)", lineHeight: 1.35 }}>{row.hint}</span>}
+        </span>
         <span style={{ alignItems: "baseline", display: "flex", flexShrink: 0 }}>
         <b style={{ color: held ? "var(--oh-text-strong)" : "var(--oh-text-dim)", fontFamily: "var(--oh-font-data)", fontSize: "var(--oh-t-sm)", fontVariantNumeric: "tabular-nums" }}>
-        {held ? format(row.value) : "non mesuré"}
+        {held ? format(row.value) : (row.empty || "non mesuré")}
         </b>
         <Movement row={row} format={format} />
         </span>
@@ -597,11 +625,11 @@ const Fronts = ({ rows, usdPerSY = 0 }) => (
 // So the automatic jump is the button, and setting a date by hand is the
 // exception it always was — folded away behind "set the date myself".
 const SPANS = [
-    { label: "1 week", days: 7 },
-    { label: "1 month", days: 30 },
-    { label: "3 months", days: 90 },
-    { label: "6 months", days: 180 },
-    { label: "1 year", days: 365 },
+    { label: "1 semaine", days: 7 },
+    { label: "1 mois", days: 30 },
+    { label: "3 mois", days: 90 },
+    { label: "6 mois", days: 180 },
+    { label: "1 an", days: 365 },
 ];
 
 // Les montants à la française : virgule décimale, « Md » pour le milliard, et
@@ -997,7 +1025,7 @@ const Purses = ({ treasuries, usdPerSY }) => {
     const rateOf = (t) => (t.margin > 0 ? t.margin : (list.find((p) => p.body === t.parent)?.margin ?? 0));
     return (
         <section>
-        <SectionHead aside={`${list.length} ${list.length === 1 ? "body" : "bodies"}`}>Caisses</SectionHead>
+        <SectionHead aside={`${list.length} ${list.length === 1 ? "organisme" : "organismes"}`}>Caisses</SectionHead>
         {ordered.map(({ t, depth }) => (
             <div key={t.body} style={{ borderBottom: "1px dotted var(--oh-line)", padding: "0.7rem 0 0.7rem", paddingLeft: depth ? "1.2rem" : 0 }}>
             <div style={{ alignItems: "baseline", display: "flex", gap: "0.6rem", justifyContent: "space-between" }}>
@@ -1392,7 +1420,11 @@ const Bulletin = ({ onOpenAdvisor, pressFocus = 0, nav = null }) => {
             </div>
         )}
 
-        <div className={creuse ? "oh-bulletin-grid oh-bulletin-grid-creuse" : "oh-bulletin-grid"}>
+        {/* Pendant l'élection, la page ne porte que la situation et le formulaire.
+            Rapport de terrain : le bureau des ordres, les presses et les six
+            fronts s'affichaient déjà sous le formulaire, et un nouveau joueur
+            voyait le tableau de bord d'une partie qu'il n'avait pas commencée. */}
+        <div className={awaitingInauguration ? "oh-bulletin-grid oh-bulletin-grid-election" : creuse ? "oh-bulletin-grid oh-bulletin-grid-creuse" : "oh-bulletin-grid"}>
 
         {/* Left: what the world did — and, on the first turn, the situation the
             new pope has to read before he can sign anything. */}
@@ -1453,6 +1485,7 @@ const Bulletin = ({ onOpenAdvisor, pressFocus = 0, nav = null }) => {
         {/* Centre : ce qui est ordonné, et ce que le moteur en a jugé. La
             maquette journal lui donne sa propre colonne, entre les nouvelles et
             les comptes — c'est la colonne où le joueur agit. */}
+        {!awaitingInauguration && (
         <div style={{ display: "flex", flexDirection: "column", gap: "1.6rem" }}>
         {/* The orders desk itself: compose, take a suggestion, read each
             verdict. One component, the same the map's floating panel shows.
@@ -1466,10 +1499,12 @@ const Bulletin = ({ onOpenAdvisor, pressFocus = 0, nav = null }) => {
         <ActionsPanel embedded isOpen onClose={() => {}} onOpenAdvisor={onOpenAdvisor} />
         </section>
         </div>
+        )}
 
         {/* Droite : la date d'arrivée, le registre, et ce que le monde a bougé.
             Ce que la maquette met sous « Prochaine édition », « Le registre »
             et « Le collège ». */}
+        {!awaitingInauguration && (
         <div style={{ display: "flex", flexDirection: "column", gap: "1.6rem" }}>
         {/* The presses: how far the next edition runs, and the order to print. */}
         <Press game={game} world={world} actions={actions} focus={pressFocus} onPrinted={reload} />
@@ -1568,6 +1603,7 @@ const Bulletin = ({ onOpenAdvisor, pressFocus = 0, nav = null }) => {
             </section>
         )}
         </div>
+        )}
         </div>
         </div>
         </div>

@@ -354,6 +354,11 @@ const ActionsPanel = ({ isOpen, onClose, onOpenAdvisor, embedded = false }) => {
                 if (typeof data.round === "number") {
                     if (lastRoundRef.current !== null && data.round !== lastRoundRef.current) {
                         loadActions().then((saved) => { if (!cancelled) setActions(saved); });
+                        // Les suggestions répondaient au tour d'avant : après une
+                        // édition, elles proposaient encore ce que l'on venait de
+                        // faire. Nouveau tour, table rase.
+                        setSuggestions([]);
+                        setHasRequestedSuggestions(false);
                     }
                     lastRoundRef.current = data.round;
                 }
@@ -646,7 +651,7 @@ const ActionsPanel = ({ isOpen, onClose, onOpenAdvisor, embedded = false }) => {
             >
             {hasRequestedSuggestions && !isSuggesting && suggestions.length === 0 && (
                 <p style={{ color: "var(--oh-text-dim)", fontSize: "var(--oh-t-xs)", fontStyle: "italic", margin: 0 }}>
-                No AI suggestions generated yet.
+                Aucune suggestion pour l&apos;instant.
                 </p>
             )}
             {suggestions.map((topic) => (

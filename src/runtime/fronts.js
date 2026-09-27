@@ -139,6 +139,12 @@ export const normalizeChurchBody = (entry) => {
     safeguarding: normalizeSafeguarding(e.safeguarding),
     // A per-continent multiplier a reform can bend. 1 is the real trend.
     formation: normalizeByContinent(e.formation, Object.fromEntries(CONTINENTS.map((c) => [c, 1]))),
+    // Les décisions du pontificat : combien sont passées par un vote ou une
+    // consultation, combien ont été prises seul. Voir governanceMovesFromOrders.
+    governance: {
+      voted: pos(num(e.governance?.voted) ?? 0),
+      decreed: pos(num(e.governance?.decreed) ?? 0),
+    },
     asOf: str(e.asOf),
   };
 };
@@ -247,6 +253,36 @@ export const bodyMovesFromOrders = (orders) => {
   return moves;
 };
 
+// ── Synodalité : ce qui passe par un corps, ce qui tombe d'en haut ───────────
+//
+// Rapport de terrain : le front « Synodalité et gouvernement » affichait « non
+// mesuré » à chaque tour de chaque partie. Il lisait des lignes de registre
+// « resolution » et « decree » que rien n'écrivait jamais — et que le registre
+// aurait de toute façon réécrites en « money ». Le front était mort.
+//
+// Le moteur lit donc les ordres, comme pour les séminaires et les dossiers :
+// un ordre qui se met au vote (collège, consistoire, synode) ou qui se décide
+// après consultation compte pour la synodalité ; un ordre qui décide seul
+// compte comme un décret. Une lettre, une audience, une visite ne décident
+// rien et ne comptent pas.
+const PAR_UN_CORPS = /(fai(re|s|t) voter|mettre au vote|mis au vote|soumettre au vote|soumettre au (collège|consistoire|synode)|soumet(s|tre)? .{0,60}(collège|consistoire|cardinaux|synode).{0,40}vot|(vote|voter) (du|au|par le|en) (collège|consistoire|synode)|convoquer (un|le) synode|assembl[ée]e synodale|consult(er|ation) (les|des|du|de la) (fid[èe]les|conf[ée]rences|[ée]v[êe]ques|dioc[èe]ses|la[ïi]cs|synode)|put (it )?to (a|the) vote|convene a synod|synodal assembly)/i;
+const GESTE = /\b(écrire (à|aux|au)|écris (à|aux|au)|envoyer une lettre|une lettre (à|aux|au)|proposer une rencontre|rencontrer|recevoir en audience|audience privée|inviter|visiter|se rendre|prier|write to|meet with|visit)\b/i;
+
+/** Combien des ordres prévus passent par un corps, combien sont des décrets. */
+export const governanceMovesFromOrders = (orders) => {
+  const moves = { voted: 0, decreed: 0 };
+  for (const order of Array.isArray(orders) ? orders : []) {
+    if (!order || typeof order !== "object") continue;
+    if (order.kind === "chat") continue;
+    if ((order.status ?? "planned") !== "planned") continue;
+    const text = bodyOf(order);
+    if (!text.trim()) continue;
+    if (PAR_UN_CORPS.test(text)) moves.voted += 1;
+    else if (!GESTE.test(text)) moves.decreed += 1;
+  }
+  return moves;
+};
+
 /** Apply those moves to the body, bounded so a front cannot be settled in one turn. */
 export const applyBodyMoves = (body, moves) => {
   const b = normalizeChurchBody(body);
@@ -270,18 +306,29 @@ export const applyBodyMoves = (body, moves) => {
 export const ensureBodyFromOrders = (world, orders, { years = 0, date = "" } = {}) => {
   const moves = bodyMovesFromOrders(orders);
   const moved = applyBodyMoves(world?.churchBody, moves);
-  return { churchBody: stepChurchBody(moved, { years, date }), notes: moves.notes };
+  const gov = governanceMovesFromOrders(orders);
+  const stepped = stepChurchBody(moved, { years, date });
+  return {
+    churchBody: {
+      ...stepped,
+      governance: { voted: stepped.governance.voted + gov.voted, decreed: stepped.governance.decreed + gov.decreed },
+    },
+    notes: moves.notes,
+  };
 };
 
 // ── The six fronts ───────────────────────────────────────────────────────────
 
+// `hint` dit ce que le chiffre compte. Rapport de terrain : « Unité 100 % »,
+// « Diplomatie et paix 0 » et « Finances −28 M€ » ne disaient ni de quoi, ni
+// sur quelle période, ni dans quel sens c'est bon.
 export const FRONTS = Object.freeze([
-  { key: "unity", label: "Unité de l'Église", unit: "share" },
-  { key: "safeguarding", label: "Abus : dossiers jugés", unit: "share" },
-  { key: "governance", label: "Synodalité et gouvernement", unit: "share" },
-  { key: "vocations", label: "Vocations", unit: "count" },
-  { key: "peace", label: "Diplomatie et paix", unit: "count" },
-  { key: "finances", label: "Finances", unit: "money" },
+  { key: "unity", label: "Unité de l'Église", unit: "share", hint: "part du collège restée en communion" },
+  { key: "safeguarding", label: "Abus : dossiers jugés", unit: "share", hint: "part des dossiers traités depuis l'élection" },
+  { key: "governance", label: "Synodalité et gouvernement", unit: "share", hint: "part de vos décisions passées par un vote ou une consultation", empty: "aucune décision encore" },
+  { key: "vocations", label: "Vocations", unit: "count", hint: "séminaristes en formation dans le monde" },
+  { key: "peace", label: "Diplomatie et paix", unit: "count", hint: "puissances qui agissent contre vous — moins, c'est mieux" },
+  { key: "finances", label: "Finances", unit: "money", hint: "solde prévu sur l'année" },
 ]);
 
 /**
@@ -315,9 +362,9 @@ export const frontFigures = (world, player) => {
   // so a pope who says "synodal" and decrees everything reads as what he did.
   const record = Array.isArray(world?.record) ? world.record : [];
   const decisions = record.filter((r) => r && (r.kind === "resolution" || r.kind === "decree"));
-  const governance = decisions.length
-    ? (decisions.filter((r) => r.kind === "resolution").length / decisions.length) * 100
-    : null;
+  const voted = decisions.filter((r) => r.kind === "resolution").length + (body ? body.governance.voted : 0);
+  const taken = decisions.length + (body ? body.governance.voted + body.governance.decreed : 0);
+  const governance = taken ? (voted / taken) * 100 : null;
 
   // Peace: how many powers still hold a hostile standing intent against this
   // polity. A count, falling is good — the engine already tracks the intents.
@@ -356,13 +403,13 @@ const IMPROVES_WHEN_FALLING = new Set(["peace"]);
 export const frontRows = (world, player) => {
   const now = frontFigures(world, player);
   const base = world?.registerBaseline?.fronts ?? null;
-  return FRONTS.map(({ key, label, unit }) => {
+  return FRONTS.map(({ key, label, unit, hint = "", empty = "" }) => {
     const value = num(now[key]);
     const from = base ? num(base[key]) : null;
     const delta = value != null && from != null ? value - from : null;
     const eps = Math.abs(from ?? 0) * 0.002;
     const direction = delta == null || Math.abs(delta) <= eps ? "flat" : delta > 0 ? "up" : "down";
     const good = direction === "flat" ? null : IMPROVES_WHEN_FALLING.has(key) ? direction === "down" : direction === "up";
-    return { key, label, unit, value, from, delta, direction, good };
+    return { key, label, unit, hint, empty, value, from, delta, direction, good };
   });
 };
